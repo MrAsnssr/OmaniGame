@@ -397,7 +397,7 @@ function JsonImportModal({ onClose }) {
 
         try {
             const parsed = JSON.parse(jsonInput);
-            
+
             // Normalize to array of questions
             let questionsToImport = [];
             if (Array.isArray(parsed)) {
@@ -422,7 +422,7 @@ function JsonImportModal({ onClose }) {
                     // Map various field names to our standard format
                     const questionType = q.type || q.questionTypeId || q.questionType || 'multiple-choice';
                     const questionText = q.question || q.text || q.questionText || '';
-                    
+
                     if (!questionText) {
                         errorCount++;
                         continue;
@@ -502,15 +502,17 @@ function JsonImportModal({ onClose }) {
 
     const exampleJSON = `[
   {
-    "type": "multiple-choice",
-    "question": "What is the capital of Oman?",
-    "options": ["Muscat", "Dubai", "Doha", "Kuwait City"],
-    "answer": "Muscat"
+    "text": "السؤال هنا ______.",
+    "questionTypeId": "fill-blank",
+    "correctAnswer": "الجواب"
   },
   {
-    "type": "fill-blank",
-    "question": "Oman is located on the ______ Peninsula.",
-    "answer": "Arabian"
+    "text": "من هو...؟",
+    "questionTypeId": "four-options",
+    "options": [
+      { "text": "Option 1", "isCorrect": false },
+      { "text": "Option 2", "isCorrect": true }
+    ]
   }
 ]`;
 
@@ -523,7 +525,7 @@ function JsonImportModal({ onClose }) {
             >
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Import Questions from JSON</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                    Paste an array of questions or a single question object. The selected category will be applied to all imported questions.
+                    Supports: <b>fill-blank</b>, <b>four-options</b>, <b>order-challenge</b>, <b>who-and-who</b>
                 </p>
 
                 {/* Category Selector */}
@@ -554,8 +556,8 @@ function JsonImportModal({ onClose }) {
 
                 {status && (
                     <div className={`mb-4 p-3 rounded-lg font-medium ${status.includes('✅') ? 'bg-green-100 text-green-700' :
-                            status.includes('⚠️') ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
+                        status.includes('⚠️') ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
                         }`}>
                         {status}
                     </div>
