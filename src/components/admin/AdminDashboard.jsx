@@ -377,7 +377,7 @@ function QuestionForm({ question, categories, onClose }) {
 function JsonImportModal({ onClose }) {
     const { categories, addQuestion } = useGameStore();
     const [jsonInput, setJsonInput] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || '');
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [status, setStatus] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -534,9 +534,10 @@ function JsonImportModal({ onClose }) {
                     <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none text-gray-900 bg-white"
+                        className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 outline-none bg-white ${selectedCategory ? 'border-gray-300 text-gray-900' : 'border-amber-400 text-gray-500'}`}
                         disabled={isProcessing}
                     >
+                        <option value="" disabled>-- Select a category --</option>
                         {categories.map(c => (
                             <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                         ))}
