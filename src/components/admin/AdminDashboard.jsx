@@ -375,8 +375,9 @@ function QuestionForm({ question, categories, onClose }) {
 }
 
 function JsonImportModal({ onClose }) {
-    const { importQuestionsFromJSON } = useGameStore();
+    const { categories, addQuestion } = useGameStore();
     const [jsonInput, setJsonInput] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || '');
     const [status, setStatus] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -386,51 +387,132 @@ function JsonImportModal({ onClose }) {
             return;
         }
 
+        if (!selectedCategory) {
+            setStatus('⚠️ Please select a category');
+            return;
+        }
+
         setIsProcessing(true);
         setStatus('📤 Processing JSON...');
 
         try {
             const parsed = JSON.parse(jsonInput);
-            const result = await importQuestionsFromJSON(parsed);
+            
+            // Normalize to array of questions
+            let questionsToImport = [];
+            if (Array.isArray(parsed)) {
+                questionsToImport = parsed;
+            } else if (parsed.questions && Array.isArray(parsed.questions)) {
+                questionsToImport = parsed.questions;
+            } else if (typeof parsed === 'object' && parsed !== null) {
+                questionsToImport = [parsed];
+            }
 
-            if (result.success) {
-                setStatus(`✅ ${result.message}`);
+            if (questionsToImport.length === 0) {
+                setStatus('⚠️ No questions found in the JSON');
+                setIsProcessing(false);
+                return;
+            }
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const q of questionsToImport) {
+                try {
+                    // Map various field names to our standard format
+                    const questionType = q.type || q.questionTypeId || q.questionType || 'multiple-choice';
+                    const questionText = q.question || q.text || q.questionText || '';
+                    
+                    if (!questionText) {
+                        errorCount++;
+                        continue;
+                    }
+
+                    const newQuestion = {
+                        category: selectedCategory,
+                        question: questionText,
+                        type: questionType,
+                    };
+
+                    // Handle different question types
+                    if (questionType === 'multiple-choice' || questionType === 'four-options') {
+                        newQuestion.type = 'multiple-choice';
+                        if (q.options && Array.isArray(q.options)) {
+                            if (typeof q.options[0] === 'object') {
+                                newQuestion.options = q.options.map(o => o.text || o);
+                                const correct = q.options.find(o => o.isCorrect);
+                                newQuestion.answer = correct ? (correct.text || correct) : (q.answer || q.correctAnswer || newQuestion.options[0]);
+                            } else {
+                                newQuestion.options = q.options;
+                                newQuestion.answer = q.answer || q.correctAnswer || q.options[0];
+                            }
+                        }
+                    } else if (questionType === 'fill-blank') {
+                        newQuestion.answer = q.answer || q.correctAnswer || '';
+                        newQuestion.options = q.options || [newQuestion.answer];
+                    } else if (questionType === 'order' || questionType === 'order-challenge') {
+                        newQuestion.type = 'order';
+                        if (q.items) {
+                            newQuestion.items = q.items.map((item, idx) => ({
+                                id: String(item.id || idx + 1),
+                                text: item.text || item
+                            }));
+                            newQuestion.correctOrder = q.correctOrder || newQuestion.items.map(i => i.id);
+                        } else if (q.orderItems) {
+                            newQuestion.items = q.orderItems.map(i => ({
+                                id: String(i.id),
+                                text: i.text
+                            }));
+                            const sorted = [...q.orderItems].sort((a, b) => a.correctPosition - b.correctPosition);
+                            newQuestion.correctOrder = sorted.map(i => String(i.id));
+                        }
+                    } else if (questionType === 'match' || questionType === 'who-and-who') {
+                        newQuestion.type = 'match';
+                        if (q.pairs) {
+                            newQuestion.pairs = q.pairs;
+                        } else if (q.whoAndWhoData) {
+                            const { people, achievements } = q.whoAndWhoData;
+                            newQuestion.pairs = achievements.map(a => {
+                                const person = people.find(p => p.id === a.personId);
+                                return { left: person ? person.name : 'Unknown', right: a.text };
+                            });
+                        }
+                    }
+
+                    await addQuestion(newQuestion);
+                    successCount++;
+                } catch (err) {
+                    console.error('Error importing question:', err);
+                    errorCount++;
+                }
+            }
+
+            if (successCount > 0) {
+                setStatus(`✅ Imported ${successCount} question${successCount > 1 ? 's' : ''}${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
                 setTimeout(() => onClose(), 2000);
             } else {
-                setStatus(`❌ Error: ${result.message}`);
+                setStatus(`❌ Failed to import any questions. Check your JSON format.`);
             }
         } catch (error) {
-            setStatus(`❌ Invalid JSON format: ${error.message}`);
+            setStatus(`❌ Invalid JSON: ${error.message}`);
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const exampleJSON = `{
-  "categories": [
-    {
-      "id": "custom",
-      "name": "Custom Category",
-      "icon": "🎯",
-      "color": "bg-blue-500"
-    }
-  ],
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "category": "geography",
-      "question": "What is the capital?",
-      "options": ["A", "B", "C", "D"],
-      "answer": "A"
-    },
-    {
-      "type": "fill-blank",
-      "category": "history",
-      "question": "The year was ______.",
-      "answer": "1970"
-    }
-  ]
-}`;
+    const exampleJSON = `[
+  {
+    "type": "multiple-choice",
+    "question": "What is the capital of Oman?",
+    "options": ["Muscat", "Dubai", "Doha", "Kuwait City"],
+    "answer": "Muscat"
+  },
+  {
+    "type": "fill-blank",
+    "question": "Oman is located on the ______ Peninsula.",
+    "answer": "Arabian"
+  }
+]`;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -441,8 +523,23 @@ function JsonImportModal({ onClose }) {
             >
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Import Questions from JSON</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                    Paste JSON with categories and/or questions. Both are optional in the JSON structure.
+                    Paste an array of questions or a single question object. The selected category will be applied to all imported questions.
                 </p>
+
+                {/* Category Selector */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Import to Category:</label>
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 outline-none text-gray-900 bg-white"
+                        disabled={isProcessing}
+                    >
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                        ))}
+                    </select>
+                </div>
 
                 <div className="flex-1 mb-4 flex flex-col overflow-hidden">
                     <label className="text-sm font-medium text-gray-700 mb-1">JSON Data:</label>
