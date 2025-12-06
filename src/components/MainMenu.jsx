@@ -34,7 +34,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="h-48 md:h-64 w-auto object-contain drop-shadow-2xl filter"
+                    className="w-64 md:w-96 h-auto object-contain drop-shadow-2xl filter"
                 />
             </motion.div>
 
@@ -50,9 +50,9 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     onClick={onStart}
                     className="relative group flex justify-center"
                 >
-                    <img src={singlePlayerBtn} alt="Singleplayer" className="h-24 md:h-32 w-auto drop-shadow-lg" />
+                    <img src={singlePlayerBtn} alt="Singleplayer" className="w-64 md:w-80 h-auto drop-shadow-lg" />
                     {/* Glow effect */}
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
+                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
                 </motion.button>
 
                 <motion.button
@@ -65,8 +65,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     onClick={onMultiplayer}
                     className="relative group flex justify-center"
                 >
-                    <img src={multiplayerBtn} alt="Multiplayer" className="h-24 md:h-32 w-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
+                    <img src={multiplayerBtn} alt="Multiplayer" className="w-64 md:w-80 h-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
                 </motion.button>
 
                 <motion.button
@@ -79,8 +79,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     onClick={() => { }}
                     className="relative group flex justify-center"
                 >
-                    <img src={leaderboardBtn} alt="Leaderboards" className="h-24 md:h-32 w-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
+                    <img src={leaderboardBtn} alt="Leaderboards" className="w-64 md:w-80 h-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
                 </motion.button>
             </div>
 
