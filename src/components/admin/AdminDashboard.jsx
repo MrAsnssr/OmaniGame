@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson } from 'lucide-react';
 import Button from '../Button';
 
 export default function AdminDashboard() {
-    const { categories, questions, resetGame, deleteCategory, deleteQuestion, resetAllData } = useGameStore();
-    const [isResetting, setIsResetting] = useState(false);
+    const { categories, questions, resetGame, deleteCategory, deleteQuestion } = useGameStore();
     const [activeTab, setActiveTab] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -33,21 +32,6 @@ export default function AdminDashboard() {
                     <ArrowLeft size={20} />
                 </button>
                 <h2 className="text-2xl font-bold text-white flex-1">Admin Panel</h2>
-                <button
-                    onClick={async () => {
-                        if (window.confirm('This will delete ALL categories and questions and reset to default data. Continue?')) {
-                            setIsResetting(true);
-                            await resetAllData();
-                            setIsResetting(false);
-                            alert('Data reset successfully!');
-                        }
-                    }}
-                    disabled={isResetting}
-                    className="px-3 py-2 rounded-lg bg-red-500/80 text-white text-sm font-bold flex items-center gap-2 hover:bg-red-600 transition-colors disabled:opacity-50"
-                >
-                    <RefreshCw size={16} className={isResetting ? 'animate-spin' : ''} />
-                    {isResetting ? 'Resetting...' : 'Reset Data'}
-                </button>
             </div>
 
             {/* Tabs */}

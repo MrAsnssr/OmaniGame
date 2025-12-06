@@ -55,15 +55,6 @@ export const useGameStore = create((set, get) => ({
     // Initialize Firestore listeners
     initializeFirestore: async () => {
         try {
-            // Check if data exists in Firestore
-            const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-            const questionsSnapshot = await getDocs(collection(db, 'questions'));
-
-            // If no data exists, seed with initial data
-            if (categoriesSnapshot.empty || questionsSnapshot.empty) {
-                await get().seedInitialData();
-            }
-
             // Set up real-time listeners
             const unsubscribeCategories = onSnapshot(
                 collection(db, 'categories'),
@@ -136,36 +127,6 @@ export const useGameStore = create((set, get) => ({
             console.log('Initial data seeded successfully');
         } catch (error) {
             console.error('Error seeding initial data:', error);
-        }
-    },
-
-    // Reset all data - clears Firestore and re-seeds with correct IDs
-    resetAllData: async () => {
-        try {
-            // Delete all existing categories
-            const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-            const deleteCategories = writeBatch(db);
-            categoriesSnapshot.docs.forEach(doc => {
-                deleteCategories.delete(doc.ref);
-            });
-            await deleteCategories.commit();
-
-            // Delete all existing questions
-            const questionsSnapshot = await getDocs(collection(db, 'questions'));
-            const deleteQuestions = writeBatch(db);
-            questionsSnapshot.docs.forEach(doc => {
-                deleteQuestions.delete(doc.ref);
-            });
-            await deleteQuestions.commit();
-
-            // Re-seed with fresh data
-            await get().seedInitialData();
-
-            console.log('All data reset successfully');
-            return { success: true };
-        } catch (error) {
-            console.error('Error resetting data:', error);
-            return { success: false, error: error.message };
         }
     },
 
