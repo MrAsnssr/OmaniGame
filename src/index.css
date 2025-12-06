@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-omani-red: #D92525;
+  --color-omani-green: #008000;
+  --color-omani-white: #FFFFFF;
+  --color-omani-gold: #FFD700;
+  --color-omani-gold-shadow: #B8860B;
+  --color-omani-sand: #F4E4BC;
+  --color-omani-dark: #1A1A1A;
+
+  --color-night-start: #2C1B4E;
+  --color-night-end: #724C9D;
+  --color-sand-start: #E6C288;
+  --color-sand-end: #D4A76A;
+
+  --font-sans: Inter, sans-serif;
+
+  --animate-float: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+body {
+  @apply bg-gray-900 text-gray-100 m-0 p-0 overflow-hidden;
+}
+
+#root {
+  @apply h-[100dvh] w-full flex justify-center items-center bg-gray-900 overflow-hidden;
+}

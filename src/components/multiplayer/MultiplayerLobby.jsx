@@ -1,0 +1,274 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square } from 'lucide-react';
+import Button from '../Button';
+import { useGameStore } from '../../store/gameStore';
+
+export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }) {
+    const {
+        questionCount, setQuestionCount,
+        timePerQuestion, setTimePerQuestion,
+        selectedTypes, toggleType,
+        categories
+    } = useGameStore();
+
+    const [mode, setMode] = useState('select'); // select, create, join
+    const [gameMode, setGameMode] = useState('standard'); // standard, turn-based
+    const [playerName, setPlayerName] = useState('');
+    const [roomCode, setRoomCode] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const allTypes = [
+        { id: 'multiple-choice', label: 'Multiple Choice', emoji: '🔘' },
+        { id: 'fill-blank', label: 'Fill Blank', emoji: '✏️' },
+        { id: 'order', label: 'Order', emoji: '📋' },
+        { id: 'match', label: 'Match', emoji: '🔗' },
+    ];
+
+    const handleCreate = () => {
+        if (!playerName.trim()) {
+            setError('Please enter your name');
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+        onRoomCreated(playerName.trim(), gameMode);
+    };
+
+    const handleJoin = () => {
+        if (!playerName.trim()) {
+            setError('Please enter your name');
+            return;
+        }
+        if (!roomCode.trim() || roomCode.length !== 6) {
+            setError('Please enter a valid 6-character room code');
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+        onRoomJoined(roomCode.toUpperCase(), playerName.trim());
+    };
+
+    return (
+        <div className="flex flex-col h-full p-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-4">
+                <button
+                    onClick={mode === 'select' ? onBack : () => setMode('select')}
+                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                </button>
+                <h2 className="text-2xl font-bold text-white">
+                    {mode === 'select' ? 'Multiplayer' : mode === 'create' ? 'Create Room' : 'Join Room'}
+                </h2>
+            </div>
+
+            <div className="flex-1 flex flex-col gap-2 min-h-0">
+                {mode === 'select' && (
+                    <div className="flex flex-col items-center justify-center flex-1 gap-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center mb-4"
+                        >
+                            <Users size={64} className="text-omani-gold mx-auto mb-2" />
+                            <p className="text-white/80">Play with friends in real-time!</p>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setMode('create')}
+                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-green-700"
+                        >
+                            <Plus size={24} />
+                            Create Room
+                        </motion.button>
+
+                        <motion.button
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setMode('join')}
+                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-blue-700"
+                        >
+                            <LogIn size={24} />
+                            Join Room
+                        </motion.button>
+                    </div>
+                )}
+
+                {mode === 'create' && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col gap-2 h-full overflow-hidden"
+                    >
+                        {/* Nickname */}
+                        <input
+                            type="text"
+                            value={playerName}
+                            onChange={(e) => setPlayerName(e.target.value)}
+                            placeholder="Your nickname"
+                            maxLength={15}
+                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
+                        />
+
+                        {/* Game Settings Panel */}
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
+                            <h3 className="text-white font-bold text-center">Game Settings</h3>
+
+                            {/* Game Mode Toggle */}
+                            <div className="flex bg-black/20 p-1 rounded-xl">
+                                <button
+                                    onClick={() => setGameMode('standard')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'standard'
+                                        ? 'bg-white text-gray-800 shadow-md'
+                                        : 'text-white/60 hover:text-white'
+                                        }`}
+                                >
+                                    Standard
+                                </button>
+                                <button
+                                    onClick={() => setGameMode('turn-based')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'turn-based'
+                                        ? 'bg-omani-gold text-white shadow-md'
+                                        : 'text-white/60 hover:text-white'
+                                        }`}
+                                >
+                                    Turn-Based
+                                </button>
+                            </div>
+
+                            {/* Question Count */}
+                            <div>
+                                <div className="flex items-center gap-2 text-white mb-2">
+                                    <Hash size={16} />
+                                    <span className="font-bold text-sm">Questions: {questionCount}</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="5"
+                                    max="30"
+                                    step="5"
+                                    value={questionCount}
+                                    onChange={(e) => setQuestionCount(Number(e.target.value))}
+                                    className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                />
+                                <div className="flex justify-between text-xs text-white/50 mt-1">
+                                    <span>5</span>
+                                    <span>30</span>
+                                </div>
+                            </div>
+
+                            {/* Time Per Question */}
+                            <div>
+                                <div className="flex items-center gap-2 text-white mb-2">
+                                    <Clock size={16} />
+                                    <span className="font-bold text-sm">Time: {timePerQuestion}s</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="10"
+                                    max="60"
+                                    step="5"
+                                    value={timePerQuestion}
+                                    onChange={(e) => setTimePerQuestion(Number(e.target.value))}
+                                    className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                />
+                                <div className="flex justify-between text-xs text-white/50 mt-1">
+                                    <span>10s</span>
+                                    <span>60s</span>
+                                </div>
+                            </div>
+
+                            {/* Question Types (Only for Standard Mode) */}
+                            {gameMode === 'standard' && (
+                                <div>
+                                    <span className="font-bold text-white text-sm block mb-2">Question Types:</span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {allTypes.map(type => (
+                                            <button
+                                                key={type.id}
+                                                onClick={() => toggleType(type.id)}
+                                                className={`flex items-center gap-2 p-2 rounded-lg font-bold text-xs transition-colors ${selectedTypes.includes(type.id)
+                                                    ? 'bg-white text-gray-800'
+                                                    : 'bg-white/20 text-white/60'
+                                                    }`}
+                                            >
+                                                {selectedTypes.includes(type.id) ? <CheckSquare size={14} /> : <Square size={14} />}
+                                                <span>{type.emoji}</span>
+                                                <span className="truncate">{type.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameMode === 'turn-based' && (
+                                <div className="bg-white/10 rounded-lg p-3 text-xs text-white/80 text-center">
+                                    Players take turns picking the Category and Question Type for each round!
+                                </div>
+                            )}
+                        </div>
+
+                        {error && (
+                            <p className="text-red-300 text-center text-sm">{error}</p>
+                        )}
+
+                        <Button
+                            onClick={handleCreate}
+                            disabled={isLoading}
+                            className="w-full"
+                        >
+                            {isLoading ? 'Creating...' : 'Create Room'}
+                        </Button>
+                    </motion.div>
+                )}
+
+                {mode === 'join' && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex-1 flex flex-col items-center justify-center gap-4"
+                    >
+                        <div className="w-full max-w-xs space-y-4">
+                            <input
+                                type="text"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                placeholder="Your nickname"
+                                maxLength={15}
+                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
+                            />
+
+                            <input
+                                type="text"
+                                value={roomCode}
+                                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                                placeholder="Room Code (e.g., ABC123)"
+                                maxLength={6}
+                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg tracking-widest"
+                            />
+
+                            {error && (
+                                <p className="text-red-300 text-center text-sm">{error}</p>
+                            )}
+
+                            <Button
+                                onClick={handleJoin}
+                                disabled={isLoading}
+                                className="w-full"
+                            >
+                                {isLoading ? 'Joining...' : 'Join Room'}
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </div>
+    );
+}
