@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.PROD ? '/' : 'http://localhost:3001';
 
 class SocketService {
     constructor() {

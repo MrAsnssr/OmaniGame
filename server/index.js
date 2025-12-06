@@ -465,6 +465,24 @@ function processRoundEnd(room) {
 }
 
 const PORT = process.env.PORT || 3001;
+
+// Serve static files in production
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from the dist directory (one level up from server)
+    app.use(express.static(path.join(__dirname, '../dist')));
+
+    // Handle client-side routing by returning index.html for all other routes
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../dist/index.html'));
+    });
+}
+
 httpServer.listen(PORT, () => {
     console.log(`🎮 Omani Quiz Server running on port ${PORT}`);
 });
