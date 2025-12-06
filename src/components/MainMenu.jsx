@@ -6,95 +6,112 @@ import multiplayerBtn from '../assets/السبلة.png';
 import leaderboardBtn from '../assets/كبارية.png';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
-    const variants = {
-        hidden: { opacity: 0, y: 50 },
+    const buttonVariants = {
+        hidden: { opacity: 0, y: 30 },
         visible: (i) => ({
             opacity: 1,
             y: 0,
             transition: {
                 delay: i * 0.1,
                 type: "spring",
-                stiffness: 100,
-                damping: 10
+                stiffness: 120,
+                damping: 12
             }
         }),
-        hover: { scale: 1.05, transition: { duration: 0.2 } },
-        tap: { scale: 0.95 }
+        hover: { scale: 1.02, transition: { duration: 0.2 } },
+        tap: { scale: 0.98 }
     };
 
     return (
-        <div className="flex flex-col h-full items-center justify-center relative z-10 p-4">
+        <div className="flex flex-col h-full items-center justify-start relative z-10 p-4 pt-8 overflow-y-auto">
             {/* Logo Section */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="mb-8 w-full flex justify-center"
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="mb-6 flex justify-center"
             >
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="w-64 md:w-96 h-auto object-contain drop-shadow-2xl filter"
+                    className="w-32 md:w-40 h-auto object-contain drop-shadow-xl"
                 />
             </motion.div>
 
-            {/* Buttons Section */}
-            <div className="flex flex-col gap-6 w-full items-center">
+            {/* Main Buttons Section - Stacked vertically */}
+            <div className="flex flex-col gap-3 w-full max-w-sm items-center">
+                {/* Singleplayer Button - Large */}
                 <motion.button
                     custom={0}
                     initial="hidden"
                     animate="visible"
                     whileHover="hover"
                     whileTap="tap"
-                    variants={variants}
+                    variants={buttonVariants}
                     onClick={onStart}
-                    className="relative group flex justify-center"
+                    className="w-full"
                 >
-                    <img src={singlePlayerBtn} alt="Singleplayer" className="w-64 md:w-80 h-auto drop-shadow-lg" />
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
+                    <img
+                        src={singlePlayerBtn}
+                        alt="خطفة - Singleplayer"
+                        className="w-full h-auto rounded-2xl shadow-lg"
+                    />
                 </motion.button>
 
+                {/* Multiplayer Button - Large */}
                 <motion.button
                     custom={1}
                     initial="hidden"
                     animate="visible"
                     whileHover="hover"
                     whileTap="tap"
-                    variants={variants}
+                    variants={buttonVariants}
                     onClick={onMultiplayer}
-                    className="relative group flex justify-center"
+                    className="w-full"
                 >
-                    <img src={multiplayerBtn} alt="Multiplayer" className="w-64 md:w-80 h-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
+                    <img
+                        src={multiplayerBtn}
+                        alt="السبلة - Multiplayer"
+                        className="w-full h-auto rounded-2xl shadow-lg"
+                    />
                 </motion.button>
 
-                <motion.button
-                    custom={2}
-                    initial="hidden"
-                    animate="visible"
-                    whileHover="hover"
-                    whileTap="tap"
-                    variants={variants}
-                    onClick={() => { }}
-                    className="relative group flex justify-center"
-                >
-                    <img src={leaderboardBtn} alt="Leaderboards" className="w-64 md:w-80 h-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-90" />
-                </motion.button>
+                {/* Bottom Row - Two smaller buttons side by side */}
+                <div className="flex gap-3 w-full">
+                    {/* Settings Button */}
+                    <motion.button
+                        custom={2}
+                        initial="hidden"
+                        animate="visible"
+                        whileHover="hover"
+                        whileTap="tap"
+                        variants={buttonVariants}
+                        onClick={onAdmin}
+                        className="flex-1 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col items-center justify-center gap-2"
+                    >
+                        <span className="text-3xl">⚙️</span>
+                        <span className="text-gray-800 font-bold text-sm">إعدادات</span>
+                    </motion.button>
+
+                    {/* Leaderboard Button */}
+                    <motion.button
+                        custom={3}
+                        initial="hidden"
+                        animate="visible"
+                        whileHover="hover"
+                        whileTap="tap"
+                        variants={buttonVariants}
+                        onClick={() => { }}
+                        className="flex-1"
+                    >
+                        <img
+                            src={leaderboardBtn}
+                            alt="الكبارية - Leaderboards"
+                            className="w-full h-full object-cover rounded-2xl shadow-lg"
+                        />
+                    </motion.button>
+                </div>
             </div>
-
-            {/* Admin Button (Hidden/Subtle) */}
-            <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                whileHover={{ opacity: 1 }}
-                onClick={onAdmin}
-                className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
-                title="Admin Settings"
-            >
-                ⚙️
-            </motion.button>
         </div>
     );
 }
