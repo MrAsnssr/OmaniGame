@@ -61,7 +61,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <ArrowLeft size={20} />
                 </button>
                 <h2 className="text-2xl font-bold text-white">
-                    {mode === 'select' ? 'Multiplayer' : mode === 'create' ? 'Create Room' : 'Join Room'}
+                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'إنشاء غرفة' : 'انضمام لغرفة'}
                 </h2>
             </div>
 

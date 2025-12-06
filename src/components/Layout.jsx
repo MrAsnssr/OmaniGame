@@ -24,20 +24,8 @@ export default function Layout({ children }) {
             </div>
 
             {/* Moon/Crescent Logo Area - Top Left */}
-            <div className="absolute top-4 left-4 z-10 flex flex-col items-center">
+            <div className="absolute top-4 left-4 z-10 flex flex-col items-center opacity-50">
                 <div className="text-omani-gold text-4xl filter drop-shadow-lg">☪</div>
-            </div>
-
-            {/* Flag - Top Right */}
-            <div className="absolute top-4 right-4 z-10">
-                <div className="w-12 h-8 bg-white rounded shadow-md overflow-hidden flex flex-col border border-white/20 relative">
-                    <div className="h-1/3 bg-white"></div>
-                    <div className="h-1/3 bg-omani-red"></div>
-                    <div className="h-1/3 bg-omani-green"></div>
-                    <div className="absolute top-0 left-0 h-full w-1/4 bg-omani-red flex items-start justify-center pt-0.5">
-                        <span className="text-[8px] text-white">⚔</span>
-                    </div>
-                </div>
             </div>
 
             {/* Main Content Area */}

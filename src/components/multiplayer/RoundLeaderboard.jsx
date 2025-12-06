@@ -38,12 +38,12 @@ export default function RoundLeaderboard({
             >
                 {isGameOver ? (
                     <>
-                        <h2 className="text-3xl font-black text-omani-gold mb-2">🏆 Game Over!</h2>
-                        <p className="text-white text-lg">{winner?.playerName} wins!</p>
+                        <h2 className="text-3xl font-black text-omani-gold mb-2">🏆 انتهت اللعبة!</h2>
+                        <p className="text-white text-lg">الفائز هو {winner?.playerName}!</p>
                     </>
                 ) : (
                     <>
-                        <h2 className="text-2xl font-bold text-white">Leaderboard</h2>
+                        <h2 className="text-2xl font-bold text-white">الكبارية</h2>
                         <p className="text-white/60">Question {questionIndex + 1} of {totalQuestions}</p>
                     </>
                 )}

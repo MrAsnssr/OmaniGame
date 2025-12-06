@@ -28,7 +28,7 @@ export default function CategorySelection() {
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white">Game Setup</h2>
+                <h2 className="text-2xl font-bold text-white">خطفة</h2>
             </div>
 
             {/* Main Content Grid */}

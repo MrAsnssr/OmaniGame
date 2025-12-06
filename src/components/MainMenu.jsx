@@ -1,59 +1,101 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, Settings, Trophy, Users } from 'lucide-react';
+import logo from '../assets/شعار.png';
+import singlePlayerBtn from '../assets/خطفة.png';
+import multiplayerBtn from '../assets/السبلة.png';
+import leaderboardBtn from '../assets/كبارية.png';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
-    const menuItems = [
-        { id: 'play', icon: Play, color: 'bg-blue-400', border: 'border-blue-500', shadow: 'shadow-blue-600', onClick: onStart },
-        { id: 'multiplayer', icon: Users, color: 'bg-purple-500', border: 'border-purple-600', shadow: 'shadow-purple-700', onClick: onMultiplayer },
-        { id: 'admin', icon: Settings, color: 'bg-green-500', border: 'border-green-600', shadow: 'shadow-green-700', onClick: onAdmin },
-        { id: 'leaderboard', icon: Trophy, color: 'bg-yellow-400', border: 'border-yellow-500', shadow: 'shadow-yellow-600', onClick: () => { } },
-    ];
+    const variants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: (i) => ({
+            opacity: 1,
+            y: 0,
+            transition: {
+                delay: i * 0.1,
+                type: "spring",
+                stiffness: 100,
+                damping: 10
+            }
+        }),
+        hover: { scale: 1.05, transition: { duration: 0.2 } },
+        tap: { scale: 0.95 }
+    };
 
     return (
-        <div className="flex flex-col h-full relative">
-            {/* Character & Title Section */}
-            <div className="flex-1 flex flex-col items-center justify-center relative z-10 pb-20">
+        <div className="flex flex-col h-full items-center justify-center relative z-10 p-4">
+            {/* Logo Section */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="mb-8 w-full max-w-sm flex justify-center"
+            >
+                <img
+                    src={logo}
+                    alt="Omani Game Logo"
+                    className="w-full h-auto object-contain drop-shadow-2xl filter"
+                    style={{ maxHeight: '250px' }}
+                />
+            </motion.div>
 
-                {/* Silhouette/Castle Background (CSS shapes) */}
-                <div className="absolute bottom-20 w-64 h-64 bg-black/20 rounded-full blur-xl" />
+            {/* Buttons Section */}
+            <div className="flex flex-col gap-6 w-full max-w-xs items-center">
+                <motion.button
+                    custom={0}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    whileTap="tap"
+                    variants={variants}
+                    onClick={onStart}
+                    className="w-full relative group"
+                >
+                    <img src={singlePlayerBtn} alt="Singleplayer - Khatafah" className="w-full h-auto drop-shadow-lg" />
+                    {/* Glow effect on hover */}
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                </motion.button>
 
-                {/* Title Banner */}
-                <div className="relative z-30 w-full px-4">
-                    <div className="bg-gradient-to-b from-omani-sand to-amber-200 border-4 border-amber-700 rounded-2xl p-2 shadow-xl transform -rotate-1">
-                        <div className="bg-amber-100 border-2 border-amber-300 rounded-xl p-3 text-center shadow-inner">
-                            <h1 className="text-3xl font-black text-amber-800 tracking-wider drop-shadow-sm stroke-white" style={{ textShadow: '2px 2px 0px #FFF' }}>
-                                OMANI QUIZ QUEST
-                            </h1>
-                        </div>
-                        {/* Decorative corners */}
-                        <div className="absolute -top-2 -left-2 text-amber-500">✦</div>
-                        <div className="absolute -top-2 -right-2 text-amber-500">✦</div>
-                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-amber-700 rotate-45 border-4 border-amber-200" />
-                    </div>
-                </div>
+                <motion.button
+                    custom={1}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    whileTap="tap"
+                    variants={variants}
+                    onClick={onMultiplayer}
+                    className="w-full relative group"
+                >
+                    <img src={multiplayerBtn} alt="Multiplayer - Sablah" className="w-full h-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                </motion.button>
+
+                <motion.button
+                    custom={2}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    whileTap="tap"
+                    variants={variants}
+                    onClick={() => { }} // Leaderboard action
+                    className="w-full relative group"
+                >
+                    <img src={leaderboardBtn} alt="Leaderboards - AlKabaryah" className="w-full h-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                </motion.button>
             </div>
 
-            {/* Circular Buttons Menu */}
-            <div className="flex-none py-8 px-4 relative z-20">
-                <div className="flex justify-center gap-4 items-end">
-                    {menuItems.map((item, index) => (
-                        <motion.button
-                            key={item.id}
-                            whileTap={{ scale: 0.9 }}
-                            initial={{ y: 50, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.1 }}
-                            onClick={item.onClick}
-                            className="flex flex-col items-center gap-1 group"
-                        >
-                            <div className={`w-16 h-16 rounded-full ${item.color} border-b-4 ${item.border} ${item.shadow} flex items-center justify-center text-white shadow-lg group-hover:-translate-y-1 transition-transform`}>
-                                <item.icon size={28} strokeWidth={3} />
-                            </div>
-                        </motion.button>
-                    ))}
-                </div>
-            </div>
+            {/* Admin Button (Hidden/Subtle) */}
+            <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                whileHover={{ opacity: 1 }}
+                onClick={onAdmin}
+                className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
+                title="Admin Settings"
+            >
+                ⚙️
+            </motion.button>
         </div>
     );
 }
