@@ -29,18 +29,17 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="mb-8 w-full max-w-sm flex justify-center"
+                className="mb-8 w-full flex justify-center"
             >
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="w-full h-auto object-contain drop-shadow-2xl filter"
-                    style={{ maxHeight: '250px' }}
+                    className="h-48 md:h-64 w-auto object-contain drop-shadow-2xl filter"
                 />
             </motion.div>
 
             {/* Buttons Section */}
-            <div className="flex flex-col gap-6 w-full max-w-xs items-center">
+            <div className="flex flex-col gap-6 w-full items-center">
                 <motion.button
                     custom={0}
                     initial="hidden"
@@ -49,11 +48,11 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     whileTap="tap"
                     variants={variants}
                     onClick={onStart}
-                    className="w-full relative group"
+                    className="relative group flex justify-center"
                 >
-                    <img src={singlePlayerBtn} alt="Singleplayer - Khatafah" className="w-full h-auto drop-shadow-lg" />
-                    {/* Glow effect on hover */}
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                    <img src={singlePlayerBtn} alt="Singleplayer" className="h-24 md:h-32 w-auto drop-shadow-lg" />
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
                 </motion.button>
 
                 <motion.button
@@ -64,10 +63,10 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     whileTap="tap"
                     variants={variants}
                     onClick={onMultiplayer}
-                    className="w-full relative group"
+                    className="relative group flex justify-center"
                 >
-                    <img src={multiplayerBtn} alt="Multiplayer - Sablah" className="w-full h-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                    <img src={multiplayerBtn} alt="Multiplayer" className="h-24 md:h-32 w-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
                 </motion.button>
 
                 <motion.button
@@ -77,11 +76,11 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     whileHover="hover"
                     whileTap="tap"
                     variants={variants}
-                    onClick={() => { }} // Leaderboard action
-                    className="w-full relative group"
+                    onClick={() => { }}
+                    className="relative group flex justify-center"
                 >
-                    <img src={leaderboardBtn} alt="Leaderboards - AlKabaryah" className="w-full h-auto drop-shadow-lg" />
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                    <img src={leaderboardBtn} alt="Leaderboards" className="h-24 md:h-32 w-auto drop-shadow-lg" />
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 transform scale-75" />
                 </motion.button>
             </div>
 
