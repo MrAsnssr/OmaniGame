@@ -69,8 +69,8 @@ export const useGameStore = create((set, get) => ({
                 collection(db, 'categories'),
                 (snapshot) => {
                     const categories = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
+                        id: doc.id  // Ensure Firestore ID is used, not any 'id' from document data
                     }));
                     set({ categories, isLoading: false, dataInitialized: true });
                 }
@@ -80,8 +80,8 @@ export const useGameStore = create((set, get) => ({
                 collection(db, 'questions'),
                 (snapshot) => {
                     const questions = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
+                        id: doc.id  // Ensure Firestore ID is used, not any 'id' from document data
                     }));
                     set({ questions });
                 }
@@ -98,24 +98,74 @@ export const useGameStore = create((set, get) => ({
     // Seed initial data
     seedInitialData: async () => {
         try {
+            // First, create categories and build a mapping from old IDs to new Firestore IDs
+            const categoryIdMap = {};
+            const categoryRefs = [];
+
+            // Old category IDs that questions reference
+            const oldCategoryIds = ['geography', 'history', 'culture', 'nature'];
+
+            // Add categories and capture their new IDs
+            for (let i = 0; i < initialCategories.length; i++) {
+                const category = initialCategories[i];
+                const categoryRef = doc(collection(db, 'categories'));
+                categoryRefs.push({ ref: categoryRef, data: category });
+                // Map old ID to new Firestore ID
+                categoryIdMap[oldCategoryIds[i]] = categoryRef.id;
+            }
+
             const batch = writeBatch(db);
 
-            // Add categories
-            initialCategories.forEach((category) => {
-                const categoryRef = doc(collection(db, 'categories'));
-                batch.set(categoryRef, category);
+            // Add categories to batch
+            categoryRefs.forEach(({ ref, data }) => {
+                batch.set(ref, data);
             });
 
-            // Add questions
+            // Add questions with mapped category IDs
             initialQuestions.forEach((question) => {
                 const questionRef = doc(collection(db, 'questions'));
-                batch.set(questionRef, question);
+                // Map the old category ID to the new Firestore ID
+                const mappedQuestion = {
+                    ...question,
+                    category: categoryIdMap[question.category] || question.category
+                };
+                batch.set(questionRef, mappedQuestion);
             });
 
             await batch.commit();
             console.log('Initial data seeded successfully');
         } catch (error) {
             console.error('Error seeding initial data:', error);
+        }
+    },
+
+    // Reset all data - clears Firestore and re-seeds with correct IDs
+    resetAllData: async () => {
+        try {
+            // Delete all existing categories
+            const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+            const deleteCategories = writeBatch(db);
+            categoriesSnapshot.docs.forEach(doc => {
+                deleteCategories.delete(doc.ref);
+            });
+            await deleteCategories.commit();
+
+            // Delete all existing questions
+            const questionsSnapshot = await getDocs(collection(db, 'questions'));
+            const deleteQuestions = writeBatch(db);
+            questionsSnapshot.docs.forEach(doc => {
+                deleteQuestions.delete(doc.ref);
+            });
+            await deleteQuestions.commit();
+
+            // Re-seed with fresh data
+            await get().seedInitialData();
+
+            console.log('All data reset successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error resetting data:', error);
+            return { success: false, error: error.message };
         }
     },
 

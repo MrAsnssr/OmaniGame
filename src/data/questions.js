@@ -1,14 +1,13 @@
 // Initial Data for seeding the store
 export const initialCategories = [
-    { id: 'geography', name: 'Geography', icon: '🗺️', color: 'bg-blue-500' },
-    { id: 'history', name: 'History', icon: '📜', color: 'bg-amber-600' },
-    { id: 'culture', name: 'Culture', icon: '🏛️', color: 'bg-purple-500' },
-    { id: 'nature', name: 'Nature', icon: '🌴', color: 'bg-green-500' },
+    { name: 'Geography', icon: '🗺️', color: 'bg-blue-500' },
+    { name: 'History', icon: '📜', color: 'bg-amber-600' },
+    { name: 'Culture', icon: '🏛️', color: 'bg-purple-500' },
+    { name: 'Nature', icon: '🌴', color: 'bg-green-500' },
 ];
 
 export const initialQuestions = [
     {
-        id: 1,
         type: 'multiple-choice',
         category: 'geography',
         question: "What is the capital city of Oman?",
@@ -16,7 +15,6 @@ export const initialQuestions = [
         answer: "Muscat"
     },
     {
-        id: 2,
         type: 'fill-blank',
         category: 'culture',
         question: "The national symbol of Oman features a pair of crossed swords and a ______.",
@@ -24,7 +22,6 @@ export const initialQuestions = [
         options: ["Khanjar", "Dallah", "Palm", "Ship"]
     },
     {
-        id: 3,
         type: 'order',
         category: 'history',
         question: "Order these Omani rulers chronologically (Oldest to Newest)",
@@ -36,7 +33,6 @@ export const initialQuestions = [
         correctOrder: ['1', '2', '3']
     },
     {
-        id: 4,
         type: 'match',
         category: 'geography',
         question: "Match the landmark to its location",
