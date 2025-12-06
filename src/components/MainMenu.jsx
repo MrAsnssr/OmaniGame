@@ -24,6 +24,19 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
 
     return (
         <div className="flex flex-col h-full items-center justify-center relative z-10 p-4">
+            {/* Settings Button - Top Right Corner */}
+            <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.7 }}
+                whileHover={{ opacity: 1, scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onAdmin}
+                className="absolute top-4 right-4 w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-2xl z-20"
+                title="إعدادات"
+            >
+                ⚙️
+            </motion.button>
+
             {/* Logo Section */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -38,9 +51,9 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                 />
             </motion.div>
 
-            {/* All Buttons in a container */}
+            {/* All Main Buttons - 3 rows, all full width */}
             <div className="flex flex-col gap-3 w-full max-w-md items-center px-2">
-                {/* Singleplayer Button - Large */}
+                {/* Row 1: Singleplayer (خطفة) */}
                 <motion.button
                     custom={0}
                     initial="hidden"
@@ -58,7 +71,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     />
                 </motion.button>
 
-                {/* Multiplayer Button - Large */}
+                {/* Row 2: Multiplayer (السبلة) */}
                 <motion.button
                     custom={1}
                     initial="hidden"
@@ -76,41 +89,23 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     />
                 </motion.button>
 
-                {/* Bottom Row - Two equal buttons */}
-                <div className="grid grid-cols-2 gap-3 w-full">
-                    {/* Settings Button */}
-                    <motion.button
-                        custom={2}
-                        initial="hidden"
-                        animate="visible"
-                        whileHover="hover"
-                        whileTap="tap"
-                        variants={buttonVariants}
-                        onClick={onAdmin}
-                        className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center justify-center gap-1 aspect-[4/3]"
-                    >
-                        <span className="text-4xl">⚙️</span>
-                        <span className="text-gray-700 font-bold text-sm">إعدادات</span>
-                    </motion.button>
-
-                    {/* Leaderboard Button */}
-                    <motion.button
-                        custom={3}
-                        initial="hidden"
-                        animate="visible"
-                        whileHover="hover"
-                        whileTap="tap"
-                        variants={buttonVariants}
-                        onClick={() => { }}
-                        className="w-full overflow-hidden rounded-2xl shadow-lg"
-                    >
-                        <img
-                            src={leaderboardBtn}
-                            alt="الكبارية - Leaderboards"
-                            className="w-full h-full object-contain bg-white rounded-2xl"
-                        />
-                    </motion.button>
-                </div>
+                {/* Row 3: Leaderboard (الكبارية) - Full width */}
+                <motion.button
+                    custom={2}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                    whileTap="tap"
+                    variants={buttonVariants}
+                    onClick={() => { }}
+                    className="w-full"
+                >
+                    <img
+                        src={leaderboardBtn}
+                        alt="الكبارية - Leaderboards"
+                        className="w-full h-auto rounded-2xl shadow-lg"
+                    />
+                </motion.button>
             </div>
         </div>
     );
