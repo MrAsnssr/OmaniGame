@@ -23,23 +23,23 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
     };
 
     return (
-        <div className="flex flex-col h-full items-center justify-start relative z-10 p-4 pt-8 overflow-y-auto">
+        <div className="flex flex-col h-full items-center justify-center relative z-10 p-4">
             {/* Logo Section */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="mb-6 flex justify-center"
+                className="mb-4 flex justify-center"
             >
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="w-32 md:w-40 h-auto object-contain drop-shadow-xl"
+                    className="w-28 md:w-36 h-auto object-contain drop-shadow-xl"
                 />
             </motion.div>
 
-            {/* Main Buttons Section - Stacked vertically */}
-            <div className="flex flex-col gap-3 w-full max-w-sm items-center">
+            {/* All Buttons in a container */}
+            <div className="flex flex-col gap-3 w-full max-w-md items-center px-2">
                 {/* Singleplayer Button - Large */}
                 <motion.button
                     custom={0}
@@ -76,8 +76,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     />
                 </motion.button>
 
-                {/* Bottom Row - Two smaller buttons side by side */}
-                <div className="flex gap-3 w-full">
+                {/* Bottom Row - Two equal buttons */}
+                <div className="grid grid-cols-2 gap-3 w-full">
                     {/* Settings Button */}
                     <motion.button
                         custom={2}
@@ -87,10 +87,10 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                         whileTap="tap"
                         variants={buttonVariants}
                         onClick={onAdmin}
-                        className="flex-1 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col items-center justify-center gap-2"
+                        className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center justify-center gap-1 aspect-[4/3]"
                     >
-                        <span className="text-3xl">⚙️</span>
-                        <span className="text-gray-800 font-bold text-sm">إعدادات</span>
+                        <span className="text-4xl">⚙️</span>
+                        <span className="text-gray-700 font-bold text-sm">إعدادات</span>
                     </motion.button>
 
                     {/* Leaderboard Button */}
@@ -102,12 +102,12 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                         whileTap="tap"
                         variants={buttonVariants}
                         onClick={() => { }}
-                        className="flex-1"
+                        className="w-full overflow-hidden rounded-2xl shadow-lg"
                     >
                         <img
                             src={leaderboardBtn}
                             alt="الكبارية - Leaderboards"
-                            className="w-full h-full object-cover rounded-2xl shadow-lg"
+                            className="w-full h-full object-contain bg-white rounded-2xl"
                         />
                     </motion.button>
                 </div>
