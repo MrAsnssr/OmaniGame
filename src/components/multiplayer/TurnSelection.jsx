@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { CheckCircle, User } from 'lucide-react';
+import { CheckCircle, User, Clock } from 'lucide-react';
 
 import socketService from '../../services/socketService';
+
+const SELECTION_TIME = 15; // 15 seconds to pick
 
 export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const {
@@ -17,20 +19,14 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         selectedTurnCategoryId
     } = useGameStore();
 
+    const [timeLeft, setTimeLeft] = useState(SELECTION_TIME);
+
     const currentPlayerId = socketService.getSocket()?.id;
     const categorySelector = players.find(p => p.id === categorySelectorId);
     const typeSelector = players.find(p => p.id === typeSelectorId);
 
     const isMyTurnToPickCategory = currentPlayerId === categorySelectorId && turnPhase === 'category';
     const isMyTurnToPickType = currentPlayerId === typeSelectorId && turnPhase === 'type';
-
-    // Debug logging
-    console.log('TurnSelection Debug:', {
-        currentPlayerId,
-        categorySelectorId,
-        turnPhase,
-        isMyTurnToPickCategory
-    });
 
     // Get categories for this turn from store
     const turnCategories = useMemo(() => {
@@ -51,6 +47,36 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         { id: 'match', label: 'توصيل', emoji: '🔗' },
     ];
 
+    // Reset timer when phase changes
+    useEffect(() => {
+        setTimeLeft(SELECTION_TIME);
+    }, [turnPhase, turnIndex]);
+
+    // Countdown timer
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            // Auto-select random option when time runs out
+            if (isMyTurnToPickCategory && turnCategories.length > 0) {
+                const randomCat = turnCategories[Math.floor(Math.random() * turnCategories.length)];
+                onSelectCategory(randomCat.id);
+            } else if (isMyTurnToPickType && allTypes.length > 0) {
+                const randomType = allTypes[Math.floor(Math.random() * allTypes.length)];
+                onSelectType(randomType.id);
+            }
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, isMyTurnToPickCategory, isMyTurnToPickType, turnCategories, allTypes, onSelectCategory, onSelectType]);
+
+    // Timer progress percentage
+    const timerProgress = (timeLeft / SELECTION_TIME) * 100;
+    const timerColor = timeLeft <= 5 ? 'text-red-400' : timeLeft <= 10 ? 'text-yellow-400' : 'text-white';
+
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
@@ -58,6 +84,20 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                 <h2 className="text-2xl font-bold text-white mb-2">
                     {turnPhase === 'category' ? 'اختيار المجال' : 'اختيار نوع السؤال'}
                 </h2>
+
+                {/* Timer Display */}
+                <div className="flex items-center justify-center gap-2 mb-3">
+                    <Clock size={20} className={timerColor} />
+                    <span className={`text-2xl font-black ${timerColor}`}>{timeLeft}</span>
+                    <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+                        <motion.div
+                            className={`h-full ${timeLeft <= 5 ? 'bg-red-400' : timeLeft <= 10 ? 'bg-yellow-400' : 'bg-omani-gold'}`}
+                            initial={{ width: '100%' }}
+                            animate={{ width: `${timerProgress}%` }}
+                            transition={{ duration: 0.3 }}
+                        />
+                    </div>
+                </div>
 
                 {/* Active Player Indicator */}
                 <div className="flex items-center justify-center gap-2 bg-white/10 rounded-full py-2 px-4 w-fit mx-auto">
