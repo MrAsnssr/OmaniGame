@@ -38,6 +38,7 @@ export const useGameStore = create((set, get) => ({
     turnIndex: 0,
     totalTurns: 0,
     turnCategoryIds: [],
+    selectedTurnCategoryId: null, // For visual feedback when category is picked
 
     multiplayerQuestion: null,
     multiplayerQuestionIndex: 0,
@@ -167,7 +168,14 @@ export const useGameStore = create((set, get) => ({
         typeSelectorId: data.typeSelectorId,
         turnPhase: data.phase,
         turnCategoryIds: data.availableCategoryIds || [],
+        selectedTurnCategoryId: null, // Reset on new turn/phase
         gameState: data.phase === 'category' ? 'multiplayer-selecting-category' : 'multiplayer-selecting-type'
+    }),
+
+    setSelectedTurnCategory: (categoryId) => set({
+        selectedTurnCategoryId: categoryId,
+        turnPhase: 'type', // Move to type selection phase
+        gameState: 'multiplayer-selecting-type'
     }),
 
     setMultiplayerGame: (question, questionIndex, totalQuestions) => set({

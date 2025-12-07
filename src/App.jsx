@@ -142,7 +142,8 @@ export default function App() {
       });
 
       socket.on('category-selected', ({ categoryId, nextPhase }) => {
-        setTurnData({ ...useGameStore.getState(), phase: nextPhase });
+        // Set the selected category for visual feedback
+        useGameStore.getState().setSelectedTurnCategory(categoryId);
       });
 
       socket.on('question-generated', ({ question, questionIndex, totalQuestions }) => {

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { CheckSquare, Square, User } from 'lucide-react';
+import { CheckCircle, User } from 'lucide-react';
 
 import socketService from '../../services/socketService';
 
@@ -13,7 +13,8 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         typeSelectorId,
         players,
         turnIndex,
-        turnCategoryIds
+        turnCategoryIds,
+        selectedTurnCategoryId
     } = useGameStore();
 
     const currentPlayerId = socketService.getSocket()?.id;
@@ -29,6 +30,12 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         return categories.filter(c => turnCategoryIds.includes(c.id));
     }, [categories, turnCategoryIds]);
 
+    // Get the selected category object for display during type phase
+    const selectedCategory = useMemo(() => {
+        if (!selectedTurnCategoryId) return null;
+        return categories.find(c => c.id === selectedTurnCategoryId);
+    }, [categories, selectedTurnCategoryId]);
+
     const allTypes = [
         { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
         { id: 'fill-blank', label: 'كمل', emoji: '✏️' },
@@ -39,7 +46,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-4">
                 <h2 className="text-2xl font-bold text-white mb-2">
                     {turnPhase === 'category' ? 'اختيار المجال' : 'اختيار نوع السؤال'}
                 </h2>
@@ -52,6 +59,19 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                     </span>
                 </div>
             </div>
+
+            {/* Show selected category during type selection phase */}
+            {turnPhase === 'type' && selectedCategory && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`${selectedCategory.color} p-4 rounded-2xl text-white font-bold flex items-center justify-center gap-3 shadow-xl mb-4 border-4 border-omani-gold ring-4 ring-omani-gold/50`}
+                >
+                    <CheckCircle size={28} className="text-omani-gold" />
+                    <span className="text-3xl">{selectedCategory.icon}</span>
+                    <span className="text-lg">{selectedCategory.name}</span>
+                </motion.div>
+            )}
 
             <div className="flex-1 overflow-y-auto min-h-0">
                 {/* Category Selection Phase */}
@@ -87,7 +107,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                                 whileTap={isMyTurnToPickType ? { scale: 0.95 } : {}}
                                 onClick={() => isMyTurnToPickType && onSelectType(type.id)}
                                 disabled={!isMyTurnToPickType}
-                                className={`bg-white p-6 rounded-2xl text-gray-800 font-bold flex items-center gap-4 shadow-lg border-b-4 border-gray-300 h-32 ${!isMyTurnToPickType ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`bg-white p-6 rounded-2xl text-gray-800 font-bold flex items-center gap-4 shadow-lg border-b-4 border-gray-300 h-24 ${!isMyTurnToPickType ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <span className="text-3xl">{type.emoji}</span>
                                 <span className="text-lg">{type.label}</span>
