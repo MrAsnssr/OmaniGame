@@ -10,6 +10,7 @@ import WaitingRoom from './components/multiplayer/WaitingRoom';
 import RoundLeaderboard from './components/multiplayer/RoundLeaderboard';
 import TurnSelection from './components/multiplayer/TurnSelection';
 import LoginPage from './components/LoginPage';
+import SettingsPage from './components/SettingsPage';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -207,6 +208,7 @@ export default function App() {
   // Navigation handlers
   const handleNavigateToCategories = () => navigate('/categories');
   const handleNavigateToAdmin = () => navigate('/admin');
+  const handleNavigateToSettings = () => navigate('/settings');
   const handleNavigateToMultiplayer = () => navigate('/multiplayer');
   const handleNavigateHome = () => {
     resetGame();
@@ -317,11 +319,29 @@ export default function App() {
             >
               <MainMenu
                 onStart={handleNavigateToCategories}
-                onAdmin={handleNavigateToAdmin}
+                onAdmin={handleNavigateToSettings}
                 onMultiplayer={handleNavigateToMultiplayer}
                 onLogin={handleLogin}
                 onLogout={handleLogout}
                 user={user}
+              />
+            </motion.div>
+          } />
+
+          {/* Settings Page */}
+          <Route path="/settings" element={
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <SettingsPage
+                onBack={() => navigate('/')}
+                onAdmin={handleNavigateToAdmin}
+                user={user}
+                onLogout={handleLogout}
               />
             </motion.div>
           } />
