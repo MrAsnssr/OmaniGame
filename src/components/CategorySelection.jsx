@@ -1,15 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square } from 'lucide-react';
 
-export default function CategorySelection() {
+export default function CategorySelection({ onBack }) {
+    const navigate = useNavigate();
     const {
-        categories, startGame, resetGame,
+        categories, startGame,
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType
     } = useGameStore();
+
+    const handleStartGame = (categoryId) => {
+        startGame(categoryId);
+        navigate('/play');
+    };
+
 
     const allTypes = [
         { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
@@ -23,7 +31,7 @@ export default function CategorySelection() {
             {/* Header */}
             <div className="flex items-center gap-4 mb-4">
                 <button
-                    onClick={resetGame}
+                    onClick={onBack || (() => navigate('/'))}
                     className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                 >
                     <ArrowLeft size={20} />
@@ -112,7 +120,7 @@ export default function CategorySelection() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => startGame(null)}
+                        onClick={() => handleStartGame(null)}
                         className="w-full p-4 mb-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-amber-700 shrink-0"
                     >
                         <Shuffle size={24} />
@@ -129,7 +137,7 @@ export default function CategorySelection() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: index * 0.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => startGame(category.id)}
+                                    onClick={() => handleStartGame(category.id)}
                                     className={`${category.color} p-4 rounded-2xl text-white font-bold flex flex-col items-center justify-center gap-2 shadow-lg border-b-4 border-black/20 h-32`}
                                 >
                                     <span className="text-3xl">{category.icon}</span>

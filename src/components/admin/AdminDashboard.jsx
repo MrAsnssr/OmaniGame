@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson } from 'lucide-react';
 import Button from '../Button';
 
-export default function AdminDashboard() {
-    const { categories, questions, resetGame, deleteCategory, deleteQuestion } = useGameStore();
+export default function AdminDashboard({ onBack }) {
+    const navigate = useNavigate();
+    const { categories, questions, deleteCategory, deleteQuestion } = useGameStore();
     const [activeTab, setActiveTab] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -26,7 +28,7 @@ export default function AdminDashboard() {
             {/* Header */}
             <div className="flex items-center gap-4 mb-4">
                 <button
-                    onClick={resetGame}
+                    onClick={onBack || (() => navigate('/'))}
                     className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                 >
                     <ArrowLeft size={20} />

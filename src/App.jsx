@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Button from './components/Button';
 import MainMenu from './components/MainMenu';
@@ -42,7 +43,25 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
+// Map gameState to route paths
+const stateToRoute = {
+  'welcome': '/',
+  'categories': '/categories',
+  'playing': '/play',
+  'result': '/result',
+  'admin': '/admin',
+  'multiplayer-lobby': '/multiplayer',
+  'multiplayer-waiting': '/multiplayer/waiting',
+  'multiplayer-playing': '/multiplayer/play',
+  'multiplayer-leaderboard': '/multiplayer/leaderboard',
+  'multiplayer-selecting-category': '/multiplayer/turn-selection',
+  'multiplayer-selecting-type': '/multiplayer/turn-selection',
+};
+
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const {
     gameState, score, currentQuestionIndex,
     startGame, nextQuestion, incrementScore, endGame, resetGame, showCategories, goToAdmin, getFilteredQuestions,
@@ -71,9 +90,17 @@ export default function App() {
     initializeFirestore();
   }, []);
 
+  // Sync gameState changes to routes (for multiplayer events from socket)
+  useEffect(() => {
+    const targetRoute = stateToRoute[gameState];
+    if (targetRoute && location.pathname !== targetRoute) {
+      navigate(targetRoute, { replace: true });
+    }
+  }, [gameState, navigate, location.pathname]);
+
   // Set up socket listeners
   useEffect(() => {
-    if (gameState.startsWith('multiplayer')) {
+    if (location.pathname.startsWith('/multiplayer')) {
       socketService.connect();
       const socket = socketService.getSocket();
 
@@ -111,7 +138,6 @@ export default function App() {
       });
 
       socket.on('category-selected', ({ categoryId, nextPhase }) => {
-        // Just update phase locally, store handles state
         setTurnData({ ...useGameStore.getState(), phase: nextPhase });
       });
 
@@ -160,7 +186,16 @@ export default function App() {
         socket.off('no-questions');
       };
     }
-  }, [gameState]);
+  }, [location.pathname]);
+
+  // Navigation handlers
+  const handleNavigateToCategories = () => navigate('/categories');
+  const handleNavigateToAdmin = () => navigate('/admin');
+  const handleNavigateToMultiplayer = () => navigate('/multiplayer');
+  const handleNavigateHome = () => {
+    resetGame();
+    navigate('/');
+  };
 
   const handleCreateRoom = (playerName, gameMode) => {
     socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory }, gameMode);
@@ -179,6 +214,7 @@ export default function App() {
     socketService.leaveRoom();
     socketService.disconnect();
     resetMultiplayer();
+    navigate('/');
   };
 
   const handleMultiplayerAnswer = (answer) => {
@@ -216,247 +252,264 @@ export default function App() {
         nextQuestion();
       } else {
         endGame();
+        navigate('/result');
       }
     }, 1500);
+  };
+
+  // Question renderer component
+  const QuestionRenderer = ({ question, onAnswer, disabled = false }) => {
+    if (!question) return null;
+    switch (question.type) {
+      case 'multiple-choice':
+        return <MultipleChoice question={question} onAnswer={onAnswer} disabled={disabled} />;
+      case 'fill-blank':
+        return <FillBlank question={question} onAnswer={onAnswer} disabled={disabled} />;
+      case 'order':
+        return <Order question={question} onAnswer={onAnswer} disabled={disabled} />;
+      case 'match':
+        return <Match question={question} onAnswer={onAnswer} disabled={disabled} />;
+      default:
+        return null;
+    }
   };
 
   return (
     <Layout>
       <AnimatePresence mode="wait">
-        {gameState === 'welcome' && (
-          <motion.div
-            key="welcome"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            className="h-full"
-          >
-            <MainMenu onStart={showCategories} onAdmin={goToAdmin} onMultiplayer={goToMultiplayer} />
-          </motion.div>
-        )}
+        <Routes location={location} key={location.pathname}>
+          {/* Home / Main Menu */}
+          <Route path="/" element={
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              className="h-full"
+            >
+              <MainMenu
+                onStart={handleNavigateToCategories}
+                onAdmin={handleNavigateToAdmin}
+                onMultiplayer={handleNavigateToMultiplayer}
+              />
+            </motion.div>
+          } />
 
-        {gameState === 'categories' && (
-          <motion.div
-            key="categories"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <CategorySelection />
-          </motion.div>
-        )}
+          {/* Category Selection */}
+          <Route path="/categories" element={
+            <motion.div
+              key="categories"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <CategorySelection onBack={() => navigate('/')} />
+            </motion.div>
+          } />
 
-        {gameState === 'admin' && (
-          <motion.div
-            key="admin"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="h-full"
-          >
-            <AdminDashboard />
-          </motion.div>
-        )}
+          {/* Admin Dashboard */}
+          <Route path="/admin" element={
+            <motion.div
+              key="admin"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
+              <AdminDashboard onBack={() => navigate('/')} />
+            </motion.div>
+          } />
 
-        {/* Multiplayer States */}
-        {gameState === 'multiplayer-lobby' && (
-          <motion.div
-            key="mp-lobby"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <MultiplayerLobby
-              onBack={resetGame}
-              onRoomCreated={handleCreateRoom}
-              onRoomJoined={handleJoinRoom}
-              error={multiplayerError}
-            />
-          </motion.div>
-        )}
+          {/* Singleplayer Game */}
+          <Route path="/play" element={
+            <>
+              {!feedback && currentQuestion && (
+                <motion.div
+                  key="question"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="h-full flex flex-col p-4"
+                >
+                  <div className="flex justify-between items-center mb-6 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
+                    <span>السؤال {currentQuestionIndex + 1}/{questions.length}</span>
+                    <span className="text-omani-gold">النقاط: {score}</span>
+                  </div>
 
-        {gameState === 'multiplayer-waiting' && (
-          <motion.div
-            key="mp-waiting"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-full"
-          >
-            <WaitingRoom
-              roomCode={roomCode}
-              players={players}
-              isHost={isHost}
-              onStart={handleStartMultiplayerGame}
-              onLeave={handleLeaveRoom}
-              canStart={players.length >= 2}
-            />
-          </motion.div>
-        )}
-
-        {/* Turn Selection Screens */}
-        {(gameState === 'multiplayer-selecting-category' || gameState === 'multiplayer-selecting-type') && (
-          <motion.div
-            key="turn-selection"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="h-full"
-          >
-            <TurnSelection
-              onSelectCategory={(id) => socketService.selectCategory(id)}
-              onSelectType={(id) => socketService.selectType(id)}
-            />
-          </motion.div>
-        )}
-
-        {gameState === 'multiplayer-playing' && multiplayerQuestion && (
-          <motion.div
-            key="mp-playing"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full flex flex-col p-4"
-          >
-            <div className="flex justify-between items-center mb-4 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-              <span>السؤال {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
-              <span className="flex items-center gap-1">
-                <Users size={14} /> {answeredCount}/{players.filter(p => p.connected).length}
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
-              {multiplayerQuestion.type === 'multiple-choice' && (
-                <MultipleChoice question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
+                  <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+                    <QuestionRenderer question={currentQuestion} onAnswer={handleAnswer} />
+                  </div>
+                </motion.div>
               )}
-              {multiplayerQuestion.type === 'fill-blank' && (
-                <FillBlank question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
-              )}
-              {multiplayerQuestion.type === 'order' && (
-                <Order question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
-              )}
-              {multiplayerQuestion.type === 'match' && (
-                <Match question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
-              )}
-            </div>
 
-            {hasAnswered && (
-              <div className="mt-4 text-center text-white/80">
-                ⏳ ننتظر البقية...
+              {!currentQuestion && (
+                <motion.div key="no-questions" className="h-full flex items-center justify-center p-6">
+                  <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-center">
+                    <p className="text-xl font-bold text-gray-800 mb-4">ماشي أسئلة فهالمجال!</p>
+                    <Button onClick={handleNavigateHome}>رجع للقائمة</Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {feedback && (
+                <motion.div
+                  key="feedback"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
+                >
+                  <div className="text-center px-6">
+                    <div className={`text-5xl font-black drop-shadow-lg mb-4 ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
+                      {feedback === 'correct' ? 'صح! 🎉' : 'خطأ 😢'}
+                    </div>
+                    {feedback === 'incorrect' && currentQuestion && (
+                      <div className="bg-white/90 rounded-2xl p-4 max-w-xs mx-auto">
+                        <p className="text-gray-500 text-sm mb-1">الجواب الصح هو:</p>
+                        <p className="text-xl font-bold text-omani-red">{currentQuestion.answer}</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </>
+          } />
+
+          {/* Result Screen */}
+          <Route path="/result" element={
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center h-full gap-8 p-6"
+            >
+              <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-omani-gold w-full text-center">
+                <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md" />
+                <h2 className="text-3xl font-black text-gray-800">انتهت اللعبة!</h2>
+                <p className="text-gray-500 mt-2 font-medium">جبت</p>
+                <p className="text-6xl font-black text-omani-red mt-4 drop-shadow-sm">{score}</p>
               </div>
-            )}
-          </motion.div>
-        )}
 
-        {gameState === 'multiplayer-leaderboard' && roundResults && (
-          <motion.div
-            key="mp-leaderboard"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-full"
-          >
-            <RoundLeaderboard
-              results={roundResults.results}
-              correctAnswer={roundResults.correctAnswer}
-              questionIndex={multiplayerQuestionIndex}
-              totalQuestions={multiplayerTotalQuestions}
-              isGameOver={isGameOver}
-              winner={winner}
-              onPlayAgain={handleLeaveRoom}
-              onLeave={handleLeaveRoom}
-            />
-          </motion.div>
-        )}
-
-        {/* Single Player States */}
-        {gameState === 'playing' && !feedback && currentQuestion && (
-          <motion.div
-            key="question"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full flex flex-col p-4"
-          >
-            <div className="flex justify-between items-center mb-6 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-              <span>السؤال {currentQuestionIndex + 1}/{questions.length}</span>
-              <span className="text-omani-gold">النقاط: {score}</span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
-              {currentQuestion.type === 'multiple-choice' && (
-                <MultipleChoice question={currentQuestion} onAnswer={handleAnswer} />
-              )}
-              {currentQuestion.type === 'fill-blank' && (
-                <FillBlank question={currentQuestion} onAnswer={handleAnswer} />
-              )}
-              {currentQuestion.type === 'order' && (
-                <Order question={currentQuestion} onAnswer={handleAnswer} />
-              )}
-              {currentQuestion.type === 'match' && (
-                <Match question={currentQuestion} onAnswer={handleAnswer} />
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {gameState === 'playing' && !currentQuestion && (
-          <motion.div key="no-questions" className="h-full flex items-center justify-center p-6">
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-center">
-              <p className="text-xl font-bold text-gray-800 mb-4">ماشي أسئلة فهالمجال!</p>
-              <Button onClick={resetGame}>رجع للقائمة</Button>
-            </div>
-          </motion.div>
-        )}
-
-        {feedback && (
-          <motion.div
-            key="feedback"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
-          >
-            <div className="text-center px-6">
-              <div className={`text-5xl font-black drop-shadow-lg mb-4 ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
-                {feedback === 'correct' ? 'صح! 🎉' : 'خطأ 😢'}
+              <div className="flex flex-col gap-3 w-full">
+                <Button onClick={() => navigate('/categories')} variant="secondary">
+                  <RotateCcw size={20} /> لعب مرة ثانية
+                </Button>
+                <Button onClick={handleNavigateHome} variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
+                  <Home size={20} /> رجع للقائمة
+                </Button>
               </div>
-              {feedback === 'incorrect' && currentQuestion && (
-                <div className="bg-white/90 rounded-2xl p-4 max-w-xs mx-auto">
-                  <p className="text-gray-500 text-sm mb-1">الجواب الصح هو:</p>
-                  <p className="text-xl font-bold text-omani-red">{currentQuestion.answer}</p>
+            </motion.div>
+          } />
+
+          {/* Multiplayer Lobby */}
+          <Route path="/multiplayer" element={
+            <motion.div
+              key="mp-lobby"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <MultiplayerLobby
+                onBack={handleNavigateHome}
+                onRoomCreated={handleCreateRoom}
+                onRoomJoined={handleJoinRoom}
+                error={multiplayerError}
+              />
+            </motion.div>
+          } />
+
+          {/* Multiplayer Waiting Room */}
+          <Route path="/multiplayer/waiting" element={
+            <motion.div
+              key="mp-waiting"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
+              <WaitingRoom
+                roomCode={roomCode}
+                players={players}
+                isHost={isHost}
+                onStart={handleStartMultiplayerGame}
+                onLeave={handleLeaveRoom}
+                canStart={players.length >= 2}
+              />
+            </motion.div>
+          } />
+
+          {/* Turn Selection */}
+          <Route path="/multiplayer/turn-selection" element={
+            <motion.div
+              key="turn-selection"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="h-full"
+            >
+              <TurnSelection
+                onSelectCategory={(id) => socketService.selectCategory(id)}
+                onSelectType={(id) => socketService.selectType(id)}
+              />
+            </motion.div>
+          } />
+
+          {/* Multiplayer Playing */}
+          <Route path="/multiplayer/play" element={
+            multiplayerQuestion && (
+              <motion.div
+                key="mp-playing"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="h-full flex flex-col p-4"
+              >
+                <div className="flex justify-between items-center mb-4 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
+                  <span>السؤال {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
+                  <span className="flex items-center gap-1">
+                    <Users size={14} /> {answeredCount}/{players.filter(p => p.connected).length}
+                  </span>
                 </div>
-              )}
-            </div>
-          </motion.div>
-        )}
 
-        {gameState === 'result' && (
-          <motion.div
-            key="result"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center h-full gap-8 p-6"
-          >
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-omani-gold w-full text-center">
-              <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md" />
-              <h2 className="text-3xl font-black text-gray-800">انتهت اللعبة!</h2>
-              <p className="text-gray-500 mt-2 font-medium">جبت</p>
-              <p className="text-6xl font-black text-omani-red mt-4 drop-shadow-sm">{score}</p>
-            </div>
+                <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+                  <QuestionRenderer question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
+                </div>
 
-            <div className="flex flex-col gap-3 w-full">
-              <Button onClick={() => showCategories()} variant="secondary">
-                <RotateCcw size={20} /> لعب مرة ثانية
-              </Button>
-              <Button onClick={resetGame} variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
-                <Home size={20} /> رجع للقائمة
-              </Button>
-            </div>
-          </motion.div>
-        )}
+                {hasAnswered && (
+                  <div className="mt-4 text-center text-white/80">
+                    ⏳ ننتظر البقية...
+                  </div>
+                )}
+              </motion.div>
+            )
+          } />
+
+          {/* Multiplayer Leaderboard */}
+          <Route path="/multiplayer/leaderboard" element={
+            roundResults && (
+              <motion.div
+                key="mp-leaderboard"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full"
+              >
+                <RoundLeaderboard
+                  results={roundResults.results}
+                  correctAnswer={roundResults.correctAnswer}
+                  questionIndex={multiplayerQuestionIndex}
+                  totalQuestions={multiplayerTotalQuestions}
+                  isGameOver={isGameOver}
+                  winner={winner}
+                  onPlayAgain={handleLeaveRoom}
+                  onLeave={handleLeaveRoom}
+                />
+              </motion.div>
+            )
+          } />
+        </Routes>
       </AnimatePresence>
     </Layout>
   );
