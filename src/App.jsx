@@ -90,11 +90,15 @@ export default function App() {
     initializeFirestore();
   }, []);
 
-  // Sync gameState changes to routes (for multiplayer events from socket)
+  // Sync gameState changes to routes ONLY for multiplayer socket events
+  // (These are states that change due to server-side events, not user clicks)
   useEffect(() => {
-    const targetRoute = stateToRoute[gameState];
-    if (targetRoute && location.pathname !== targetRoute) {
-      navigate(targetRoute, { replace: true });
+    // Only sync multiplayer-related states triggered by socket events
+    if (gameState.startsWith('multiplayer-')) {
+      const targetRoute = stateToRoute[gameState];
+      if (targetRoute && location.pathname !== targetRoute) {
+        navigate(targetRoute, { replace: true });
+      }
     }
   }, [gameState, navigate, location.pathname]);
 
