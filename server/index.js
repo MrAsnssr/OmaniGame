@@ -171,6 +171,16 @@ io.on('connection', (socket) => {
         if (room.players.length < 2) {
             socket.emit('start-error', { message: 'Need at least 2 players' });
             return;
+        }
+
+        if (room.gameMode === 'turn-based') {
+            // Turn-Based Mode
+            room.allQuestions = questions;
+            room.state = 'selecting-category';
+            room.currentQuestionIndex = 0;
+
+            // Get unique category IDs from questions
+            const uniqueCategories = [...new Set(questions.map(q => q.category))];
             room.uniqueCategoryIds = uniqueCategories;
 
             const roles = assignRoles(room);
@@ -192,6 +202,7 @@ io.on('connection', (socket) => {
             // Standard Mode
             room.questions = questions;
             room.state = 'playing';
+            room.currentQuestionIndex = 0;
             room.questionStartTime = Date.now();
 
             io.to(room.code).emit('game-started', {
