@@ -210,7 +210,12 @@ export default function App() {
   };
 
   const handleStartMultiplayerGame = () => {
-    const gameQuestions = getFilteredQuestions();
+    const state = useGameStore.getState();
+    // Turn-based mode needs ALL questions for server-side filtering per turn
+    // Standard mode uses pre-filtered questions
+    const gameQuestions = state.gameMode === 'turn-based'
+      ? state.questions  // All questions
+      : getFilteredQuestions();  // Filtered subset
     socketService.startGame(gameQuestions);
   };
 
