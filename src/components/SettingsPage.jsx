@@ -7,7 +7,8 @@ import { signOut } from '../services/authService';
 // List of admin email addresses
 const ADMIN_EMAILS = [
     'admin@omanigame.com',
-    'abosulaiman011@gmail.com', // Add your email here
+    'abosulaiman011@gmail.com',
+    'asnssrr@gmail.com',
 ];
 
 export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
@@ -79,8 +80,8 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                             transition={{ delay: index * 0.1 }}
                             onClick={item.onClick}
                             className={`w-full p-4 rounded-xl flex items-center gap-4 transition-colors ${item.special
-                                    ? 'bg-gradient-to-r from-omani-red to-red-600 text-white'
-                                    : 'bg-white/10 text-white hover:bg-white/20'
+                                ? 'bg-gradient-to-r from-omani-red to-red-600 text-white'
+                                : 'bg-white/10 text-white hover:bg-white/20'
                                 }`}
                         >
                             <item.icon size={24} />

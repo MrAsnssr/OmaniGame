@@ -31,9 +31,9 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 animate={{ opacity: 1 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={user ? onLogout : onLogin}
+                onClick={user ? onAdmin : onLogin}
                 className="absolute top-4 left-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center overflow-hidden z-20"
-                title={user ? user.displayName || user.email : 'تسجيل الدخول'}
+                title={user ? 'الإعدادات' : 'تسجيل الدخول'}
             >
                 {user?.photoURL ? (
                     <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
