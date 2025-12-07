@@ -9,6 +9,7 @@ import MultiplayerLobby from './components/multiplayer/MultiplayerLobby';
 import WaitingRoom from './components/multiplayer/WaitingRoom';
 import RoundLeaderboard from './components/multiplayer/RoundLeaderboard';
 import TurnSelection from './components/multiplayer/TurnSelection';
+import LoginPage from './components/LoginPage';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -17,6 +18,7 @@ import Match from './components/questions/Match';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, RotateCcw, Home, Users } from 'lucide-react';
 import socketService from './services/socketService';
+import { onAuthChange, signOut } from './services/authService';
 
 // Levenshtein distance for fuzzy matching (allows typos)
 function levenshteinDistance(a, b) {
@@ -79,6 +81,7 @@ export default function App() {
   const [multiplayerError, setMultiplayerError] = useState('');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [user, setUser] = useState(null);
   const tapCountRef = useRef(0);
   const tapTimeoutRef = useRef(null);
 
@@ -88,6 +91,14 @@ export default function App() {
   // Initialize Firestore on app load
   useEffect(() => {
     initializeFirestore();
+  }, []);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthChange((authUser) => {
+      setUser(authUser);
+    });
+    return () => unsubscribe();
   }, []);
 
   // Sync gameState changes to routes ONLY for multiplayer socket events
@@ -202,6 +213,13 @@ export default function App() {
     navigate('/');
   };
 
+  const handleLogin = () => navigate('/login');
+  const handleLogout = async () => {
+    await signOut();
+    setUser(null);
+  };
+  const handleLoginSuccess = () => navigate('/');
+
   const handleCreateRoom = (playerName, gameMode) => {
     socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory }, gameMode);
   };
@@ -301,7 +319,23 @@ export default function App() {
                 onStart={handleNavigateToCategories}
                 onAdmin={handleNavigateToAdmin}
                 onMultiplayer={handleNavigateToMultiplayer}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+                user={user}
               />
+            </motion.div>
+          } />
+
+          {/* Login Page */}
+          <Route path="/login" element={
+            <motion.div
+              key="login"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <LoginPage onBack={() => navigate('/')} onSuccess={handleLoginSuccess} />
             </motion.div>
           } />
 

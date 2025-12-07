@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { User } from 'lucide-react';
 import logo from '../assets/شعار.png';
 import singlePlayerBtn from '../assets/خطفة.png';
 import multiplayerBtn from '../assets/السبلة.png';
 import leaderboardBtn from '../assets/كبارية.png';
 
-export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
+export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const buttonVariants = {
         hidden: { opacity: 0, y: 30 },
         visible: (i) => ({
@@ -24,6 +25,25 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
 
     return (
         <div className="flex flex-col h-full items-center justify-center relative z-10 p-4">
+            {/* Login/User Button - Top Left Corner */}
+            <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={user ? onLogout : onLogin}
+                className="absolute top-4 left-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center overflow-hidden z-20"
+                title={user ? user.displayName || user.email : 'تسجيل الدخول'}
+            >
+                {user?.photoURL ? (
+                    <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
+                ) : user ? (
+                    <span className="text-sm font-bold text-gray-700">{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
+                ) : (
+                    <User size={20} className="text-gray-600" />
+                )}
+            </motion.button>
+
             {/* Settings Button - Top Right Corner */}
             <motion.button
                 initial={{ opacity: 0 }}
