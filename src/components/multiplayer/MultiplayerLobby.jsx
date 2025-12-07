@@ -20,15 +20,15 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
     const [isLoading, setIsLoading] = useState(false);
 
     const allTypes = [
-        { id: 'multiple-choice', label: 'Multiple Choice', emoji: '🔘' },
-        { id: 'fill-blank', label: 'Fill Blank', emoji: '✏️' },
-        { id: 'order', label: 'Order', emoji: '📋' },
-        { id: 'match', label: 'Match', emoji: '🔗' },
+        { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
+        { id: 'fill-blank', label: 'كمل', emoji: '✏️' },
+        { id: 'order', label: 'ترتيب', emoji: '📋' },
+        { id: 'match', label: 'توصيل', emoji: '🔗' },
     ];
 
     const handleCreate = () => {
         if (!playerName.trim()) {
-            setError('Please enter your name');
+            setError('اكتب اسمك لا هنت');
             return;
         }
         setIsLoading(true);
@@ -38,11 +38,11 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
     const handleJoin = () => {
         if (!playerName.trim()) {
-            setError('Please enter your name');
+            setError('اكتب اسمك لا هنت');
             return;
         }
         if (!roomCode.trim() || roomCode.length !== 6) {
-            setError('Please enter a valid 6-character room code');
+            setError('كتب مفتاح السبلة صح (6 حروف)');
             return;
         }
         setIsLoading(true);
@@ -61,7 +61,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <ArrowLeft size={20} />
                 </button>
                 <h2 className="text-2xl font-bold text-white">
-                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'إنشاء غرفة' : 'انضمام لغرفة'}
+                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'افتح سبلة' : 'دخل السبلة'}
                 </h2>
             </div>
 
@@ -74,7 +74,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="text-center mb-4"
                         >
                             <Users size={64} className="text-omani-gold mx-auto mb-2" />
-                            <p className="text-white/80">Play with friends in real-time!</p>
+                            <p className="text-white/80">لعب مع ربعك وتتحداهم!</p>
                         </motion.div>
 
                         <motion.button
@@ -85,7 +85,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-green-700"
                         >
                             <Plus size={24} />
-                            Create Room
+                            افتح سبلة
                         </motion.button>
 
                         <motion.button
@@ -96,7 +96,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-blue-700"
                         >
                             <LogIn size={24} />
-                            Join Room
+                            دخل السبلة
                         </motion.button>
                     </div>
                 )}
@@ -112,14 +112,14 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             type="text"
                             value={playerName}
                             onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="Your nickname"
+                            placeholder="اسمك الكريم"
                             maxLength={15}
                             className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
                         />
 
                         {/* Game Settings Panel */}
                         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
-                            <h3 className="text-white font-bold text-center">Game Settings</h3>
+                            <h3 className="text-white font-bold text-center">إعدادات اللعب</h3>
 
                             {/* Game Mode Toggle */}
                             <div className="flex bg-black/20 p-1 rounded-xl">
@@ -130,7 +130,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                         : 'text-white/60 hover:text-white'
                                         }`}
                                 >
-                                    Standard
+                                    عادي
                                 </button>
                                 <button
                                     onClick={() => setGameMode('turn-based')}
@@ -139,7 +139,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                         : 'text-white/60 hover:text-white'
                                         }`}
                                 >
-                                    Turn-Based
+                                    بالدور
                                 </button>
                             </div>
 
@@ -147,7 +147,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             <div>
                                 <div className="flex items-center gap-2 text-white mb-2">
                                     <Hash size={16} />
-                                    <span className="font-bold text-sm">Questions: {questionCount}</span>
+                                    <span className="font-bold text-sm">عدد الأسئلة: {questionCount}</span>
                                 </div>
                                 <input
                                     type="range"
@@ -168,7 +168,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             <div>
                                 <div className="flex items-center gap-2 text-white mb-2">
                                     <Clock size={16} />
-                                    <span className="font-bold text-sm">Time: {timePerQuestion}s</span>
+                                    <span className="font-bold text-sm">الوقت: {timePerQuestion} ثانية</span>
                                 </div>
                                 <input
                                     type="range"
@@ -188,7 +188,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             {/* Question Types (Only for Standard Mode) */}
                             {gameMode === 'standard' && (
                                 <div>
-                                    <span className="font-bold text-white text-sm block mb-2">Question Types:</span>
+                                    <span className="font-bold text-white text-sm block mb-2">أنواع الأسئلة:</span>
                                     <div className="grid grid-cols-2 gap-2">
                                         {allTypes.map(type => (
                                             <button
@@ -210,7 +210,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
                             {gameMode === 'turn-based' && (
                                 <div className="bg-white/10 rounded-lg p-3 text-xs text-white/80 text-center">
-                                    Players take turns picking the Category and Question Type for each round!
+                                    كل واحد يختار المجال ونوع السؤال بدوره!
                                 </div>
                             )}
                         </div>
@@ -224,7 +224,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             disabled={isLoading}
                             className="w-full"
                         >
-                            {isLoading ? 'Creating...' : 'Create Room'}
+                            {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
                         </Button>
                     </motion.div>
                 )}
@@ -240,7 +240,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 type="text"
                                 value={playerName}
                                 onChange={(e) => setPlayerName(e.target.value)}
-                                placeholder="Your nickname"
+                                placeholder="اسمك الكريم"
                                 maxLength={15}
                                 className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
                             />
@@ -249,7 +249,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 type="text"
                                 value={roomCode}
                                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                                placeholder="Room Code (e.g., ABC123)"
+                                placeholder="مفتاح السبلة"
                                 maxLength={6}
                                 className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg tracking-widest"
                             />
@@ -263,7 +263,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 disabled={isLoading}
                                 className="w-full"
                             >
-                                {isLoading ? 'Joining...' : 'Join Room'}
+                                {isLoading ? 'دخول...' : 'دخول'}
                             </Button>
                         </div>
                     </motion.div>

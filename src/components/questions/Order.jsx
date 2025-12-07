@@ -22,7 +22,7 @@ export default function Order({ question, onAnswer }) {
                 <h2 className="text-xl font-bold text-center text-gray-800 leading-relaxed">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-500 mt-2">Drag to reorder</p>
+                <p className="text-center text-sm text-gray-500 mt-2">اسحب عشان ترتبهم</p>
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-0">
@@ -41,7 +41,7 @@ export default function Order({ question, onAnswer }) {
             </div>
 
             <Button onClick={handleSubmit} className="mt-auto mb-4">
-                Confirm Order
+                تأكيد الترتيب
             </Button>
         </div>
     );

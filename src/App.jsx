@@ -321,7 +321,7 @@ export default function App() {
             className="h-full flex flex-col p-4"
           >
             <div className="flex justify-between items-center mb-4 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-              <span>Q {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
+              <span>السؤال {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
               <span className="flex items-center gap-1">
                 <Users size={14} /> {answeredCount}/{players.filter(p => p.connected).length}
               </span>
@@ -344,7 +344,7 @@ export default function App() {
 
             {hasAnswered && (
               <div className="mt-4 text-center text-white/80">
-                ⏳ Waiting for other players...
+                ⏳ ننتظر البقية...
               </div>
             )}
           </motion.div>
@@ -381,8 +381,8 @@ export default function App() {
             className="h-full flex flex-col p-4"
           >
             <div className="flex justify-between items-center mb-6 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-              <span>Question {currentQuestionIndex + 1}/{questions.length}</span>
-              <span className="text-omani-gold">Score: {score}</span>
+              <span>السؤال {currentQuestionIndex + 1}/{questions.length}</span>
+              <span className="text-omani-gold">النقاط: {score}</span>
             </div>
 
             <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
@@ -405,8 +405,8 @@ export default function App() {
         {gameState === 'playing' && !currentQuestion && (
           <motion.div key="no-questions" className="h-full flex items-center justify-center p-6">
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-center">
-              <p className="text-xl font-bold text-gray-800 mb-4">No questions in this category!</p>
-              <Button onClick={resetGame}>Back to Menu</Button>
+              <p className="text-xl font-bold text-gray-800 mb-4">ماشي أسئلة فهالمجال!</p>
+              <Button onClick={resetGame}>رجع للقائمة</Button>
             </div>
           </motion.div>
         )}
@@ -421,11 +421,11 @@ export default function App() {
           >
             <div className="text-center px-6">
               <div className={`text-5xl font-black drop-shadow-lg mb-4 ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
-                {feedback === 'correct' ? 'Correct! 🎉' : 'Wrong 😢'}
+                {feedback === 'correct' ? 'صح! 🎉' : 'خطأ 😢'}
               </div>
               {feedback === 'incorrect' && currentQuestion && (
                 <div className="bg-white/90 rounded-2xl p-4 max-w-xs mx-auto">
-                  <p className="text-gray-500 text-sm mb-1">The correct answer was:</p>
+                  <p className="text-gray-500 text-sm mb-1">الجواب الصح هو:</p>
                   <p className="text-xl font-bold text-omani-red">{currentQuestion.answer}</p>
                 </div>
               )}
@@ -442,17 +442,17 @@ export default function App() {
           >
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-omani-gold w-full text-center">
               <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md" />
-              <h2 className="text-3xl font-black text-gray-800">Game Over!</h2>
-              <p className="text-gray-500 mt-2 font-medium">You scored</p>
+              <h2 className="text-3xl font-black text-gray-800">انتهت اللعبة!</h2>
+              <p className="text-gray-500 mt-2 font-medium">جبت</p>
               <p className="text-6xl font-black text-omani-red mt-4 drop-shadow-sm">{score}</p>
             </div>
 
             <div className="flex flex-col gap-3 w-full">
               <Button onClick={() => showCategories()} variant="secondary">
-                <RotateCcw size={20} /> Play Again
+                <RotateCcw size={20} /> لعب مرة ثانية
               </Button>
               <Button onClick={resetGame} variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
-                <Home size={20} /> Back to Menu
+                <Home size={20} /> رجع للقائمة
               </Button>
             </div>
           </motion.div>

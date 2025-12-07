@@ -30,10 +30,10 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     }, [categories, turnCategoryIds]);
 
     const allTypes = [
-        { id: 'multiple-choice', label: 'Multiple Choice', emoji: '🔘' },
-        { id: 'fill-blank', label: 'Fill Blank', emoji: '✏️' },
-        { id: 'order', label: 'Order', emoji: '📋' },
-        { id: 'match', label: 'Match', emoji: '🔗' },
+        { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
+        { id: 'fill-blank', label: 'كمل', emoji: '✏️' },
+        { id: 'order', label: 'ترتيب', emoji: '📋' },
+        { id: 'match', label: 'توصيل', emoji: '🔗' },
     ];
 
     return (
@@ -41,14 +41,14 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
             {/* Header */}
             <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-white mb-2">
-                    {turnPhase === 'category' ? 'Category Phase' : 'Question Type Phase'}
+                    {turnPhase === 'category' ? 'اختيار المجال' : 'اختيار نوع السؤال'}
                 </h2>
 
                 {/* Active Player Indicator */}
                 <div className="flex items-center justify-center gap-2 bg-white/10 rounded-full py-2 px-4 w-fit mx-auto">
                     <User size={20} className="text-omani-gold" />
                     <span className="text-white font-bold">
-                        Selector: {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name}
+                        الدور عند: {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name}
                     </span>
                 </div>
             </div>
@@ -105,7 +105,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                             className="mt-8 text-center bg-black/40 backdrop-blur-md rounded-xl p-4"
                         >
                             <p className="text-white text-lg animate-pulse">
-                                Waiting for {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name} to choose...
+                                نتريا {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name} يختار...
                             </p>
                         </motion.div>
                     )}

@@ -44,7 +44,7 @@ export default function RoundLeaderboard({
                 ) : (
                     <>
                         <h2 className="text-2xl font-bold text-white">الكبارية</h2>
-                        <p className="text-white/60">Question {questionIndex + 1} of {totalQuestions}</p>
+                        <p className="text-white/60">السؤال {questionIndex + 1} من {totalQuestions}</p>
                     </>
                 )}
             </motion.div>
@@ -56,7 +56,7 @@ export default function RoundLeaderboard({
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-green-500/20 border border-green-500/50 rounded-xl p-3 mb-4 text-center"
                 >
-                    <p className="text-green-300 text-sm">Correct Answer:</p>
+                    <p className="text-green-300 text-sm">الجواب الصح:</p>
                     <p className="text-white font-bold">
                         {Array.isArray(correctAnswer) ? correctAnswer.join(' → ') : correctAnswer}
                     </p>
@@ -100,7 +100,7 @@ export default function RoundLeaderboard({
                         {/* Total Score */}
                         <div className="text-right">
                             <p className="text-2xl font-black text-white">{result.totalScore}</p>
-                            <p className="text-white/50 text-xs">points</p>
+                            <p className="text-white/50 text-xs">نقطة</p>
                         </div>
                     </motion.div>
                 ))}
@@ -113,13 +113,13 @@ export default function RoundLeaderboard({
                         onClick={onLeave}
                         className="flex-1 p-4 rounded-xl bg-white/20 text-white font-bold"
                     >
-                        Leave
+                        خروج
                     </button>
                     <button
                         onClick={onPlayAgain}
                         className="flex-1 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold"
                     >
-                        Play Again
+                        لعب مرة ثانية
                     </button>
                 </div>
             )}
@@ -131,7 +131,7 @@ export default function RoundLeaderboard({
                     animate={{ opacity: 1 }}
                     className="text-center text-white/60"
                 >
-                    Next question in a few seconds...
+                    الجولة الجاية...
                 </motion.div>
             )}
         </div>

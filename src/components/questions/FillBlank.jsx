@@ -41,7 +41,7 @@ export default function FillBlank({ question, onAnswer }) {
                     value={typedAnswer}
                     onChange={(e) => setTypedAnswer(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type your answer here..."
+                    placeholder="كتب إجابتك..."
                     className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-omani-red outline-none text-center font-bold text-gray-800 placeholder-gray-400"
                     autoFocus
                 />
@@ -52,7 +52,7 @@ export default function FillBlank({ question, onAnswer }) {
                 onClick={handleSubmit}
                 className="mb-4"
             >
-                Confirm Answer
+                تأكيد
             </Button>
         </div>
     );

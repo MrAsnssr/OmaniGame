@@ -25,7 +25,7 @@ export default function WaitingRoom({
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white">Waiting Room</h2>
+                <h2 className="text-2xl font-bold text-white">غرفة الانتظار</h2>
             </div>
 
             {/* Room Code */}
@@ -34,7 +34,7 @@ export default function WaitingRoom({
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-4 text-center"
             >
-                <p className="text-white/60 text-sm mb-1">Room Code</p>
+                <p className="text-white/60 text-sm mb-1">مفتاح السبلة</p>
                 <div className="flex items-center justify-center gap-3">
                     <span className="text-4xl font-black text-omani-gold tracking-widest">{roomCode}</span>
                     <button
@@ -44,14 +44,14 @@ export default function WaitingRoom({
                         <Copy size={20} />
                     </button>
                 </div>
-                <p className="text-white/50 text-xs mt-2">Share this code with friends!</p>
+                <p className="text-white/50 text-xs mt-2">طرش المفتاح لربعك!</p>
             </motion.div>
 
             {/* Players List */}
             <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-4 overflow-y-auto min-h-0">
                 <div className="flex items-center gap-2 text-white mb-3">
                     <Users size={20} />
-                    <span className="font-bold">Players ({players.length}/10)</span>
+                    <span className="font-bold">الشباب ({players.length}/10)</span>
                 </div>
 
                 <div className="space-y-2">
@@ -72,7 +72,7 @@ export default function WaitingRoom({
                                 <Crown size={20} className="text-omani-gold" />
                             )}
                             {!player.connected && (
-                                <span className="text-red-400 text-xs">Disconnected</span>
+                                <span className="text-red-400 text-xs">فصل</span>
                             )}
                         </motion.div>
                     ))}
@@ -80,7 +80,7 @@ export default function WaitingRoom({
 
                 {players.length < 2 && (
                     <p className="text-white/50 text-center mt-4 text-sm">
-                        Waiting for more players to join...
+                        ننتظر الشباب يدخلوا...
                     </p>
                 )}
             </div>
@@ -93,11 +93,11 @@ export default function WaitingRoom({
                     className="w-full"
                 >
                     <Play size={20} className="mr-2" />
-                    {canStart ? 'Start Game' : 'Need 2+ Players'}
+                    {canStart ? 'بدينا!' : 'لازم 2 عالأقل'}
                 </Button>
             ) : (
                 <div className="bg-white/10 rounded-xl p-4 text-center">
-                    <p className="text-white/80">Waiting for host to start the game...</p>
+                    <p className="text-white/80">ننتظر راعي الغرفة يبدأ...</p>
                 </div>
             )}
         </div>

@@ -12,10 +12,10 @@ export default function CategorySelection() {
     } = useGameStore();
 
     const allTypes = [
-        { id: 'multiple-choice', label: 'Multiple Choice', emoji: '🔘' },
-        { id: 'fill-blank', label: 'Fill Blank', emoji: '✏️' },
-        { id: 'order', label: 'Order', emoji: '📋' },
-        { id: 'match', label: 'Match', emoji: '🔗' },
+        { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
+        { id: 'fill-blank', label: 'كمل', emoji: '✏️' },
+        { id: 'order', label: 'ترتيب', emoji: '📋' },
+        { id: 'match', label: 'توصيل', emoji: '🔗' },
     ];
 
     return (
@@ -42,7 +42,7 @@ export default function CategorySelection() {
                         <div>
                             <div className="flex items-center gap-2 text-white mb-2">
                                 <Hash size={18} />
-                                <span className="font-bold">Questions: {questionCount}</span>
+                                <span className="font-bold">عدد الأسئلة: {questionCount}</span>
                             </div>
                             <input
                                 type="range"
@@ -63,7 +63,7 @@ export default function CategorySelection() {
                         <div>
                             <div className="flex items-center gap-2 text-white mb-2">
                                 <Clock size={18} />
-                                <span className="font-bold">Time: {timePerQuestion}s per question</span>
+                                <span className="font-bold">الوقت: {timePerQuestion} ثانية</span>
                             </div>
                             <input
                                 type="range"
@@ -82,7 +82,7 @@ export default function CategorySelection() {
 
                         {/* Question Types */}
                         <div>
-                            <span className="font-bold text-white block mb-2">Question Types:</span>
+                            <span className="font-bold text-white block mb-2">أنواع الأسئلة:</span>
                             <div className="grid grid-cols-2 gap-2">
                                 {allTypes.map(type => (
                                     <button
@@ -105,7 +105,7 @@ export default function CategorySelection() {
 
                 {/* Right Column: Categories */}
                 <div className="flex flex-col">
-                    <h3 className="text-lg font-bold text-white mb-3 md:hidden">Select Category:</h3>
+                    <h3 className="text-lg font-bold text-white mb-3 md:hidden">نقي مجال:</h3>
 
                     {/* All Categories Button */}
                     <motion.button
@@ -116,7 +116,7 @@ export default function CategorySelection() {
                         className="w-full p-4 mb-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-amber-700 shrink-0"
                     >
                         <Shuffle size={24} />
-                        All Categories
+                        كوكتيل
                     </motion.button>
 
                     {/* Category Grid */}

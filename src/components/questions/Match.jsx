@@ -67,7 +67,7 @@ export default function Match({ question, onAnswer }) {
                 <h2 className="text-xl font-bold text-center text-gray-800">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-500 mt-1">Tap left then right to match</p>
+                <p className="text-center text-sm text-gray-500 mt-1">اختار يمين ويسار عشان توصل</p>
             </div>
 
             <div className="flex-1 grid grid-cols-2 gap-4 overflow-y-auto content-start min-h-0">
@@ -128,7 +128,7 @@ export default function Match({ question, onAnswer }) {
                 onClick={handleSubmit}
                 className="mt-auto mb-4"
             >
-                Confirm Matches
+                تأكيد التوصيل
             </Button>
         </div>
     );
