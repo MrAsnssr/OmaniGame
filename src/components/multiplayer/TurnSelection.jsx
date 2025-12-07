@@ -24,6 +24,14 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const isMyTurnToPickCategory = currentPlayerId === categorySelectorId && turnPhase === 'category';
     const isMyTurnToPickType = currentPlayerId === typeSelectorId && turnPhase === 'type';
 
+    // Debug logging
+    console.log('TurnSelection Debug:', {
+        currentPlayerId,
+        categorySelectorId,
+        turnPhase,
+        isMyTurnToPickCategory
+    });
+
     // Get categories for this turn from store
     const turnCategories = useMemo(() => {
         if (!turnCategoryIds || turnCategoryIds.length === 0) return [];
