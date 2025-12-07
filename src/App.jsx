@@ -327,7 +327,7 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+            <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
               {multiplayerQuestion.type === 'multiple-choice' && (
                 <MultipleChoice question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
               )}
@@ -385,7 +385,7 @@ export default function App() {
               <span className="text-omani-gold">Score: {score}</span>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+            <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
               {currentQuestion.type === 'multiple-choice' && (
                 <MultipleChoice question={currentQuestion} onAnswer={handleAnswer} />
               )}
