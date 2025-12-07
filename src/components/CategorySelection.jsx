@@ -19,7 +19,7 @@ export default function CategorySelection() {
     ];
 
     return (
-        <div className="flex flex-col h-full p-4 overflow-y-auto">
+        <div className="flex flex-col h-full min-h-0 p-4 overflow-y-auto">
             {/* Header */}
             <div className="flex items-center gap-4 mb-4">
                 <button
