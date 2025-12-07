@@ -71,8 +71,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 />
             </motion.div>
 
-            {/* All Main Buttons - SMALLER, tighter spacing */}
-            <div className="flex flex-col gap-2 w-full max-w-xs items-center px-2">
+            {/* All Main Buttons - Full width for mobile */}
+            <div className="flex flex-col gap-4 w-full max-w-md items-center px-4">
                 {/* Row 1: Singleplayer (خطفة) */}
                 <motion.button
                     custom={0}
