@@ -18,8 +18,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                 damping: 12
             }
         }),
-        hover: { scale: 1.02, transition: { duration: 0.2 } },
-        tap: { scale: 0.98 }
+        hover: { scale: 1.03, transition: { duration: 0.2 } },
+        tap: { scale: 0.97 }
     };
 
     return (
@@ -31,28 +31,28 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                 whileHover={{ opacity: 1, scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onAdmin}
-                className="absolute top-4 right-4 w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-2xl z-20"
+                className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-xl z-20"
                 title="إعدادات"
             >
                 ⚙️
             </motion.button>
 
-            {/* Logo Section */}
+            {/* Logo Section - BIGGER */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="mb-4 flex justify-center"
+                className="mb-6 flex justify-center"
             >
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="w-28 md:w-36 h-auto object-contain drop-shadow-xl"
+                    className="w-40 md:w-52 h-auto object-contain drop-shadow-xl"
                 />
             </motion.div>
 
-            {/* All Main Buttons - 3 rows, all full width */}
-            <div className="flex flex-col gap-3 w-full max-w-md items-center px-2">
+            {/* All Main Buttons - SMALLER, tighter spacing */}
+            <div className="flex flex-col gap-2 w-full max-w-xs items-center px-2">
                 {/* Row 1: Singleplayer (خطفة) */}
                 <motion.button
                     custom={0}
@@ -67,7 +67,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     <img
                         src={singlePlayerBtn}
                         alt="خطفة - Singleplayer"
-                        className="w-full h-auto rounded-2xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-lg"
                     />
                 </motion.button>
 
@@ -85,11 +85,11 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     <img
                         src={multiplayerBtn}
                         alt="السبلة - Multiplayer"
-                        className="w-full h-auto rounded-2xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-lg"
                     />
                 </motion.button>
 
-                {/* Row 3: Leaderboard (الكبارية) - Full width */}
+                {/* Row 3: Leaderboard (الكبارية) */}
                 <motion.button
                     custom={2}
                     initial="hidden"
@@ -103,7 +103,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer }) {
                     <img
                         src={leaderboardBtn}
                         alt="الكبارية - Leaderboards"
-                        className="w-full h-auto rounded-2xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-lg"
                     />
                 </motion.button>
             </div>
