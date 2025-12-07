@@ -28,7 +28,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
     const handleCreate = () => {
         if (!playerName.trim()) {
-            setError('اكتب اسمك لا هنت');
+            setError('اكتب اسمك لو سمحت');
             return;
         }
         setIsLoading(true);
@@ -38,7 +38,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
     const handleJoin = () => {
         if (!playerName.trim()) {
-            setError('اكتب اسمك لا هنت');
+            setError('اكتب اسمك لو سمحت');
             return;
         }
         if (!roomCode.trim() || roomCode.length !== 6) {
