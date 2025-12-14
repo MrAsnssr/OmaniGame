@@ -55,6 +55,7 @@ export const useGameStore = create((set, get) => ({
     // Data
     categories: [],
     questions: [],
+    reports: [],
     isLoading: true,
     dataInitialized: false,
 
@@ -84,8 +85,19 @@ export const useGameStore = create((set, get) => ({
                 }
             );
 
+            const unsubscribeReports = onSnapshot(
+                collection(db, 'reports'),
+                (snapshot) => {
+                    const reports = snapshot.docs.map(doc => ({
+                        ...doc.data(),
+                        id: doc.id
+                    }));
+                    set({ reports });
+                }
+            );
+
             // Store unsubscribe functions
-            set({ unsubscribeCategories, unsubscribeQuestions });
+            set({ unsubscribeCategories, unsubscribeQuestions, unsubscribeReports });
         } catch (error) {
             console.error('Error initializing Firestore:', error);
             set({ isLoading: false });
@@ -346,6 +358,48 @@ export const useGameStore = create((set, get) => ({
         } catch (error) {
             console.error('Error importing JSON:', error);
             return { success: false, message: error.message };
+        }
+    },
+
+    // Report Actions (Firestore)
+    reportQuestion: async (questionId, questionData, reason = '') => {
+        try {
+            // Check if question is already reported
+            const existingReport = get().reports.find(r => r.questionId === questionId && r.status === 'pending');
+            if (existingReport) {
+                return { success: false, message: 'This question has already been reported' };
+            }
+
+            await addDoc(collection(db, 'reports'), {
+                questionId,
+                questionData,
+                reason,
+                status: 'pending',
+                createdAt: new Date(),
+                resolvedAt: null
+            });
+            return { success: true, message: 'Question reported successfully' };
+        } catch (error) {
+            console.error('Error reporting question:', error);
+            return { success: false, message: error.message };
+        }
+    },
+    resolveReport: async (reportId, action = 'dismiss') => {
+        try {
+            const reportRef = doc(db, 'reports', reportId);
+            await updateDoc(reportRef, {
+                status: action === 'dismiss' ? 'dismissed' : 'resolved',
+                resolvedAt: new Date()
+            });
+        } catch (error) {
+            console.error('Error resolving report:', error);
+        }
+    },
+    deleteReport: async (reportId) => {
+        try {
+            await deleteDoc(doc(db, 'reports', reportId));
+        } catch (error) {
+            console.error('Error deleting report:', error);
         }
     },
 }));

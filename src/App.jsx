@@ -6,6 +6,7 @@ import MainMenu from './components/MainMenu';
 import CategorySelection from './components/CategorySelection';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminReviewGame from './components/admin/AdminReviewGame';
+import ReportsPage from './components/admin/ReportsPage';
 import MultiplayerLobby from './components/multiplayer/MultiplayerLobby';
 import WaitingRoom from './components/multiplayer/WaitingRoom';
 import RoundLeaderboard from './components/multiplayer/RoundLeaderboard';
@@ -396,6 +397,19 @@ export default function App() {
               className="h-full"
             >
               <AdminReviewGame />
+            </motion.div>
+          } />
+
+          {/* Reports Page */}
+          <Route path="/admin/reports" element={
+            <motion.div
+              key="admin-reports"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
+              <ReportsPage onBack={() => navigate('/admin')} />
             </motion.div>
           } />
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play, Flag } from 'lucide-react';
 import Button from '../Button';
 import QuestionFormModal from './QuestionFormModal';
 
@@ -63,6 +63,12 @@ export default function AdminDashboard({ onBack }) {
                     className={`flex-1 py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'questions' ? 'bg-white text-gray-800' : 'bg-white/20 text-white'}`}
                 >
                     <HelpCircle size={18} /> Questions
+                </button>
+                <button
+                    onClick={() => navigate('/admin/reports')}
+                    className="py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors bg-white/20 text-white hover:bg-white/30"
+                >
+                    <Flag size={18} /> Reports
                 </button>
             </div>
 
