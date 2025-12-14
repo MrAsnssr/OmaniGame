@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Root element sizing - critical for app to display */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 @theme {
   --color-omani-red: #D92525;
   --color-omani-green: #008000;
@@ -23,9 +38,8 @@
 }
 
 body {
-  @apply bg-gray-50 text-gray-800 m-0 p-0 overflow-hidden font-sans;
-  min-height: 100vh;
-  min-height: 100dvh;
+  @apply text-gray-800 overflow-hidden font-sans;
+  background-color: #F5E6CA; /* omani-sand fallback */
 }
 
 /* Omani Geometric Pattern Background */
