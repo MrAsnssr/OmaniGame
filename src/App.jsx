@@ -583,24 +583,40 @@ export default function App() {
 
           {/* Multiplayer Leaderboard */}
           <Route path="/multiplayer/leaderboard" element={
-            <motion.div
-              key="mp-leaderboard"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-full"
-            >
-              <RoundLeaderboard
-                results={roundResults.results}
-                correctAnswer={roundResults.correctAnswer}
-                questionIndex={multiplayerQuestionIndex}
-                totalQuestions={multiplayerTotalQuestions}
-                isGameOver={isGameOver}
-                winner={winner}
-                onPlayAgain={handleLeaveRoom}
-                onLeave={handleLeaveRoom}
-              />
-            </motion.div>
+            roundResults ? (
+              <motion.div
+                key="mp-leaderboard"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full"
+              >
+                <RoundLeaderboard
+                  results={roundResults.results}
+                  correctAnswer={roundResults.correctAnswer}
+                  questionIndex={multiplayerQuestionIndex}
+                  totalQuestions={multiplayerTotalQuestions}
+                  isGameOver={isGameOver}
+                  winner={winner}
+                  onPlayAgain={handleLeaveRoom}
+                  onLeave={handleLeaveRoom}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="mp-leaderboard-missing"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="h-full flex items-center justify-center p-6"
+              >
+                <div className="glass-panel rounded-3xl p-8 text-center max-w-sm w-full">
+                  <p className="text-xl font-black text-omani-brown mb-4">ما فيه نتائج للحين</p>
+                  <p className="text-gray-600 font-bold mb-6">ارجع للصفحة الرئيسية أو حاول مرة ثانية.</p>
+                  <Button onClick={handleNavigateHome}>رجع للقائمة</Button>
+                </div>
+              </motion.div>
+            )
           } />
         </Routes>
       </AnimatePresence>
