@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 import logo from '../assets/شعار.png';
 import singlePlayerBtn from '../assets/خطفة.png';
 import multiplayerBtn from '../assets/السبلة.png';
@@ -32,29 +32,29 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={user ? onAdmin : onLogin}
-                className="absolute top-4 left-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center overflow-hidden z-20"
+                className="absolute top-6 left-6 w-12 h-12 glass-card rounded-full flex items-center justify-center overflow-hidden z-20 text-omani-brown hover:text-omani-red transition-colors"
                 title={user ? 'الإعدادات' : 'تسجيل الدخول'}
             >
                 {user?.photoURL ? (
                     <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                 ) : user ? (
-                    <span className="text-sm font-bold text-gray-700">{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
+                    <span className="text-lg font-bold text-omani-red">{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
                 ) : (
-                    <User size={20} className="text-gray-600" />
+                    <User size={24} />
                 )}
             </motion.button>
 
             {/* Settings Button - Top Right Corner */}
             <motion.button
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.7 }}
-                whileHover={{ opacity: 1, scale: 1.1 }}
+                animate={{ opacity: 1 }}
+                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onAdmin}
-                className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-xl z-20"
+                className="absolute top-6 right-6 w-12 h-12 glass-card rounded-full flex items-center justify-center text-omani-brown hover:text-omani-red transition-colors z-20"
                 title="إعدادات"
             >
-                ⚙️
+                <Settings size={24} />
             </motion.button>
 
             {/* Logo Section - BIGGER */}
@@ -62,17 +62,17 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="mb-6 flex justify-center"
+                className="mb-8 flex justify-center"
             >
                 <img
                     src={logo}
                     alt="Omani Game Logo"
-                    className="w-40 md:w-52 h-auto object-contain drop-shadow-xl"
+                    className="w-48 md:w-64 h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
             </motion.div>
 
             {/* All Main Buttons - Full width for mobile */}
-            <div className="flex flex-col gap-4 w-full max-w-md items-center px-4">
+            <div className="flex flex-col gap-5 w-full max-w-sm items-center px-4">
                 {/* Row 1: Singleplayer (خطفة) */}
                 <motion.button
                     custom={0}
@@ -82,12 +82,13 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     whileTap="tap"
                     variants={buttonVariants}
                     onClick={onStart}
-                    className="w-full"
+                    className="w-full relative group"
                 >
+                    <div className="absolute inset-0 bg-omani-gold blur-md opacity-20 group-hover:opacity-40 transition-opacity rounded-xl" />
                     <img
                         src={singlePlayerBtn}
                         alt="خطفة - Singleplayer"
-                        className="w-full h-auto rounded-xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-xl relative z-10 border-2 border-white/20"
                     />
                 </motion.button>
 
@@ -100,12 +101,13 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     whileTap="tap"
                     variants={buttonVariants}
                     onClick={onMultiplayer}
-                    className="w-full"
+                    className="w-full relative group"
                 >
+                    <div className="absolute inset-0 bg-omani-green blur-md opacity-20 group-hover:opacity-40 transition-opacity rounded-xl" />
                     <img
                         src={multiplayerBtn}
                         alt="السبلة - Multiplayer"
-                        className="w-full h-auto rounded-xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-xl relative z-10 border-2 border-white/20"
                     />
                 </motion.button>
 
@@ -118,12 +120,13 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     whileTap="tap"
                     variants={buttonVariants}
                     onClick={() => { }}
-                    className="w-full"
+                    className="w-full relative group"
                 >
+                     <div className="absolute inset-0 bg-omani-red blur-md opacity-20 group-hover:opacity-40 transition-opacity rounded-xl" />
                     <img
                         src={leaderboardBtn}
                         alt="الكبارية - Leaderboards"
-                        className="w-full h-auto rounded-xl shadow-lg"
+                        className="w-full h-auto rounded-xl shadow-xl relative z-10 border-2 border-white/20"
                     />
                 </motion.button>
             </div>

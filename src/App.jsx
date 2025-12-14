@@ -424,12 +424,14 @@ export default function App() {
                   exit={{ opacity: 0, x: -20 }}
                   className="h-full flex flex-col p-4"
                 >
-                  <div className="flex justify-between items-center mb-6 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-                    <span>السؤال {currentQuestionIndex + 1}/{questions.length}</span>
-                    <span className="text-omani-gold">النقاط: {score}</span>
+                  <div className="flex justify-between items-center mb-6 text-sm font-bold text-gray-800 bg-white/60 p-3 rounded-xl backdrop-blur-sm shadow-sm">
+                    <span className="text-gray-600">السؤال {currentQuestionIndex + 1}/{questions.length}</span>
+                    <span className="text-omani-red font-black text-xl">النقاط: {score}</span>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+                  <div className="flex-1 overflow-y-auto glass-panel rounded-3xl p-6 relative">
+                     {/* Decorative top-right corner */}
+                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-omani-gold/20 to-transparent rounded-tr-3xl pointer-events-none" />
                     <QuestionRenderer question={currentQuestion} onAnswer={handleAnswer} />
                   </div>
                 </motion.div>
@@ -437,8 +439,8 @@ export default function App() {
 
               {!currentQuestion && (
                 <motion.div key="no-questions" className="h-full flex items-center justify-center p-6">
-                  <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-center">
-                    <p className="text-xl font-bold text-gray-800 mb-4">ماشي أسئلة فهالمجال!</p>
+                  <div className="glass-panel rounded-3xl p-10 text-center max-w-sm mx-auto">
+                    <p className="text-2xl font-black text-omani-brown mb-6">ماشي أسئلة فهالمجال!</p>
                     <Button onClick={handleNavigateHome}>رجع للقائمة</Button>
                   </div>
                 </motion.div>
@@ -450,16 +452,16 @@ export default function App() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
+                  className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-6"
                 >
-                  <div className="text-center px-6">
-                    <div className={`text-5xl font-black drop-shadow-lg mb-4 ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className="text-center w-full max-w-sm">
+                    <div className={`text-6xl font-black drop-shadow-lg mb-8 animate-bounce ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
                       {feedback === 'correct' ? 'صح! 🎉' : 'خطأ 😢'}
                     </div>
                     {feedback === 'incorrect' && currentQuestion && (
-                      <div className="bg-white/90 rounded-2xl p-4 max-w-xs mx-auto">
-                        <p className="text-gray-500 text-sm mb-1">الجواب الصح هو:</p>
-                        <p className="text-xl font-bold text-omani-red">{currentQuestion.answer}</p>
+                      <div className="bg-white rounded-2xl p-6 shadow-2xl border-4 border-omani-red transform rotate-1">
+                        <p className="text-gray-500 text-sm mb-2 font-bold">الجواب الصح هو:</p>
+                        <p className="text-2xl font-black text-omani-red">{currentQuestion.answer}</p>
                       </div>
                     )}
                   </div>
@@ -476,11 +478,12 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center h-full gap-8 p-6"
             >
-              <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-omani-gold w-full text-center">
-                <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md" />
-                <h2 className="text-3xl font-black text-gray-800">انتهت اللعبة!</h2>
-                <p className="text-gray-500 mt-2 font-medium">جبت</p>
-                <p className="text-6xl font-black text-omani-red mt-4 drop-shadow-sm">{score}</p>
+              <div className="glass-panel rounded-3xl p-10 shadow-2xl border-4 border-omani-gold w-full text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-omani-red via-omani-white to-omani-green" />
+                <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md animate-pulse" />
+                <h2 className="text-3xl font-black text-omani-brown mb-2">انتهت اللعبة!</h2>
+                <p className="text-gray-500 font-medium">جبت</p>
+                <p className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-omani-red to-omani-brown mt-4 drop-shadow-sm">{score}</p>
               </div>
 
               <div className="flex flex-col gap-3 w-full">
@@ -558,19 +561,19 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col p-4"
               >
-                <div className="flex justify-between items-center mb-4 text-sm font-bold text-white/80 bg-black/20 p-2 rounded-lg backdrop-blur-sm">
-                  <span>السؤال {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
-                  <span className="flex items-center gap-1">
-                    <Users size={14} /> {answeredCount}/{players.filter(p => p.connected).length}
+                <div className="flex justify-between items-center mb-4 text-sm font-bold text-gray-800 bg-white/60 p-3 rounded-xl backdrop-blur-sm shadow-sm">
+                  <span className="text-gray-600">السؤال {multiplayerQuestionIndex + 1}/{multiplayerTotalQuestions}</span>
+                  <span className="flex items-center gap-1 text-omani-green bg-green-100 px-2 py-1 rounded-lg">
+                    <Users size={16} /> {answeredCount}/{players.filter(p => p.connected).length}
                   </span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+                <div className="flex-1 overflow-y-auto glass-panel rounded-3xl p-6 relative border-4 border-white/50">
                   <QuestionRenderer question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
                 </div>
 
                 {hasAnswered && (
-                  <div className="mt-4 text-center text-white/80">
+                  <div className="mt-4 text-center bg-white/20 backdrop-blur-sm rounded-xl p-3 text-white font-bold animate-pulse">
                     ⏳ ننتظر البقية...
                   </div>
                 )}
@@ -580,26 +583,24 @@ export default function App() {
 
           {/* Multiplayer Leaderboard */}
           <Route path="/multiplayer/leaderboard" element={
-            roundResults && (
-              <motion.div
-                key="mp-leaderboard"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="h-full"
-              >
-                <RoundLeaderboard
-                  results={roundResults.results}
-                  correctAnswer={roundResults.correctAnswer}
-                  questionIndex={multiplayerQuestionIndex}
-                  totalQuestions={multiplayerTotalQuestions}
-                  isGameOver={isGameOver}
-                  winner={winner}
-                  onPlayAgain={handleLeaveRoom}
-                  onLeave={handleLeaveRoom}
-                />
-              </motion.div>
-            )
+            <motion.div
+              key="mp-leaderboard"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
+              <RoundLeaderboard
+                results={roundResults.results}
+                correctAnswer={roundResults.correctAnswer}
+                questionIndex={multiplayerQuestionIndex}
+                totalQuestions={multiplayerTotalQuestions}
+                isGameOver={isGameOver}
+                winner={winner}
+                onPlayAgain={handleLeaveRoom}
+                onLeave={handleLeaveRoom}
+              />
+            </motion.div>
           } />
         </Routes>
       </AnimatePresence>

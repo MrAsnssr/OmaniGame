@@ -4,47 +4,65 @@
   --color-omani-red: #D92525;
   --color-omani-green: #008000;
   --color-omani-white: #FFFFFF;
-  --color-omani-gold: #FFD700;
-  --color-omani-gold-shadow: #B8860B;
-  --color-omani-sand: #F4E4BC;
+  --color-omani-gold: #D4AF37;
+  --color-omani-gold-shadow: #AA8C2C;
+  --color-omani-sand: #F5E6CA;
+  --color-omani-sand-dark: #E6D2A8;
+  --color-omani-brown: #8B4513;
   --color-omani-dark: #1A1A1A;
 
-  --color-night-start: #2C1B4E;
-  --color-night-end: #724C9D;
-  --color-sand-start: #E6C288;
-  --color-sand-end: #D4A76A;
-
-  --font-sans: Inter, sans-serif;
+  --font-sans: 'Tajawal', 'Inter', sans-serif;
 
   --animate-float: float 3s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 body {
-  @apply bg-gray-900 text-gray-100 m-0 p-0 overflow-hidden;
+  @apply bg-gray-50 text-gray-800 m-0 p-0 overflow-hidden font-sans;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
-html {
-  height: 100%;
-  overflow: hidden;
+/* Omani Geometric Pattern Background */
+.bg-omani-pattern {
+  background-color: var(--color-omani-sand);
+  background-image: 
+    linear-gradient(30deg, var(--color-omani-sand-dark) 12%, transparent 12.5%, transparent 87%, var(--color-omani-sand-dark) 87.5%, var(--color-omani-sand-dark)),
+    linear-gradient(150deg, var(--color-omani-sand-dark) 12%, transparent 12.5%, transparent 87%, var(--color-omani-sand-dark) 87.5%, var(--color-omani-sand-dark)),
+    linear-gradient(30deg, var(--color-omani-sand-dark) 12%, transparent 12.5%, transparent 87%, var(--color-omani-sand-dark) 87.5%, var(--color-omani-sand-dark)),
+    linear-gradient(150deg, var(--color-omani-sand-dark) 12%, transparent 12.5%, transparent 87%, var(--color-omani-sand-dark) 87.5%, var(--color-omani-sand-dark)),
+    linear-gradient(60deg, var(--color-omani-gold-shadow) 25%, transparent 25.5%, transparent 75%, var(--color-omani-gold-shadow) 75%, var(--color-omani-gold-shadow)),
+    linear-gradient(60deg, var(--color-omani-gold-shadow) 25%, transparent 25.5%, transparent 75%, var(--color-omani-gold-shadow) 75%, var(--color-omani-gold-shadow));
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  opacity: 1;
 }
 
-#root {
-  @apply w-full flex justify-center items-center bg-gray-900 overflow-hidden;
-  height: 100%;
-  height: 100dvh;
-  min-height: 100vh;
+/* Glassmorphism Utilities */
+.glass-panel {
+  @apply bg-white/80 backdrop-blur-md border border-white/40 shadow-xl;
+}
+
+.glass-card {
+  @apply bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:bg-white/70 transition-all;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-omani-gold);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-omani-gold-shadow);
 }
