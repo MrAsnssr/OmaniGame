@@ -477,21 +477,26 @@ function processRoundEnd(room) {
 
 const PORT = process.env.PORT || 3001;
 
-// Serve static files in production
+// Serve the built client (dist/) when available
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-if (process.env.NODE_ENV === 'production') {
-    // Serve static files from the dist directory (one level up from server)
-    app.use(express.static(path.join(__dirname, '../dist')));
+const distPath = path.join(__dirname, '../dist');
+const distIndexPath = path.join(distPath, 'index.html');
 
-    // Handle client-side routing by returning index.html for all other routes
+// On Render (and many hosts), NODE_ENV may not be set to "production".
+// If a client build exists, always serve it.
+if (fs.existsSync(distIndexPath)) {
+    app.use(express.static(distPath));
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../dist/index.html'));
+        res.sendFile(distIndexPath);
     });
+} else {
+    console.warn('⚠️ Client dist/ not found. Skipping static serving:', distIndexPath);
 }
 
 httpServer.listen(PORT, () => {
