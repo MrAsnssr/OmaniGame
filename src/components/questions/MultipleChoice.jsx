@@ -48,7 +48,7 @@ export default function MultipleChoice({ question, onAnswer }) {
                             onClick={() => onAnswer(option)}
                             className="w-full group"
                         >
-                            <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 mr-3 group-hover:bg-omani-red/10 group-hover:text-omani-red transition-colors">
+                            <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700 mr-3 group-hover:bg-omani-red/10 group-hover:text-omani-red transition-colors">
                                 {String.fromCharCode(65 + index)}
                             </span>
                             {option}

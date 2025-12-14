@@ -45,7 +45,7 @@ export default function Order({ question, onAnswer }) {
                 <h2 className="text-xl font-bold text-center text-gray-800 leading-relaxed">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-500 mt-2">اسحب عشان ترتبهم</p>
+                <p className="text-center text-sm text-gray-700 font-bold mt-2">اسحب عشان ترتبهم</p>
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-0">
@@ -53,7 +53,7 @@ export default function Order({ question, onAnswer }) {
                     {items.map((item) => (
                         <Reorder.Item key={item.id} value={item}>
                             <div className="bg-white border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 shadow-sm cursor-grab active:cursor-grabbing hover:border-omani-gold/50">
-                                <div className="text-gray-400">
+                                <div className="text-gray-500">
                                     <GripVertical size={20} />
                                 </div>
                                 <span className="font-medium text-gray-700">{item.text}</span>

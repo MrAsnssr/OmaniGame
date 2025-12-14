@@ -90,7 +90,7 @@ export default function Match({ question, onAnswer }) {
                 <h2 className="text-xl font-bold text-center text-gray-800">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-500 mt-1">اختار يمين ويسار عشان توصل</p>
+                <p className="text-center text-sm text-gray-700 font-bold mt-1">اختار يمين ويسار عشان توصل</p>
             </div>
 
             <div className="flex-1 grid grid-cols-2 gap-4 overflow-y-auto content-start min-h-0">
@@ -135,7 +135,7 @@ export default function Match({ question, onAnswer }) {
                                         ? 'bg-green-50 border-green-500 text-green-700 opacity-80'
                                         : selectedLeft
                                             ? 'bg-white border-omani-red/30 text-gray-700 animate-pulse cursor-pointer'
-                                            : 'bg-white border-gray-100 text-gray-400'
+                                            : 'bg-white border-gray-200 text-gray-500'
                                     }`}
                                 whileTap={{ scale: 0.98 }}
                             >

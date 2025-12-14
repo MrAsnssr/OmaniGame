@@ -63,7 +63,7 @@ export default function CategorySelection({ onBack }) {
                                 onChange={(e) => setQuestionCount(Number(e.target.value))}
                                 className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-omani-red"
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1 font-bold">
+                            <div className="flex justify-between text-xs text-gray-700 mt-1 font-bold">
                                 <span>5</span>
                                 <span>50</span>
                             </div>
@@ -84,7 +84,7 @@ export default function CategorySelection({ onBack }) {
                                 onChange={(e) => setTimePerQuestion(Number(e.target.value))}
                                 className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-omani-green"
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1 font-bold">
+                            <div className="flex justify-between text-xs text-gray-700 mt-1 font-bold">
                                 <span>10s</span>
                                 <span>120s</span>
                             </div>
@@ -100,7 +100,7 @@ export default function CategorySelection({ onBack }) {
                                         onClick={() => toggleType(type.id)}
                                         className={`flex items-center gap-2 p-3 rounded-xl font-bold text-sm transition-all border-2 ${selectedTypes.includes(type.id)
                                             ? 'bg-omani-sand/30 border-omani-gold text-omani-brown'
-                                            : 'bg-white/50 border-transparent text-gray-400 grayscale'
+                                            : 'bg-white/50 border-transparent text-gray-600 grayscale'
                                             }`}
                                     >
                                         {selectedTypes.includes(type.id) ? <CheckSquare size={18} className="text-omani-green" /> : <Square size={18} />}

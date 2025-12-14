@@ -48,7 +48,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                         <span className="text-sm font-bold text-omani-brown group-hover:text-omani-red transition-colors">
                             {user ? (user.displayName || 'اللاعب') : 'تسجيل دخول'}
                         </span>
-                        {user && <span className="text-[10px] text-gray-500 font-medium">الملف الشخصي</span>}
+                        {user && <span className="text-[10px] text-gray-700 font-medium">الملف الشخصي</span>}
                     </div>
                 </motion.button>
 
@@ -91,7 +91,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     <h1 className="text-6xl font-black text-omani-dark mb-1 tracking-tight drop-shadow-sm">
                         سوالف <span className="text-transparent bg-clip-text bg-gradient-to-r from-omani-gold to-yellow-600">عمان</span>
                     </h1>
-                    <p className="text-lg text-gray-600 font-medium opacity-90">
+                    <p className="text-lg text-omani-brown font-bold opacity-95">
                         اختبر معلوماتك وتحدى ربعك
                     </p>
                 </motion.div>
@@ -135,7 +135,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="absolute bottom-6 text-xs text-gray-400 font-medium"
+                className="absolute bottom-6 text-xs text-gray-600 font-medium"
             >
                 الإصدار 1.0.0
             </motion.p>
@@ -164,13 +164,13 @@ function MenuCard({ title, subtitle, icon, gradient, shadowColor, onClick, varia
                         <h3 className="text-2xl font-black text-omani-dark group-hover:text-omani-brown transition-colors">
                             {title}
                         </h3>
-                        <p className="text-sm font-bold text-gray-500 group-hover:text-gray-700">
+                        <p className="text-sm font-bold text-gray-700 group-hover:text-omani-brown">
                             {subtitle}
                         </p>
                     </div>
                 </div>
                 
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-omani-gold transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 group-hover:bg-white group-hover:text-omani-gold transition-colors">
                     <ChevronLeft size={20} />
                 </div>
             </div>

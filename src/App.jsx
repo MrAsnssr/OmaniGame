@@ -460,7 +460,7 @@ export default function App() {
                     </div>
                     {feedback === 'incorrect' && currentQuestion && (
                       <div className="bg-white rounded-2xl p-6 shadow-2xl border-4 border-omani-red transform rotate-1">
-                        <p className="text-gray-500 text-sm mb-2 font-bold">الجواب الصح هو:</p>
+                        <p className="text-gray-700 text-sm mb-2 font-bold">الجواب الصح هو:</p>
                         <p className="text-2xl font-black text-omani-red">{currentQuestion.answer}</p>
                       </div>
                     )}
@@ -482,7 +482,7 @@ export default function App() {
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-omani-red via-omani-white to-omani-green" />
                 <Trophy size={80} className="text-omani-gold mx-auto mb-4 drop-shadow-md animate-pulse" />
                 <h2 className="text-3xl font-black text-omani-brown mb-2">انتهت اللعبة!</h2>
-                <p className="text-gray-500 font-medium">جبت</p>
+                <p className="text-gray-700 font-bold">جبت</p>
                 <p className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-omani-red to-omani-brown mt-4 drop-shadow-sm">{score}</p>
               </div>
 
