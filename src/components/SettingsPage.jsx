@@ -33,11 +33,11 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={onBack}
-                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
                 >
                     <ArrowRight size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white">الإعدادات</h2>
+                <h2 className="text-2xl font-black text-omani-dark">الإعدادات</h2>
             </div>
 
             {/* User Info Card */}
@@ -45,9 +45,9 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-4 flex items-center gap-4"
+                    className="glass-panel rounded-2xl p-4 mb-4 flex items-center gap-4"
                 >
-                    <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-omani-gold to-yellow-600 flex items-center justify-center overflow-hidden ring-2 ring-white/50">
                         {user.photoURL ? (
                             <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                         ) : (
@@ -57,10 +57,10 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold truncate">{user.displayName || 'مستخدم'}</p>
-                        <p className="text-white/60 text-sm truncate">{user.email}</p>
+                        <p className="text-omani-dark font-black text-lg truncate">{user.displayName || 'مستخدم'}</p>
+                        <p className="text-gray-700 text-sm font-bold truncate">{user.email}</p>
                         {isAdmin && (
-                            <span className="inline-flex items-center gap-1 bg-omani-gold/20 text-omani-gold text-xs px-2 py-0.5 rounded-full mt-1">
+                            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-omani-gold to-yellow-600 text-white text-xs px-3 py-1 rounded-full mt-1 font-bold shadow-sm">
                                 <Shield size={10} /> مسؤول
                             </span>
                         )}
@@ -80,8 +80,8 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                             transition={{ delay: index * 0.1 }}
                             onClick={item.onClick}
                             className={`w-full p-4 rounded-xl flex items-center gap-4 transition-colors ${item.special
-                                ? 'bg-gradient-to-r from-omani-red to-red-600 text-white'
-                                : 'bg-white/10 text-white hover:bg-white/20'
+                                ? 'bg-gradient-to-r from-omani-red to-red-600 text-white shadow-lg'
+                                : 'glass-card text-omani-dark hover:bg-white/90 font-bold'
                                 }`}
                         >
                             <item.icon size={24} />
@@ -98,7 +98,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                     transition={{ delay: 0.3 }}
                     className="mt-4"
                 >
-                    <Button onClick={handleLogout} variant="ghost" className="w-full text-red-300 hover:text-red-200 hover:bg-red-500/20">
+                    <Button onClick={handleLogout} variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 font-bold">
                         <LogOut size={20} />
                         تسجيل الخروج
                     </Button>
@@ -110,7 +110,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-4 text-center text-white/60"
+                    className="mt-4 text-center text-gray-700 font-bold"
                 >
                     <p>سجل دخولك لمزيد من الإعدادات</p>
                 </motion.div>
