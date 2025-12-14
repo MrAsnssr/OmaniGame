@@ -2,6 +2,9 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const app = express();
 app.use(cors());
@@ -475,29 +478,54 @@ function processRoundEnd(room) {
     }
 }
 
-const PORT = process.env.PORT || 3001;
-
-// Serve the built client (dist/) when available
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-
+// Setup static file serving BEFORE socket.io routes
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const distPath = path.join(__dirname, '../dist');
 const distIndexPath = path.join(distPath, 'index.html');
 
-// On Render (and many hosts), NODE_ENV may not be set to "production".
-// If a client build exists, always serve it.
+// Log paths for debugging
+console.log('📁 Server directory:', __dirname);
+console.log('📁 Dist path:', distPath);
+console.log('📁 Index path:', distIndexPath);
+console.log('📁 Dist exists?', fs.existsSync(distPath));
+console.log('📁 Index exists?', fs.existsSync(distIndexPath));
+
+// Serve static files from dist directory
 if (fs.existsSync(distIndexPath)) {
-    app.use(express.static(distPath));
+    console.log('✅ Serving static files from:', distPath);
+    app.use(express.static(distPath, {
+        maxAge: '1d',
+        etag: true
+    }));
+    
+    // Handle client-side routing - must be LAST route
     app.get('*', (req, res) => {
+        console.log('📄 Serving index.html for route:', req.path);
         res.sendFile(distIndexPath);
     });
 } else {
-    console.warn('⚠️ Client dist/ not found. Skipping static serving:', distIndexPath);
+    console.error('❌ ERROR: Client dist/ not found at:', distIndexPath);
+    console.error('   Make sure to run "npm run build" before starting the server');
+    
+    // Fallback: serve a basic error page
+    app.get('*', (req, res) => {
+        res.status(500).send(`
+            <html>
+                <head><title>Build Error</title></head>
+                <body>
+                    <h1>Build Not Found</h1>
+                    <p>The client build (dist/) was not found.</p>
+                    <p>Expected path: ${distIndexPath}</p>
+                    <p>Please run: npm run build</p>
+                </body>
+            </html>
+        `);
+    });
 }
+
+const PORT = process.env.PORT || 3001;
 
 httpServer.listen(PORT, () => {
     console.log(`🎮 Omani Quiz Server running on port ${PORT}`);
