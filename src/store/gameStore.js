@@ -20,6 +20,11 @@ export const useGameStore = create((set, get) => ({
     gameState: 'welcome',
     selectedCategory: null,
 
+    // Admin Review Game (play all filtered questions from Admin page)
+    adminReviewActive: false,
+    adminReviewQuestionIds: [],
+    adminReviewMeta: null, // { filterCategory, filterType, startedAt }
+
     // Game Settings
     questionCount: 10,
     timePerQuestion: 30,
@@ -148,6 +153,18 @@ export const useGameStore = create((set, get) => ({
     nextQuestion: () => set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 })),
     resetGame: () => set({ gameState: 'welcome', score: 0, currentQuestionIndex: 0, selectedCategory: null }),
     goToAdmin: () => set({ gameState: 'admin' }),
+
+    // Admin Review Game Actions
+    startAdminReviewGame: (questionIds, meta = {}) => set({
+        adminReviewActive: true,
+        adminReviewQuestionIds: Array.isArray(questionIds) ? questionIds : [],
+        adminReviewMeta: { ...meta, startedAt: Date.now() }
+    }),
+    exitAdminReviewGame: () => set({
+        adminReviewActive: false,
+        adminReviewQuestionIds: [],
+        adminReviewMeta: null
+    }),
 
     // Multiplayer Actions
     goToMultiplayer: () => set({ gameState: 'multiplayer-lobby' }),

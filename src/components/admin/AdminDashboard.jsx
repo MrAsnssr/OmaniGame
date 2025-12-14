@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play } from 'lucide-react';
 import Button from '../Button';
+import QuestionFormModal from './QuestionFormModal';
 
 export default function AdminDashboard({ onBack }) {
     const navigate = useNavigate();
-    const { categories, questions, deleteCategory, deleteQuestion } = useGameStore();
+    const { categories, questions, deleteCategory, deleteQuestion, startAdminReviewGame } = useGameStore();
     const [activeTab, setActiveTab] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -22,6 +23,19 @@ export default function AdminDashboard({ onBack }) {
         const matchType = filterType === 'all' || q.type === filterType;
         return matchCat && matchType;
     });
+
+    const handleStartReviewGame = () => {
+        if (filteredQuestions.length === 0) {
+            alert('No questions match your filters.');
+            return;
+        }
+        if (filteredQuestions.length > 200) {
+            const ok = window.confirm(`Start a review game with ${filteredQuestions.length} questions?`);
+            if (!ok) return;
+        }
+        startAdminReviewGame(filteredQuestions.map(q => q.id), { filterCategory, filterType });
+        navigate('/admin/review');
+    };
 
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
@@ -71,6 +85,7 @@ export default function AdminDashboard({ onBack }) {
                         onDelete={deleteQuestion}
                         onAdd={() => setShowQuestionForm(true)}
                         onImport={() => setShowJsonImport(true)}
+                        onStartReviewGame={handleStartReviewGame}
                         filterCategory={filterCategory}
                         setFilterCategory={setFilterCategory}
                         filterType={filterType}
@@ -87,7 +102,7 @@ export default function AdminDashboard({ onBack }) {
                 />
             )}
             {(showQuestionForm || editingQuestion) && (
-                <QuestionForm
+                <QuestionFormModal
                     question={editingQuestion}
                     categories={categories}
                     onClose={() => { setShowQuestionForm(false); setEditingQuestion(null); }}
@@ -123,7 +138,7 @@ function CategoryList({ categories, onEdit, onDelete, onAdd }) {
 
 function QuestionList({
     questions, allQuestionsCount, categories,
-    onEdit, onDelete, onAdd, onImport,
+    onEdit, onDelete, onAdd, onImport, onStartReviewGame,
     filterCategory, setFilterCategory, filterType, setFilterType
 }) {
     const { deleteQuestions } = useGameStore();
@@ -170,6 +185,14 @@ function QuestionList({
                         <option value="match">Match</option>
                     </select>
                 </div>
+
+                <Button
+                    onClick={onStartReviewGame}
+                    disabled={questions.length === 0}
+                    className="w-full"
+                >
+                    <Play size={18} /> Play filtered ({questions.length})
+                </Button>
 
                 {(filterCategory !== 'all' || filterType !== 'all') && questions.length > 0 && (
                     <button
@@ -256,117 +279,6 @@ function CategoryForm({ category, onClose }) {
                         <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full ${c} ${color === c ? 'ring-2 ring-offset-2 ring-gray-800' : ''}`} />
                     ))}
                 </div>
-                <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600">Cancel</Button>
-                    <Button onClick={handleSubmit} className="flex-1">Save</Button>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
-
-function QuestionForm({ question, categories, onClose }) {
-    const { addQuestion, editQuestion } = useGameStore();
-    const [type, setType] = useState(question?.type || 'multiple-choice');
-    const [category, setCategory] = useState(question?.category || categories[0]?.id);
-    const [questionText, setQuestionText] = useState(question?.question || '');
-    const [answer, setAnswer] = useState(question?.answer || '');
-    const [options, setOptions] = useState(question?.options?.join('\n') || '');
-    const [items, setItems] = useState(question?.items?.map(i => i.text).join('\n') || '');
-    const [pairs, setPairs] = useState(question?.pairs?.map(p => `${p.left}|${p.right}`).join('\n') || '');
-
-    const handleSubmit = () => {
-        if (!questionText.trim()) return;
-
-        let newQuestion = { type, category, question: questionText };
-
-        if (type === 'multiple-choice') {
-            newQuestion.options = options.split('\n').filter(o => o.trim());
-            newQuestion.answer = answer;
-        } else if (type === 'fill-blank') {
-            newQuestion.options = options.split('\n').filter(o => o.trim());
-            newQuestion.answer = answer;
-        } else if (type === 'order') {
-            newQuestion.items = items.split('\n').filter(i => i.trim()).map((text, idx) => ({ id: String(idx + 1), text }));
-            newQuestion.correctOrder = newQuestion.items.map(i => i.id);
-        } else if (type === 'match') {
-            newQuestion.pairs = pairs.split('\n').filter(p => p.includes('|')).map(p => {
-                const [left, right] = p.split('|');
-                return { left: left.trim(), right: right.trim() };
-            });
-        }
-
-        if (question) {
-            editQuestion(question.id, newQuestion);
-        } else {
-            addQuestion(newQuestion);
-        }
-        onClose();
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl my-4"
-            >
-                <h3 className="text-xl font-bold text-gray-800 mb-4">{question ? 'Edit' : 'Add'} Question</h3>
-
-                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 bg-white">
-                    <option value="multiple-choice">Multiple Choice</option>
-                    <option value="fill-blank">Fill in the Blank</option>
-                    <option value="order">Order</option>
-                    <option value="match">Match</option>
-                </select>
-
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 bg-white">
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                </select>
-
-                <textarea
-                    value={questionText}
-                    onChange={(e) => setQuestionText(e.target.value)}
-                    placeholder="Question text (use ______ for blanks)"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-20 resize-none text-gray-900 placeholder-gray-500"
-                />
-
-                {(type === 'multiple-choice' || type === 'fill-blank') && (
-                    <>
-                        <textarea
-                            value={options}
-                            onChange={(e) => setOptions(e.target.value)}
-                            placeholder="Options (one per line)"
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
-                        />
-                        <input
-                            type="text"
-                            value={answer}
-                            onChange={(e) => setAnswer(e.target.value)}
-                            placeholder="Correct Answer"
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 placeholder-gray-500"
-                        />
-                    </>
-                )}
-
-                {type === 'order' && (
-                    <textarea
-                        value={items}
-                        onChange={(e) => setItems(e.target.value)}
-                        placeholder="Items in correct order (one per line)"
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
-                    />
-                )}
-
-                {type === 'match' && (
-                    <textarea
-                        value={pairs}
-                        onChange={(e) => setPairs(e.target.value)}
-                        placeholder="Pairs (Left|Right, one per line)"
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
-                    />
-                )}
-
                 <div className="flex gap-3">
                     <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600">Cancel</Button>
                     <Button onClick={handleSubmit} className="flex-1">Save</Button>
