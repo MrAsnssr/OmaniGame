@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, Car, Users, Trophy, Crown, ChevronLeft } from 'lucide-react';
+import { User, Settings, Car, Coffee, Trophy, Crown, ChevronLeft } from 'lucide-react';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const containerVariants = {
@@ -111,7 +111,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     <MenuCard 
                         title="السبلة"
                         subtitle="تحدى الجماعة أونلاين"
-                        icon={<Users size={28} className="text-white" />}
+                        icon={<Coffee size={28} className="text-white" />}
                         gradient="from-omani-green to-green-700"
                         shadowColor="shadow-omani-green/20"
                         onClick={onMultiplayer}
