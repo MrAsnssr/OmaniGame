@@ -4,11 +4,22 @@ import { motion } from 'framer-motion';
 import { Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
+// Check if text is primarily Arabic
+function isArabic(text) {
+    if (!text) return true;
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(text.trim().charAt(0));
+}
+
 export default function FillBlank({ question, onAnswer }) {
     const { reportQuestion } = useGameStore();
     const [typedAnswer, setTypedAnswer] = useState('');
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
+
+    // Detect if answer should be in English or Arabic
+    const answerIsArabic = isArabic(question.answer);
+    const languageHint = answerIsArabic ? 'الإجابة بالعربي' : 'Answer in English';
 
     const handleReport = async () => {
         if (!reportReason.trim()) return;
@@ -60,14 +71,19 @@ export default function FillBlank({ question, onAnswer }) {
                 animate={{ opacity: 1, y: 0 }}
                 className="pb-4"
             >
+                {/* Language hint */}
+                <p className={`text-center text-sm font-bold mb-2 ${answerIsArabic ? 'text-omani-green' : 'text-blue-600'}`}>
+                    💡 {languageHint}
+                </p>
                 <input
                     type="text"
                     value={typedAnswer}
                     onChange={(e) => setTypedAnswer(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="كتب إجابتك..."
+                    placeholder={answerIsArabic ? "كتب إجابتك..." : "Type your answer..."}
                     className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-omani-red outline-none text-center font-bold text-gray-800 placeholder-gray-400"
                     autoFocus
+                    dir={answerIsArabic ? "rtl" : "ltr"}
                 />
             </motion.div>
 
