@@ -1,17 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square } from 'lucide-react';
+import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function CategorySelection({ onBack }) {
     const navigate = useNavigate();
     const {
-        categories, startGame,
+        startGame, getCategorizedTopics, getTopicsBySubject, subjects,
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType
     } = useGameStore();
+    
+    // Get only categorized topics (those with a subject) for game play
+    const categorizedTopics = getCategorizedTopics();
+    const topicsBySubject = getTopicsBySubject();
+    
+    // Track expanded subjects
+    const [expandedSubjects, setExpandedSubjects] = useState(() => {
+        // Expand all subjects by default
+        return subjects.reduce((acc, s) => ({ ...acc, [s.id]: true }), {});
+    });
+    
+    const toggleSubject = (subjectId) => {
+        setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
+    };
 
     const handleStartGame = (categoryId) => {
         startGame(categoryId);
@@ -36,7 +50,7 @@ export default function CategorySelection({ onBack }) {
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-omani-red to-omani-brown drop-shadow-sm">خطفة</h2>
+                <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-omani-red to-omani-brown drop-shadow-sm">الحجرة</h2>
             </div>
 
             {/* Main Content Grid */}
@@ -113,43 +127,90 @@ export default function CategorySelection({ onBack }) {
                     </div>
                 </div>
 
-                {/* Right Column: Categories */}
+                {/* Right Column: Subjects & Topics */}
                 <div className="flex flex-col">
                     <h3 className="text-xl font-bold text-omani-brown mb-4 md:hidden">نقي مجال:</h3>
 
-                    {/* All Categories Button */}
+                    {/* All Topics Button (Cocktail) */}
                     <motion.button
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleStartGame(null)}
-                        className="w-full p-6 mb-6 rounded-2xl bg-gradient-to-r from-omani-red to-red-700 text-white font-bold flex items-center justify-center gap-4 shadow-lg shadow-red-900/20 border border-white/20 relative overflow-hidden group shrink-0"
+                        disabled={categorizedTopics.length === 0}
+                        className="w-full p-6 mb-6 rounded-2xl bg-gradient-to-r from-omani-red to-red-700 text-white font-bold flex items-center justify-center gap-4 shadow-lg shadow-red-900/20 border border-white/20 relative overflow-hidden group shrink-0 disabled:opacity-50"
                     >
-                         <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
+                        <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
                         <Shuffle size={28} />
                         <span className="text-2xl">كوكتيل (كل شي)</span>
                     </motion.button>
 
-                    {/* Category Grid */}
-                    <div className="pr-1 pl-1">
-                        <div className="grid grid-cols-2 gap-4 pb-20 md:pb-4">
-                            {categories.map((category, index) => (
-                                <motion.button
-                                    key={category.id}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    whileHover={{ y: -5 }}
-                                    onClick={() => handleStartGame(category.id)}
-                                    className={`glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-3 h-36 relative overflow-hidden group`}
+                    {/* Subjects with Topics */}
+                    <div className="space-y-4 pb-20 md:pb-4">
+                        {subjects.map((subject) => {
+                            const subjectTopics = topicsBySubject[subject.id]?.topics || [];
+                            if (subjectTopics.length === 0) return null;
+                            
+                            const isExpanded = expandedSubjects[subject.id] !== false;
+                            
+                            return (
+                                <motion.div
+                                    key={subject.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="glass-panel rounded-2xl overflow-hidden"
                                 >
-                                    <div className={`absolute inset-0 opacity-10 ${category.color ? category.color.replace('bg-', 'bg-') : 'bg-gray-500'}`} />
-                                    <span className="text-4xl drop-shadow-sm group-hover:scale-110 transition-transform">{category.icon}</span>
-                                    <span className="text-sm font-bold text-gray-800 text-center">{category.name}</span>
-                                </motion.button>
-                            ))}
-                        </div>
+                                    {/* Subject Header */}
+                                    <button
+                                        onClick={() => toggleSubject(subject.id)}
+                                        className="w-full p-4 flex items-center gap-3 hover:bg-white/50 transition-colors"
+                                    >
+                                        <span className="text-2xl">{subject.icon}</span>
+                                        <span className="flex-1 text-right font-bold text-omani-dark text-lg">{subject.name}</span>
+                                        <span className="text-xs text-gray-500 font-bold">{subjectTopics.length} مواضيع</span>
+                                        {isExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+                                    </button>
+                                    
+                                    {/* Topics Grid */}
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="grid grid-cols-2 gap-3 p-4 pt-0">
+                                                    {subjectTopics.map((topic, index) => (
+                                                        <motion.button
+                                                            key={topic.id}
+                                                            initial={{ opacity: 0, scale: 0.9 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            transition={{ delay: index * 0.03 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                            onClick={() => handleStartGame(topic.id)}
+                                                            className="bg-white/70 hover:bg-white p-3 rounded-xl flex flex-col items-center justify-center gap-2 h-24 relative overflow-hidden group transition-all shadow-sm hover:shadow-md"
+                                                        >
+                                                            <span className="text-2xl group-hover:scale-110 transition-transform">{topic.icon}</span>
+                                                            <span className="text-xs font-bold text-gray-700 text-center line-clamp-2">{topic.name}</span>
+                                                        </motion.button>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+                            );
+                        })}
+                        
+                        {/* No categorized topics message */}
+                        {categorizedTopics.length === 0 && (
+                            <div className="text-center py-8 text-gray-500 font-bold">
+                                <p>ما في مواضيع متاحة حالياً</p>
+                                <p className="text-sm mt-2">راجع المسؤول لإضافة مواضيع</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

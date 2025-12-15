@@ -55,7 +55,8 @@ export const useGameStore = create((set, get) => ({
     winner: null,
 
     // Data
-    categories: [],
+    subjects: [], // Parent grouping for topics
+    categories: [], // These are now "topics" - kept as categories for compatibility
     questions: [],
     reports: [],
     isLoading: true,
@@ -64,7 +65,19 @@ export const useGameStore = create((set, get) => ({
     // Initialize Firestore listeners
     initializeFirestore: async () => {
         try {
-            // Set up real-time listeners
+            // Set up real-time listeners for subjects
+            const unsubscribeSubjects = onSnapshot(
+                collection(db, 'subjects'),
+                (snapshot) => {
+                    const subjects = snapshot.docs.map(doc => ({
+                        ...doc.data(),
+                        id: doc.id
+                    }));
+                    set({ subjects });
+                }
+            );
+
+            // Set up real-time listeners for categories (topics)
             const unsubscribeCategories = onSnapshot(
                 collection(db, 'categories'),
                 (snapshot) => {
@@ -99,7 +112,7 @@ export const useGameStore = create((set, get) => ({
             );
 
             // Store unsubscribe functions
-            set({ unsubscribeCategories, unsubscribeQuestions, unsubscribeReports });
+            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeReports });
         } catch (error) {
             console.error('Error initializing Firestore:', error);
             set({ isLoading: false });
@@ -256,12 +269,20 @@ export const useGameStore = create((set, get) => ({
 
     // Get filtered questions
     getFilteredQuestions: (categoryId = null) => {
-        const { questions, selectedTypes, questionCount } = get();
+        const { questions, selectedTypes, questionCount, categories, subjects } = get();
         let filtered = [...questions]; // Clone to avoid mutation
+
+        // Get IDs of categorized topics (topics that have a valid subject)
+        const categorizedTopicIds = categories
+            .filter(cat => cat.subjectId && subjects.some(s => s.id === cat.subjectId))
+            .map(cat => cat.id);
 
         // Filter by category if provided
         if (categoryId !== null) {
             filtered = filtered.filter(q => q.category === categoryId);
+        } else {
+            // For "cocktail" mode (all topics), only include questions from categorized topics
+            filtered = filtered.filter(q => categorizedTopicIds.includes(q.category));
         }
 
         // Filter by selected question types
@@ -272,7 +293,71 @@ export const useGameStore = create((set, get) => ({
         return shuffled.slice(0, questionCount);
     },
 
-    // Category Actions (Firestore)
+    // Subject Actions (Firestore) - Parent grouping for topics
+    addSubject: async (subject) => {
+        try {
+            await addDoc(collection(db, 'subjects'), subject);
+        } catch (error) {
+            console.error('Error adding subject:', error);
+        }
+    },
+    editSubject: async (id, updates) => {
+        try {
+            const subjectRef = doc(db, 'subjects', id);
+            await updateDoc(subjectRef, updates);
+        } catch (error) {
+            console.error('Error updating subject:', error);
+        }
+    },
+    deleteSubject: async (id) => {
+        try {
+            // Move all topics in this subject to uncategorized (remove subjectId)
+            const topicsToUpdate = get().categories.filter(c => c.subjectId === id);
+            const batch = writeBatch(db);
+            topicsToUpdate.forEach(topic => {
+                const topicRef = doc(db, 'categories', topic.id);
+                batch.update(topicRef, { subjectId: null });
+            });
+            await batch.commit();
+            // Then delete the subject
+            await deleteDoc(doc(db, 'subjects', id));
+        } catch (error) {
+            console.error('Error deleting subject:', error);
+        }
+    },
+
+    // Helper to get topics that are categorized (have a subject) - for game selection
+    getCategorizedTopics: () => {
+        const { categories, subjects } = get();
+        // Only return topics that have a valid subjectId
+        return categories.filter(cat => cat.subjectId && subjects.some(s => s.id === cat.subjectId));
+    },
+
+    // Helper to get topics grouped by subject
+    getTopicsBySubject: () => {
+        const { categories, subjects } = get();
+        const grouped = {};
+        
+        subjects.forEach(subject => {
+            grouped[subject.id] = {
+                subject,
+                topics: categories.filter(cat => cat.subjectId === subject.id)
+            };
+        });
+        
+        // Add uncategorized topics
+        const uncategorizedTopics = categories.filter(cat => !cat.subjectId);
+        if (uncategorizedTopics.length > 0) {
+            grouped['uncategorized'] = {
+                subject: { id: 'uncategorized', name: 'غير مصنف', icon: '📦' },
+                topics: uncategorizedTopics
+            };
+        }
+        
+        return grouped;
+    },
+
+    // Category/Topic Actions (Firestore)
     addCategory: async (category) => {
         try {
             await addDoc(collection(db, 'categories'), category);
