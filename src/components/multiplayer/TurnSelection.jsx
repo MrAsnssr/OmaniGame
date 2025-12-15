@@ -75,13 +75,13 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
 
     // Timer progress percentage
     const timerProgress = (timeLeft / SELECTION_TIME) * 100;
-    const timerColor = timeLeft <= 5 ? 'text-red-400' : timeLeft <= 10 ? 'text-yellow-400' : 'text-white';
+    const timerColor = timeLeft <= 5 ? 'text-red-500' : timeLeft <= 10 ? 'text-yellow-600' : 'text-omani-dark';
 
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
             <div className="text-center mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="text-2xl font-black text-omani-dark mb-2">
                     {turnPhase === 'category' ? 'اختيار المجال' : 'اختيار نوع السؤال'}
                 </h2>
 
@@ -89,7 +89,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                 <div className="flex items-center justify-center gap-2 mb-3">
                     <Clock size={20} className={timerColor} />
                     <span className={`text-2xl font-black ${timerColor}`}>{timeLeft}</span>
-                    <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div
                             className={`h-full ${timeLeft <= 5 ? 'bg-red-400' : timeLeft <= 10 ? 'bg-yellow-400' : 'bg-omani-gold'}`}
                             initial={{ width: '100%' }}
@@ -100,9 +100,9 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                 </div>
 
                 {/* Active Player Indicator */}
-                <div className="flex items-center justify-center gap-2 bg-white/10 rounded-full py-2 px-4 w-fit mx-auto">
+                <div className="flex items-center justify-center gap-2 glass-panel rounded-full py-2 px-4 w-fit mx-auto">
                     <User size={20} className="text-omani-gold" />
-                    <span className="text-white font-bold">
+                    <span className="text-omani-dark font-bold">
                         الدور عند: {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name}
                     </span>
                 </div>
@@ -170,9 +170,9 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="mt-8 text-center bg-black/40 backdrop-blur-md rounded-xl p-4"
+                            className="mt-8 text-center glass-panel rounded-xl p-4"
                         >
-                            <p className="text-white text-lg animate-pulse">
+                            <p className="text-omani-brown text-lg animate-pulse font-bold">
                                 نتريا {turnPhase === 'category' ? categorySelector?.name : typeSelector?.name} يختار...
                             </p>
                         </motion.div>

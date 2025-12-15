@@ -490,7 +490,7 @@ export default function App() {
                 <Button onClick={() => navigate('/categories')} variant="secondary">
                   <RotateCcw size={20} /> لعب مرة ثانية
                 </Button>
-                <Button onClick={handleNavigateHome} variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
+                <Button onClick={handleNavigateHome} variant="ghost" className="text-omani-brown hover:bg-white/50 hover:text-omani-dark">
                   <Home size={20} /> رجع للقائمة
                 </Button>
               </div>
@@ -573,7 +573,7 @@ export default function App() {
                 </div>
 
                 {hasAnswered && (
-                  <div className="mt-4 text-center bg-white/20 backdrop-blur-sm rounded-xl p-3 text-white font-bold animate-pulse">
+                  <div className="mt-4 text-center glass-panel rounded-xl p-3 text-omani-brown font-bold animate-pulse">
                     ⏳ ننتظر البقية...
                   </div>
                 )}

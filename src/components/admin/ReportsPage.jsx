@@ -68,17 +68,17 @@ export default function ReportsPage({ onBack }) {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={onBack || (() => navigate('/admin'))}
-                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white flex-1 flex items-center gap-2">
-                    <Flag size={24} /> Question Reports
+                <h2 className="text-2xl font-black text-omani-dark flex-1 flex items-center gap-2">
+                    <Flag size={24} className="text-omani-red" /> Question Reports
                 </h2>
             </div>
 
             {/* Filter */}
-            <div className="mb-4 bg-white/10 backdrop-blur-sm rounded-xl p-3">
+            <div className="mb-4 glass-panel rounded-xl p-3">
                 <div className="flex gap-2">
                     {['all', 'pending', 'resolved', 'dismissed'].map(status => (
                         <button
@@ -86,8 +86,8 @@ export default function ReportsPage({ onBack }) {
                             onClick={() => setFilterStatus(status)}
                             className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors capitalize ${
                                 filterStatus === status
-                                    ? 'bg-white text-gray-800'
-                                    : 'bg-white/20 text-white hover:bg-white/30'
+                                    ? 'bg-omani-red text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                             {status === 'all' ? 'All' : getStatusText(status)}
@@ -97,9 +97,9 @@ export default function ReportsPage({ onBack }) {
             </div>
 
             {/* Reports List */}
-            <div className="flex-1 overflow-y-auto bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-h-0">
+            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0">
                 {filteredReports.length === 0 ? (
-                    <div className="text-center py-8 text-white/50">
+                    <div className="text-center py-8 text-gray-500 font-bold">
                         No reports found.
                     </div>
                 ) : (

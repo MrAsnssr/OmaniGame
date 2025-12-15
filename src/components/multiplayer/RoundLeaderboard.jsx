@@ -17,7 +17,7 @@ export default function RoundLeaderboard({
             case 1: return 'bg-gradient-to-r from-yellow-400 to-amber-500 border-yellow-600';
             case 2: return 'bg-gradient-to-r from-gray-300 to-gray-400 border-gray-500';
             case 3: return 'bg-gradient-to-r from-amber-600 to-orange-700 border-amber-800';
-            default: return 'bg-white/20 border-transparent';
+            default: return 'bg-white/80 border-gray-200';
         }
     };
 
@@ -25,7 +25,12 @@ export default function RoundLeaderboard({
         if (rank === 1) return <Trophy size={24} className="text-yellow-300" />;
         if (rank === 2) return <Medal size={24} className="text-gray-100" />;
         if (rank === 3) return <Medal size={24} className="text-amber-300" />;
-        return <span className="text-white font-bold">{rank}</span>;
+        return <span className="text-omani-dark font-bold">{rank}</span>;
+    };
+
+    const getTextColor = (rank) => {
+        if (rank <= 3) return 'text-white';
+        return 'text-omani-dark';
     };
 
     return (
@@ -39,12 +44,12 @@ export default function RoundLeaderboard({
                 {isGameOver ? (
                     <>
                         <h2 className="text-3xl font-black text-omani-gold mb-2">🏆 انتهت اللعبة!</h2>
-                        <p className="text-white text-lg">الفائز هو {winner?.playerName}!</p>
+                        <p className="text-omani-dark text-lg font-bold">الفائز هو {winner?.playerName}!</p>
                     </>
                 ) : (
                     <>
-                        <h2 className="text-2xl font-bold text-white">الكبارية</h2>
-                        <p className="text-white/60">السؤال {questionIndex + 1} من {totalQuestions}</p>
+                        <h2 className="text-2xl font-black text-omani-dark">الكبارية</h2>
+                        <p className="text-gray-600 font-bold">السؤال {questionIndex + 1} من {totalQuestions}</p>
                     </>
                 )}
             </motion.div>
@@ -54,10 +59,10 @@ export default function RoundLeaderboard({
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-green-500/20 border border-green-500/50 rounded-xl p-3 mb-4 text-center"
+                    className="bg-green-100 border-2 border-green-500 rounded-xl p-3 mb-4 text-center"
                 >
-                    <p className="text-green-300 text-sm">الجواب الصح:</p>
-                    <p className="text-white font-bold">
+                    <p className="text-green-700 text-sm font-bold">الجواب الصح:</p>
+                    <p className="text-green-800 font-black text-lg">
                         {Array.isArray(correctAnswer) ? correctAnswer.join(' → ') : correctAnswer}
                     </p>
                 </motion.div>
@@ -80,18 +85,18 @@ export default function RoundLeaderboard({
 
                         {/* Player Info */}
                         <div className="flex-1">
-                            <p className="text-white font-bold">{result.playerName}</p>
+                            <p className={`${getTextColor(result.rank)} font-bold`}>{result.playerName}</p>
                             <div className="flex items-center gap-2 text-sm">
                                 {result.isCorrect ? (
-                                    <span className="text-green-300 flex items-center gap-1">
+                                    <span className={`${result.rank <= 3 ? 'text-green-200' : 'text-green-600'} flex items-center gap-1 font-bold`}>
                                         <Check size={14} /> +{result.points}
                                     </span>
                                 ) : (
-                                    <span className="text-red-300 flex items-center gap-1">
+                                    <span className={`${result.rank <= 3 ? 'text-red-200' : 'text-red-500'} flex items-center gap-1 font-bold`}>
                                         <X size={14} /> +0
                                     </span>
                                 )}
-                                <span className="text-white/50 flex items-center gap-1">
+                                <span className={`${result.rank <= 3 ? 'text-white/70' : 'text-gray-500'} flex items-center gap-1`}>
                                     <Clock size={12} /> {result.timeTaken.toFixed(1)}s
                                 </span>
                             </div>
@@ -99,8 +104,8 @@ export default function RoundLeaderboard({
 
                         {/* Total Score */}
                         <div className="text-right">
-                            <p className="text-2xl font-black text-white">{result.totalScore}</p>
-                            <p className="text-white/50 text-xs">نقطة</p>
+                            <p className={`text-2xl font-black ${getTextColor(result.rank)}`}>{result.totalScore}</p>
+                            <p className={`${result.rank <= 3 ? 'text-white/70' : 'text-gray-500'} text-xs font-bold`}>نقطة</p>
                         </div>
                     </motion.div>
                 ))}
@@ -111,7 +116,7 @@ export default function RoundLeaderboard({
                 <div className="flex gap-3">
                     <button
                         onClick={onLeave}
-                        className="flex-1 p-4 rounded-xl bg-white/20 text-white font-bold"
+                        className="flex-1 p-4 rounded-xl glass-card text-omani-dark font-bold hover:bg-white/90"
                     >
                         خروج
                     </button>
@@ -129,7 +134,7 @@ export default function RoundLeaderboard({
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center text-white/60"
+                    className="text-center text-gray-600 font-bold"
                 >
                     الجولة الجاية...
                 </motion.div>

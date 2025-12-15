@@ -43,37 +43,37 @@ export default function AdminDashboard({ onBack }) {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={onBack || (() => navigate('/'))}
-                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white flex-1">Admin Panel</h2>
+                <h2 className="text-2xl font-black text-omani-dark flex-1">Admin Panel</h2>
             </div>
 
             {/* Tabs */}
             <div className="flex gap-2 mb-4">
                 <button
                     onClick={() => setActiveTab('categories')}
-                    className={`flex-1 py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'categories' ? 'bg-white text-gray-800' : 'bg-white/20 text-white'}`}
+                    className={`flex-1 py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'categories' ? 'bg-omani-red text-white' : 'glass-card text-omani-dark hover:bg-white/90'}`}
                 >
                     <Book size={18} /> Categories
                 </button>
                 <button
                     onClick={() => setActiveTab('questions')}
-                    className={`flex-1 py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'questions' ? 'bg-white text-gray-800' : 'bg-white/20 text-white'}`}
+                    className={`flex-1 py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'questions' ? 'bg-omani-red text-white' : 'glass-card text-omani-dark hover:bg-white/90'}`}
                 >
                     <HelpCircle size={18} /> Questions
                 </button>
                 <button
                     onClick={() => navigate('/admin/reports')}
-                    className="py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors bg-white/20 text-white hover:bg-white/30"
+                    className="py-2 px-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors glass-card text-omani-dark hover:bg-white/90"
                 >
                     <Flag size={18} /> Reports
                 </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-h-0">
+            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0">
                 {activeTab === 'categories' && (
                     <CategoryList
                         categories={categories}
@@ -210,7 +210,7 @@ function QuestionList({
                 )}
             </div>
 
-            <div className="text-xs text-white/70 font-bold px-1">
+            <div className="text-xs text-gray-600 font-bold px-1">
                 Showing {questions.length} of {allQuestionsCount} questions
             </div>
 
@@ -232,7 +232,7 @@ function QuestionList({
             })}
 
             {questions.length === 0 && (
-                <div className="text-center py-8 text-white/50">
+                <div className="text-center py-8 text-gray-500 font-bold">
                     No questions match your filters.
                 </div>
             )}
