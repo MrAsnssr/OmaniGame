@@ -135,7 +135,7 @@ export default function Match({ question, onAnswer }) {
                                         ? 'bg-green-50 border-green-500 text-green-700 opacity-80'
                                         : selectedLeft
                                             ? 'bg-white border-omani-red/30 text-gray-700 animate-pulse cursor-pointer'
-                                            : 'bg-white border-gray-200 text-gray-500'
+                                            : 'bg-white border-gray-200 text-gray-600'
                                     }`}
                                 whileTap={{ scale: 0.98 }}
                             >

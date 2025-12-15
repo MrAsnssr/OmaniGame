@@ -114,7 +114,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             onChange={(e) => setPlayerName(e.target.value)}
                             placeholder="اسمك الكريم"
                             maxLength={15}
-                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
+                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
                         />
 
                         {/* Game Settings Panel */}
@@ -242,7 +242,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 onChange={(e) => setPlayerName(e.target.value)}
                                 placeholder="اسمك الكريم"
                                 maxLength={15}
-                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg"
+                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
                             />
 
                             <input

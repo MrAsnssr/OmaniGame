@@ -50,11 +50,11 @@ export default function LoginPage({ onBack, onSuccess }) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={onBack}
-                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
                 >
                     <ArrowRight size={20} />
                 </button>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-black text-omani-dark">
                     {mode === 'login' ? 'تسجيل الدخول' : 'إنشاء حساب'}
                 </h2>
             </div>
@@ -79,9 +79,9 @@ export default function LoginPage({ onBack, onSuccess }) {
                 </motion.button>
 
                 <div className="flex items-center gap-4 w-full">
-                    <div className="flex-1 h-px bg-white/30"></div>
-                    <span className="text-white/60 text-sm">أو</span>
-                    <div className="flex-1 h-px bg-white/30"></div>
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <span className="text-gray-600 text-sm font-bold">أو</span>
+                    <div className="flex-1 h-px bg-gray-300"></div>
                 </div>
 
                 {/* Email/Password Form */}
@@ -128,7 +128,7 @@ export default function LoginPage({ onBack, onSuccess }) {
                 {/* Toggle Login/Signup */}
                 <button
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                    className="text-white/80 hover:text-white transition-colors text-sm"
+                    className="text-omani-brown hover:text-omani-red transition-colors text-sm font-bold"
                 >
                     {mode === 'login' ? 'ما عندك حساب؟ سجل الحين' : 'عندك حساب؟ سجل دخول'}
                 </button>

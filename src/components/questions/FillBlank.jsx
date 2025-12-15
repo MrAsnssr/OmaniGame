@@ -48,7 +48,7 @@ export default function FillBlank({ question, onAnswer }) {
             <div className="flex-1 flex flex-col items-center justify-center gap-8 min-h-0 overflow-y-auto">
                 <h2 className="text-2xl font-bold text-center text-gray-800 leading-relaxed">
                     {parts[0]}
-                    <span className={`inline-block min-w-[120px] border-b-2 px-2 text-center mx-1 transition-colors ${typedAnswer ? 'border-omani-red text-omani-red' : 'border-gray-300 text-gray-500'}`}>
+                    <span className={`inline-block min-w-[120px] border-b-2 px-2 text-center mx-1 transition-colors ${typedAnswer ? 'border-omani-red text-omani-red' : 'border-gray-300 text-gray-600'}`}>
                         {typedAnswer || "?"}
                     </span>
                     {parts[1]}
