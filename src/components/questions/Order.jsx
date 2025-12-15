@@ -4,6 +4,13 @@ import { Reorder, useDragControls, motion } from 'framer-motion';
 import { GripVertical, Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
+// Remove 4-digit numbers (years) from text to avoid giving away the order
+function removeYears(text) {
+    if (!text) return text;
+    // Remove standalone 4-digit numbers (years like 1970, 2020, etc.)
+    return text.replace(/\b\d{4}\b/g, '____').trim();
+}
+
 export default function Order({ question, onAnswer }) {
     const { reportQuestion } = useGameStore();
     const [items, setItems] = useState(question.items);
@@ -56,7 +63,7 @@ export default function Order({ question, onAnswer }) {
                                 <div className="text-gray-500">
                                     <GripVertical size={20} />
                                 </div>
-                                <span className="font-medium text-gray-700">{item.text}</span>
+                                <span className="font-medium text-gray-700">{removeYears(item.text)}</span>
                             </div>
                         </Reorder.Item>
                     ))}
