@@ -7,7 +7,7 @@ import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square, ChevronDown, Chev
 export default function CategorySelection({ onBack }) {
     const navigate = useNavigate();
     const {
-        startGame, startGameWithSubjects, getCategorizedTopics, getTopicsBySubject, subjects,
+        startGame, startGameWithTopics, getCategorizedTopics, getTopicsBySubject, subjects,
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType
@@ -23,20 +23,49 @@ export default function CategorySelection({ onBack }) {
         return subjects.reduce((acc, s) => ({ ...acc, [s.id]: true }), {});
     });
     
-    // Track selected subjects for multi-subject mode
-    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    // Track selected topics (individual topic IDs)
+    const [selectedTopics, setSelectedTopics] = useState([]);
     
     const toggleExpandSubject = (subjectId) => {
         setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
     };
     
+    // Toggle all topics in a subject
     const toggleSelectSubject = (subjectId, e) => {
-        e.stopPropagation(); // Don't expand/collapse when clicking checkbox
-        setSelectedSubjects(prev => 
-            prev.includes(subjectId) 
-                ? prev.filter(id => id !== subjectId)
-                : [...prev, subjectId]
+        e.stopPropagation();
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        const allSelected = subjectTopicIds.every(id => selectedTopics.includes(id));
+        
+        if (allSelected) {
+            // Deselect all topics in this subject
+            setSelectedTopics(prev => prev.filter(id => !subjectTopicIds.includes(id)));
+        } else {
+            // Select all topics in this subject
+            setSelectedTopics(prev => [...new Set([...prev, ...subjectTopicIds])]);
+        }
+    };
+    
+    // Toggle individual topic
+    const toggleSelectTopic = (topicId, e) => {
+        e.stopPropagation();
+        setSelectedTopics(prev => 
+            prev.includes(topicId)
+                ? prev.filter(id => id !== topicId)
+                : [...prev, topicId]
         );
+    };
+    
+    // Check if all topics in a subject are selected
+    const isSubjectFullySelected = (subjectId) => {
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        return subjectTopicIds.length > 0 && subjectTopicIds.every(id => selectedTopics.includes(id));
+    };
+    
+    // Check if some (but not all) topics in a subject are selected
+    const isSubjectPartiallySelected = (subjectId) => {
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        const selectedCount = subjectTopicIds.filter(id => selectedTopics.includes(id)).length;
+        return selectedCount > 0 && selectedCount < subjectTopicIds.length;
     };
 
     const handleStartGame = (categoryId) => {
@@ -44,18 +73,10 @@ export default function CategorySelection({ onBack }) {
         navigate('/play');
     };
     
-    const handleStartWithSelectedSubjects = () => {
-        if (selectedSubjects.length === 0) return;
-        startGameWithSubjects(selectedSubjects);
+    const handleStartWithSelectedTopics = () => {
+        if (selectedTopics.length === 0) return;
+        startGameWithTopics(selectedTopics);
         navigate('/play');
-    };
-    
-    // Count questions for selected subjects
-    const getSelectedSubjectsQuestionCount = () => {
-        const topicIds = categorizedTopics
-            .filter(t => selectedSubjects.includes(t.subjectId))
-            .map(t => t.id);
-        return topicIds.length; // This is topic count, not question count
     };
 
 
@@ -157,18 +178,18 @@ export default function CategorySelection({ onBack }) {
                 <div className="flex flex-col">
                     <h3 className="text-xl font-bold text-omani-brown mb-4 md:hidden">نقي مجال:</h3>
 
-                    {/* Selected Subjects Play Button */}
-                    {selectedSubjects.length > 0 && (
+                    {/* Selected Topics Play Button */}
+                    {selectedTopics.length > 0 && (
                         <motion.button
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={handleStartWithSelectedSubjects}
+                            onClick={handleStartWithSelectedTopics}
                             className="w-full p-5 mb-4 rounded-2xl bg-gradient-to-r from-omani-green to-green-600 text-white font-bold flex items-center justify-center gap-3 shadow-lg shadow-green-900/20 border border-white/20 relative overflow-hidden group"
                         >
                             <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
                             <Play size={24} fill="white" />
-                            <span className="text-xl">ابدأ ({selectedSubjects.length} مواد مختارة)</span>
+                            <span className="text-xl">ابدأ ({selectedTopics.length} موضوع مختار)</span>
                         </motion.button>
                     )}
 
@@ -195,7 +216,8 @@ export default function CategorySelection({ onBack }) {
                             if (subjectTopics.length === 0) return null;
                             
                             const isExpanded = expandedSubjects[subject.id] !== false;
-                            const isSelected = selectedSubjects.includes(subject.id);
+                            const isFullySelected = isSubjectFullySelected(subject.id);
+                            const isPartiallySelected = isSubjectPartiallySelected(subject.id);
                             
                             return (
                                 <motion.div
@@ -205,13 +227,19 @@ export default function CategorySelection({ onBack }) {
                                     className="glass-panel rounded-2xl overflow-hidden"
                                 >
                                     {/* Subject Header */}
-                                    <div className={`w-full p-4 flex items-center gap-3 transition-colors ${isSelected ? 'bg-omani-green/10' : 'hover:bg-white/50'}`}>
-                                        {/* Selection Checkbox */}
+                                    <div className={`w-full p-4 flex items-center gap-3 transition-colors ${isFullySelected ? 'bg-omani-green/10' : isPartiallySelected ? 'bg-omani-gold/10' : 'hover:bg-white/50'}`}>
+                                        {/* Selection Checkbox - selects/deselects all topics */}
                                         <button
                                             onClick={(e) => toggleSelectSubject(subject.id, e)}
-                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isSelected ? 'bg-omani-green text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                                                isFullySelected 
+                                                    ? 'bg-omani-green text-white' 
+                                                    : isPartiallySelected 
+                                                        ? 'bg-omani-gold text-white' 
+                                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                            }`}
                                         >
-                                            {isSelected ? <CheckSquare size={20} /> : <Square size={20} />}
+                                            {isFullySelected ? <CheckSquare size={20} /> : isPartiallySelected ? <CheckSquare size={20} /> : <Square size={20} />}
                                         </button>
                                         
                                         {/* Clickable area for expand/collapse */}
@@ -237,20 +265,43 @@ export default function CategorySelection({ onBack }) {
                                                 className="overflow-hidden"
                                             >
                                                 <div className="grid grid-cols-2 gap-3 p-4 pt-0">
-                                                    {subjectTopics.map((topic, index) => (
-                                                        <motion.button
-                                                            key={topic.id}
-                                                            initial={{ opacity: 0, scale: 0.9 }}
-                                                            animate={{ opacity: 1, scale: 1 }}
-                                                            transition={{ delay: index * 0.03 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            onClick={() => handleStartGame(topic.id)}
-                                                            className="bg-white/70 hover:bg-white p-3 rounded-xl flex flex-col items-center justify-center gap-2 h-24 relative overflow-hidden group transition-all shadow-sm hover:shadow-md"
-                                                        >
-                                                            <span className="text-2xl group-hover:scale-110 transition-transform">{topic.icon}</span>
-                                                            <span className="text-xs font-bold text-gray-700 text-center line-clamp-2">{topic.name}</span>
-                                                        </motion.button>
-                                                    ))}
+                                                    {subjectTopics.map((topic, index) => {
+                                                        const isTopicSelected = selectedTopics.includes(topic.id);
+                                                        return (
+                                                            <motion.div
+                                                                key={topic.id}
+                                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                transition={{ delay: index * 0.03 }}
+                                                                className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all ${isTopicSelected ? 'ring-2 ring-omani-green' : ''}`}
+                                                            >
+                                                                {/* Selection checkbox */}
+                                                                <button
+                                                                    onClick={(e) => toggleSelectTopic(topic.id, e)}
+                                                                    className={`absolute top-1 right-1 z-10 w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                                                                        isTopicSelected 
+                                                                            ? 'bg-omani-green text-white' 
+                                                                            : 'bg-white/80 text-gray-400 hover:bg-white'
+                                                                    }`}
+                                                                >
+                                                                    {isTopicSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+                                                                </button>
+                                                                
+                                                                {/* Topic button - plays single topic */}
+                                                                <button
+                                                                    onClick={() => handleStartGame(topic.id)}
+                                                                    className={`w-full p-3 flex flex-col items-center justify-center gap-2 h-24 transition-all ${
+                                                                        isTopicSelected 
+                                                                            ? 'bg-omani-green/10' 
+                                                                            : 'bg-white/70 hover:bg-white'
+                                                                    }`}
+                                                                >
+                                                                    <span className="text-2xl group-hover:scale-110 transition-transform">{topic.icon}</span>
+                                                                    <span className="text-xs font-bold text-gray-700 text-center line-clamp-2">{topic.name}</span>
+                                                                </button>
+                                                            </motion.div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </motion.div>
                                         )}
