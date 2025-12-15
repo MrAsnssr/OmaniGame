@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, Zap, Users, Trophy, Crown, ChevronLeft } from 'lucide-react';
+import { User, Settings, Car, Users, Trophy, Crown, ChevronLeft } from 'lucide-react';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const containerVariants = {
@@ -101,7 +101,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     <MenuCard 
                         title="خطفة"
                         subtitle="لعب فردي سريع"
-                        icon={<Zap size={28} className="text-white" />}
+                        icon={<Car size={28} className="text-white" />}
                         gradient="from-omani-red to-red-600"
                         shadowColor="shadow-omani-red/20"
                         onClick={onStart}
