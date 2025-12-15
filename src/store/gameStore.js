@@ -49,6 +49,7 @@ export const useGameStore = create((set, get) => ({
     multiplayerQuestion: null,
     multiplayerQuestionIndex: 0,
     multiplayerTotalQuestions: 0,
+    multiplayerPlayedQuestions: [], // Track all questions played in multiplayer for reporting
     roundResults: null,
     isGameOver: false,
     winner: null,
@@ -209,13 +210,17 @@ export const useGameStore = create((set, get) => ({
         gameState: 'multiplayer-selecting-type'
     }),
 
-    setMultiplayerGame: (question, questionIndex, totalQuestions) => set({
+    setMultiplayerGame: (question, questionIndex, totalQuestions) => set((state) => ({
         multiplayerQuestion: question,
         multiplayerQuestionIndex: questionIndex,
         multiplayerTotalQuestions: totalQuestions,
         gameState: 'multiplayer-playing',
-        roundResults: null
-    }),
+        roundResults: null,
+        // Add question to played questions if not already there
+        multiplayerPlayedQuestions: state.multiplayerPlayedQuestions.some(q => q.id === question.id)
+            ? state.multiplayerPlayedQuestions
+            : [...state.multiplayerPlayedQuestions, question]
+    })),
     setRoundResults: (results, correctAnswer) => set({
         roundResults: { results, correctAnswer },
         gameState: 'multiplayer-leaderboard'
@@ -237,6 +242,7 @@ export const useGameStore = create((set, get) => ({
         multiplayerQuestion: null,
         multiplayerQuestionIndex: 0,
         multiplayerTotalQuestions: 0,
+        multiplayerPlayedQuestions: [],
         roundResults: null,
         isGameOver: false,
         winner: null,

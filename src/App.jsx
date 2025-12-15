@@ -73,11 +73,12 @@ export default function App() {
     // Multiplayer
     goToMultiplayer, setRoomData, updatePlayers, setMultiplayerGame, setRoundResults, setGameOver, resetMultiplayer,
     roomCode, players, isHost, multiplayerQuestion, multiplayerQuestionIndex, multiplayerTotalQuestions, roundResults, isGameOver, winner,
+    multiplayerPlayedQuestions, // Track played questions for reporting
     questionCount, timePerQuestion, selectedTypes, selectedCategory,
     // Turn-Based
     setTurnData,
     // Firestore
-    initializeFirestore, isLoading, dataInitialized,
+    initializeFirestore, isLoading, dataInitialized, reportQuestion,
     // Game Questions (filtered for current session)
     gameQuestions
   } = useGameStore();
@@ -610,6 +611,8 @@ export default function App() {
                   winner={winner}
                   onPlayAgain={handleLeaveRoom}
                   onLeave={handleLeaveRoom}
+                  playedQuestions={multiplayerPlayedQuestions}
+                  onReportQuestion={reportQuestion}
                 />
               </motion.div>
             ) : (

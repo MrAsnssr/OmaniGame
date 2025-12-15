@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, Clock, Check, X } from 'lucide-react';
+import { Trophy, Medal, Clock, Check, X, Flag } from 'lucide-react';
 
 export default function RoundLeaderboard({
     results,
@@ -10,8 +10,33 @@ export default function RoundLeaderboard({
     isGameOver,
     winner,
     onPlayAgain,
-    onLeave
+    onLeave,
+    playedQuestions = [],
+    onReportQuestion
 }) {
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [selectedQuestion, setSelectedQuestion] = useState(null);
+    const [reportReason, setReportReason] = useState('');
+    const [reportSubmitted, setReportSubmitted] = useState(false);
+
+    const handleSubmitReport = async () => {
+        if (!selectedQuestion || !reportReason.trim()) return;
+        
+        if (onReportQuestion) {
+            const result = await onReportQuestion(selectedQuestion.id, selectedQuestion, reportReason);
+            if (result?.success) {
+                setReportSubmitted(true);
+                setTimeout(() => {
+                    setShowReportModal(false);
+                    setSelectedQuestion(null);
+                    setReportReason('');
+                    setReportSubmitted(false);
+                }, 1500);
+            } else {
+                alert(result?.message || 'حدث خطأ أثناء الإبلاغ');
+            }
+        }
+    };
     const getPositionStyle = (rank) => {
         switch (rank) {
             case 1: return 'bg-gradient-to-r from-yellow-400 to-amber-500 border-yellow-600';
@@ -113,19 +138,31 @@ export default function RoundLeaderboard({
 
             {/* Game Over Actions */}
             {isGameOver && (
-                <div className="flex gap-3">
-                    <button
-                        onClick={onLeave}
-                        className="flex-1 p-4 rounded-xl glass-card text-omani-dark font-bold hover:bg-white/90"
-                    >
-                        خروج
-                    </button>
-                    <button
-                        onClick={onPlayAgain}
-                        className="flex-1 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold"
-                    >
-                        لعب مرة ثانية
-                    </button>
+                <div className="space-y-3">
+                    {/* Report Button */}
+                    {playedQuestions.length > 0 && (
+                        <button
+                            onClick={() => setShowReportModal(true)}
+                            className="w-full p-3 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 flex items-center justify-center gap-2"
+                        >
+                            <Flag size={18} />
+                            الإبلاغ عن سؤال
+                        </button>
+                    )}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onLeave}
+                            className="flex-1 p-4 rounded-xl glass-card text-omani-dark font-bold hover:bg-white/90"
+                        >
+                            خروج
+                        </button>
+                        <button
+                            onClick={onPlayAgain}
+                            className="flex-1 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold"
+                        >
+                            لعب مرة ثانية
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -138,6 +175,79 @@ export default function RoundLeaderboard({
                 >
                     الجولة الجاية...
                 </motion.div>
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+                    >
+                        {reportSubmitted ? (
+                            <div className="text-center py-8">
+                                <div className="text-5xl mb-4">✅</div>
+                                <p className="text-xl font-bold text-green-600">تم الإبلاغ بنجاح!</p>
+                            </div>
+                        ) : !selectedQuestion ? (
+                            <>
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">اختر السؤال للإبلاغ عنه</h3>
+                                <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+                                    {playedQuestions.map((q, idx) => (
+                                        <button
+                                            key={q.id}
+                                            onClick={() => setSelectedQuestion(q)}
+                                            className="w-full p-3 text-right rounded-xl border-2 border-gray-200 hover:border-omani-red hover:bg-red-50 transition-colors"
+                                        >
+                                            <p className="text-sm text-gray-500 mb-1">سؤال {idx + 1}</p>
+                                            <p className="text-gray-800 font-bold line-clamp-2">
+                                                {q.question?.substring(0, 80)}{q.question?.length > 80 ? '...' : ''}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setShowReportModal(false)}
+                                    className="w-full p-3 rounded-xl bg-gray-100 text-gray-600 font-bold"
+                                >
+                                    إلغاء
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">الإبلاغ عن السؤال</h3>
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                    {selectedQuestion.question}
+                                </p>
+                                <textarea
+                                    value={reportReason}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                    placeholder="اكتب سبب الإبلاغ..."
+                                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-4 focus:border-red-500 outline-none text-gray-900 placeholder-gray-500 min-h-[100px] resize-none"
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedQuestion(null);
+                                            setReportReason('');
+                                        }}
+                                        className="flex-1 p-3 rounded-xl bg-gray-100 text-gray-600 font-bold"
+                                    >
+                                        رجوع
+                                    </button>
+                                    <button
+                                        onClick={handleSubmitReport}
+                                        disabled={!reportReason.trim()}
+                                        className="flex-1 p-3 rounded-xl bg-red-500 text-white font-bold disabled:opacity-50"
+                                    >
+                                        إبلاغ
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </motion.div>
+                </div>
             )}
         </div>
     );
