@@ -175,6 +175,20 @@ export const useGameStore = create((set, get) => ({
             gameQuestions: filtered // Store in gameQuestions, not questions
         });
     },
+    
+    // Start game with multiple selected subjects
+    startGameWithSubjects: (subjectIds = []) => {
+        const filtered = get().getFilteredQuestionsBySubjects(subjectIds);
+        console.log(`Starting game with ${filtered.length} questions from ${subjectIds.length} subjects`);
+        set({
+            gameState: 'playing',
+            score: 0,
+            currentQuestionIndex: 0,
+            selectedCategory: null,
+            gameQuestions: filtered
+        });
+    },
+    
     showCategories: () => set({ gameState: 'categories' }),
     endGame: () => set({ gameState: 'result' }),
     incrementScore: (points = 10) => set((state) => ({ score: state.score + points })),
@@ -290,6 +304,25 @@ export const useGameStore = create((set, get) => ({
 
         // Shuffle and limit to questionCount
         const shuffled = filtered.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, questionCount);
+    },
+    
+    // Get filtered questions from multiple selected subjects
+    getFilteredQuestionsBySubjects: (subjectIds = []) => {
+        const { questions, selectedTypes, questionCount, categories } = get();
+        
+        // Get topic IDs that belong to the selected subjects
+        const topicIds = categories
+            .filter(cat => subjectIds.includes(cat.subjectId))
+            .map(cat => cat.id);
+        
+        // Filter questions by those topics and selected types
+        let filtered = questions.filter(q => 
+            topicIds.includes(q.category) && selectedTypes.includes(q.type)
+        );
+        
+        // Shuffle and limit to questionCount
+        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         return shuffled.slice(0, questionCount);
     },
 

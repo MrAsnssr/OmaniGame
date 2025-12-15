@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Shuffle, Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp, Play } from 'lucide-react';
 
 export default function CategorySelection({ onBack }) {
     const navigate = useNavigate();
     const {
-        startGame, getCategorizedTopics, getTopicsBySubject, subjects,
+        startGame, startGameWithSubjects, getCategorizedTopics, getTopicsBySubject, subjects,
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType
@@ -23,13 +23,39 @@ export default function CategorySelection({ onBack }) {
         return subjects.reduce((acc, s) => ({ ...acc, [s.id]: true }), {});
     });
     
-    const toggleSubject = (subjectId) => {
+    // Track selected subjects for multi-subject mode
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    
+    const toggleExpandSubject = (subjectId) => {
         setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
+    };
+    
+    const toggleSelectSubject = (subjectId, e) => {
+        e.stopPropagation(); // Don't expand/collapse when clicking checkbox
+        setSelectedSubjects(prev => 
+            prev.includes(subjectId) 
+                ? prev.filter(id => id !== subjectId)
+                : [...prev, subjectId]
+        );
     };
 
     const handleStartGame = (categoryId) => {
         startGame(categoryId);
         navigate('/play');
+    };
+    
+    const handleStartWithSelectedSubjects = () => {
+        if (selectedSubjects.length === 0) return;
+        startGameWithSubjects(selectedSubjects);
+        navigate('/play');
+    };
+    
+    // Count questions for selected subjects
+    const getSelectedSubjectsQuestionCount = () => {
+        const topicIds = categorizedTopics
+            .filter(t => selectedSubjects.includes(t.subjectId))
+            .map(t => t.id);
+        return topicIds.length; // This is topic count, not question count
     };
 
 
@@ -131,6 +157,21 @@ export default function CategorySelection({ onBack }) {
                 <div className="flex flex-col">
                     <h3 className="text-xl font-bold text-omani-brown mb-4 md:hidden">نقي مجال:</h3>
 
+                    {/* Selected Subjects Play Button */}
+                    {selectedSubjects.length > 0 && (
+                        <motion.button
+                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleStartWithSelectedSubjects}
+                            className="w-full p-5 mb-4 rounded-2xl bg-gradient-to-r from-omani-green to-green-600 text-white font-bold flex items-center justify-center gap-3 shadow-lg shadow-green-900/20 border border-white/20 relative overflow-hidden group"
+                        >
+                            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
+                            <Play size={24} fill="white" />
+                            <span className="text-xl">ابدأ ({selectedSubjects.length} مواد مختارة)</span>
+                        </motion.button>
+                    )}
+
                     {/* All Topics Button (Cocktail) */}
                     <motion.button
                         initial={{ opacity: 0, y: 20 }}
@@ -138,12 +179,14 @@ export default function CategorySelection({ onBack }) {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleStartGame(null)}
                         disabled={categorizedTopics.length === 0}
-                        className="w-full p-6 mb-6 rounded-2xl bg-gradient-to-r from-omani-red to-red-700 text-white font-bold flex items-center justify-center gap-4 shadow-lg shadow-red-900/20 border border-white/20 relative overflow-hidden group shrink-0 disabled:opacity-50"
+                        className="w-full p-5 mb-4 rounded-2xl bg-gradient-to-r from-omani-red to-red-700 text-white font-bold flex items-center justify-center gap-4 shadow-lg shadow-red-900/20 border border-white/20 relative overflow-hidden group shrink-0 disabled:opacity-50"
                     >
                         <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
-                        <Shuffle size={28} />
-                        <span className="text-2xl">كوكتيل (كل شي)</span>
+                        <Shuffle size={24} />
+                        <span className="text-xl">كوكتيل (كل شي)</span>
                     </motion.button>
+                    
+                    <p className="text-center text-gray-500 text-sm font-bold mb-4">أو اختر مواد معينة ⬇️</p>
 
                     {/* Subjects with Topics */}
                     <div className="space-y-4 pb-20 md:pb-4">
@@ -152,6 +195,7 @@ export default function CategorySelection({ onBack }) {
                             if (subjectTopics.length === 0) return null;
                             
                             const isExpanded = expandedSubjects[subject.id] !== false;
+                            const isSelected = selectedSubjects.includes(subject.id);
                             
                             return (
                                 <motion.div
@@ -161,15 +205,26 @@ export default function CategorySelection({ onBack }) {
                                     className="glass-panel rounded-2xl overflow-hidden"
                                 >
                                     {/* Subject Header */}
-                                    <button
-                                        onClick={() => toggleSubject(subject.id)}
-                                        className="w-full p-4 flex items-center gap-3 hover:bg-white/50 transition-colors"
-                                    >
-                                        <span className="text-2xl">{subject.icon}</span>
-                                        <span className="flex-1 text-right font-bold text-omani-dark text-lg">{subject.name}</span>
-                                        <span className="text-xs text-gray-500 font-bold">{subjectTopics.length} مواضيع</span>
-                                        {isExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
-                                    </button>
+                                    <div className={`w-full p-4 flex items-center gap-3 transition-colors ${isSelected ? 'bg-omani-green/10' : 'hover:bg-white/50'}`}>
+                                        {/* Selection Checkbox */}
+                                        <button
+                                            onClick={(e) => toggleSelectSubject(subject.id, e)}
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isSelected ? 'bg-omani-green text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                                        >
+                                            {isSelected ? <CheckSquare size={20} /> : <Square size={20} />}
+                                        </button>
+                                        
+                                        {/* Clickable area for expand/collapse */}
+                                        <button
+                                            onClick={() => toggleExpandSubject(subject.id)}
+                                            className="flex-1 flex items-center gap-3"
+                                        >
+                                            <span className="text-2xl">{subject.icon}</span>
+                                            <span className="flex-1 text-right font-bold text-omani-dark text-lg">{subject.name}</span>
+                                            <span className="text-xs text-gray-500 font-bold">{subjectTopics.length} مواضيع</span>
+                                            {isExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+                                        </button>
+                                    </div>
                                     
                                     {/* Topics Grid */}
                                     <AnimatePresence>
