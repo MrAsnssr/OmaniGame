@@ -268,38 +268,31 @@ export default function CategorySelection({ onBack }) {
                                                     {subjectTopics.map((topic, index) => {
                                                         const isTopicSelected = selectedTopics.includes(topic.id);
                                                         return (
-                                                            <motion.div
+                                                            <motion.button
                                                                 key={topic.id}
                                                                 initial={{ opacity: 0, scale: 0.9 }}
                                                                 animate={{ opacity: 1, scale: 1 }}
                                                                 transition={{ delay: index * 0.03 }}
-                                                                className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all ${isTopicSelected ? 'ring-2 ring-omani-green' : ''}`}
+                                                                whileTap={{ scale: 0.95 }}
+                                                                onClick={(e) => toggleSelectTopic(topic.id, e)}
+                                                                className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all p-3 flex flex-col items-center justify-center gap-2 h-24 ${
+                                                                    isTopicSelected 
+                                                                        ? 'bg-omani-green/20 ring-2 ring-omani-green' 
+                                                                        : 'bg-white/70 hover:bg-white'
+                                                                }`}
                                                             >
-                                                                {/* Selection checkbox */}
-                                                                <button
-                                                                    onClick={(e) => toggleSelectTopic(topic.id, e)}
-                                                                    className={`absolute top-1 right-1 z-10 w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                                                                        isTopicSelected 
-                                                                            ? 'bg-omani-green text-white' 
-                                                                            : 'bg-white/80 text-gray-400 hover:bg-white'
-                                                                    }`}
-                                                                >
-                                                                    {isTopicSelected ? <CheckSquare size={16} /> : <Square size={16} />}
-                                                                </button>
+                                                                {/* Selection indicator */}
+                                                                <div className={`absolute top-1 right-1 w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                                                                    isTopicSelected 
+                                                                        ? 'bg-omani-green text-white' 
+                                                                        : 'bg-gray-200 text-gray-400'
+                                                                }`}>
+                                                                    {isTopicSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                                                                </div>
                                                                 
-                                                                {/* Topic button - plays single topic */}
-                                                                <button
-                                                                    onClick={() => handleStartGame(topic.id)}
-                                                                    className={`w-full p-3 flex flex-col items-center justify-center gap-2 h-24 transition-all ${
-                                                                        isTopicSelected 
-                                                                            ? 'bg-omani-green/10' 
-                                                                            : 'bg-white/70 hover:bg-white'
-                                                                    }`}
-                                                                >
-                                                                    <span className="text-2xl group-hover:scale-110 transition-transform">{topic.icon}</span>
-                                                                    <span className="text-xs font-bold text-gray-700 text-center line-clamp-2">{topic.name}</span>
-                                                                </button>
-                                                            </motion.div>
+                                                                <span className="text-2xl">{topic.icon}</span>
+                                                                <span className="text-xs font-bold text-gray-700 text-center line-clamp-2">{topic.name}</span>
+                                                            </motion.button>
                                                         );
                                                     })}
                                                 </div>
