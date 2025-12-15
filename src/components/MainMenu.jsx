@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, Car, Trophy, Crown, ChevronLeft } from 'lucide-react';
+import { User, Settings, Armchair, Trophy, Crown, ChevronLeft } from 'lucide-react';
 import dallahIcon from '../assets/dallah.png';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
@@ -100,9 +100,9 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 {/* Menu Buttons */}
                 <div className="w-full space-y-4">
                     <MenuCard 
-                        title="خطفة"
+                        title="الحجرة"
                         subtitle="لعب فردي سريع"
-                        icon={<Car size={28} className="text-white" />}
+                        icon={<Armchair size={28} className="text-white" />}
                         gradient="from-omani-red to-red-600"
                         shadowColor="shadow-omani-red/20"
                         onClick={onStart}
