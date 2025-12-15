@@ -15,9 +15,19 @@ function removeYears(text) {
     return result.replace(/\s+/g, ' ').trim();
 }
 
+// Shuffle array randomly (Fisher-Yates)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 export default function Order({ question, onAnswer }) {
     const { reportQuestion } = useGameStore();
-    const [items, setItems] = useState(question.items);
+    const [items, setItems] = useState(() => shuffleArray(question.items));
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
 
@@ -33,9 +43,9 @@ export default function Order({ question, onAnswer }) {
         }
     };
 
-    // Reset items when question changes
+    // Shuffle items when question changes
     useEffect(() => {
-        setItems(question.items);
+        setItems(shuffleArray(question.items));
     }, [question]);
 
     const handleSubmit = () => {
