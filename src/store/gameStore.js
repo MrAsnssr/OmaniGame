@@ -19,6 +19,7 @@ export const useGameStore = create((set, get) => ({
     currentQuestionIndex: 0,
     gameState: 'welcome',
     selectedCategory: null,
+    gameQuestions: [], // Filtered questions for current game session
 
     // Admin Review Game (play all filtered questions from Admin page)
     adminReviewActive: false,
@@ -151,19 +152,20 @@ export const useGameStore = create((set, get) => ({
     // Game Actions
     startGame: (categoryId = null) => {
         const filtered = get().getFilteredQuestions(categoryId);
+        console.log(`Starting game with ${filtered.length} questions (category: ${categoryId || 'all'})`);
         set({
             gameState: 'playing',
             score: 0,
             currentQuestionIndex: 0,
             selectedCategory: categoryId,
-            questions: filtered
+            gameQuestions: filtered // Store in gameQuestions, not questions
         });
     },
     showCategories: () => set({ gameState: 'categories' }),
     endGame: () => set({ gameState: 'result' }),
     incrementScore: (points = 10) => set((state) => ({ score: state.score + points })),
     nextQuestion: () => set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 })),
-    resetGame: () => set({ gameState: 'welcome', score: 0, currentQuestionIndex: 0, selectedCategory: null }),
+    resetGame: () => set({ gameState: 'welcome', score: 0, currentQuestionIndex: 0, selectedCategory: null, gameQuestions: [] }),
     goToAdmin: () => set({ gameState: 'admin' }),
 
     // Admin Review Game Actions
@@ -252,17 +254,20 @@ export const useGameStore = create((set, get) => ({
     }),
 
     // Get filtered questions
-    getFilteredQuestions: () => {
-        const { questions, selectedCategory, selectedTypes, questionCount } = get();
-        let filtered = questions;
+    getFilteredQuestions: (categoryId = null) => {
+        const { questions, selectedTypes, questionCount } = get();
+        let filtered = [...questions]; // Clone to avoid mutation
 
-        if (selectedCategory) {
-            filtered = filtered.filter(q => q.category === selectedCategory);
+        // Filter by category if provided
+        if (categoryId !== null) {
+            filtered = filtered.filter(q => q.category === categoryId);
         }
 
+        // Filter by selected question types
         filtered = filtered.filter(q => selectedTypes.includes(q.type));
 
-        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+        // Shuffle and limit to questionCount
+        const shuffled = filtered.sort(() => Math.random() - 0.5);
         return shuffled.slice(0, questionCount);
     },
 

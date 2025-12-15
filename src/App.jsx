@@ -77,7 +77,9 @@ export default function App() {
     // Turn-Based
     setTurnData,
     // Firestore
-    initializeFirestore, isLoading, dataInitialized
+    initializeFirestore, isLoading, dataInitialized,
+    // Game Questions (filtered for current session)
+    gameQuestions
   } = useGameStore();
 
   const [feedback, setFeedback] = useState(null);
@@ -88,7 +90,8 @@ export default function App() {
   const tapCountRef = useRef(0);
   const tapTimeoutRef = useRef(null);
 
-  const questions = getFilteredQuestions();
+  // Use gameQuestions for singleplayer (set by startGame)
+  const questions = gameQuestions;
   const currentQuestion = questions[currentQuestionIndex];
 
   // Initialize Firestore on app load
@@ -235,11 +238,11 @@ export default function App() {
   const handleStartMultiplayerGame = () => {
     const state = useGameStore.getState();
     // Turn-based mode needs ALL questions for server-side filtering per turn
-    // Standard mode uses pre-filtered questions
-    const gameQuestions = state.gameMode === 'turn-based'
+    // Standard mode uses pre-filtered questions (no category filter for multiplayer)
+    const questionsForGame = state.gameMode === 'turn-based'
       ? state.questions  // All questions
-      : getFilteredQuestions();  // Filtered subset
-    socketService.startGame(gameQuestions);
+      : getFilteredQuestions(null);  // Filtered by types only
+    socketService.startGame(questionsForGame);
   };
 
   const handleLeaveRoom = () => {
