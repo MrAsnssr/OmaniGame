@@ -266,8 +266,15 @@ export default function App() {
     } else if (currentQuestion.type === 'fill-blank') {
       const userAnswer = answer.toLowerCase().trim();
       const correctAnswer = currentQuestion.answer.toLowerCase().trim();
-      const distance = levenshteinDistance(userAnswer, correctAnswer);
-      isCorrect = distance <= 3;
+      
+      // If answer is a year (4-digit number), require exact match
+      const isYear = /^\d{4}$/.test(correctAnswer);
+      if (isYear) {
+        isCorrect = userAnswer === correctAnswer;
+      } else {
+        const distance = levenshteinDistance(userAnswer, correctAnswer);
+        isCorrect = distance <= 3;
+      }
     } else if (currentQuestion.type === 'order') {
       isCorrect = JSON.stringify(answer) === JSON.stringify(currentQuestion.correctOrder);
     } else if (currentQuestion.type === 'match') {
