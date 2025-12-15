@@ -7,8 +7,12 @@ import { useGameStore } from '../../store/gameStore';
 // Remove 4-digit numbers (years) from text to avoid giving away the order
 function removeYears(text) {
     if (!text) return text;
-    // Remove standalone 4-digit numbers (years like 1970, 2020, etc.)
-    return text.replace(/\b\d{4}\b/g, '____').trim();
+    // First remove years in parentheses like (1970) or ( 1970 )
+    let result = text.replace(/\s*\(\s*\d{4}\s*\)\s*/g, ' ');
+    // Then remove standalone years
+    result = result.replace(/\b\d{4}\b/g, '');
+    // Clean up extra spaces
+    return result.replace(/\s+/g, ' ').trim();
 }
 
 export default function Order({ question, onAnswer }) {
