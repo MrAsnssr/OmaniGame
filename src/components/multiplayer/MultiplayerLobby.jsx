@@ -124,7 +124,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <ArrowLeft size={20} />
                 </button>
                 <h2 className="text-2xl font-black text-omani-dark">
-                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'افتح السبلة' : 'دخل السبلة'}
+                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'سبلة جديدة' : 'دخل السبلة'}
                 </h2>
             </div>
 
@@ -148,7 +148,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-green-700"
                         >
                             <Plus size={24} />
-                            افتح السبلة
+                            سبلة جديدة
                         </motion.button>
 
                         <motion.button
