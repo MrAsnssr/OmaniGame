@@ -36,6 +36,7 @@ export const useGameStore = create((set, get) => ({
     players: [],
     isHost: false,
     gameMode: 'standard',
+    multiplayerSelectedTopics: [], // Topics selected by host for multiplayer game
 
     // Turn-Based State
     turnPhase: null,
@@ -218,6 +219,7 @@ export const useGameStore = create((set, get) => ({
         gameState: 'multiplayer-waiting'
     }),
     updatePlayers: (players) => set({ players }),
+    setMultiplayerSelectedTopics: (topicIds) => set({ multiplayerSelectedTopics: topicIds }),
 
     // Turn-Based Actions
     setTurnData: (data) => set({
@@ -259,6 +261,7 @@ export const useGameStore = create((set, get) => ({
         players: [],
         isHost: false,
         gameMode: 'standard',
+        multiplayerSelectedTopics: [],
         turnPhase: null,
         categorySelectorId: null,
         typeSelectorId: null,

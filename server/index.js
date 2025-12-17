@@ -52,7 +52,8 @@ function createRoom(hostId, hostName, settings, gameMode = 'standard') {
             questionCount: settings.questionCount || 10,
             timePerQuestion: settings.timePerQuestion || 30,
             selectedTypes: settings.selectedTypes || ['multiple-choice', 'fill-blank', 'order', 'match'],
-            categoryId: settings.categoryId || null
+            categoryId: settings.categoryId || null,
+            selectedTopics: settings.selectedTopics || [] // Topic IDs selected by host
         },
         questions: [], // Active questions for the game
         allQuestions: [], // All questions (for turn-based filtering)

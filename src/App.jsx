@@ -228,8 +228,8 @@ export default function App() {
   };
   const handleLoginSuccess = () => navigate('/');
 
-  const handleCreateRoom = (playerName, gameMode) => {
-    socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory }, gameMode);
+  const handleCreateRoom = (playerName, gameMode, selectedTopics = []) => {
+    socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory, selectedTopics }, gameMode);
   };
 
   const handleJoinRoom = (roomCode, playerName) => {
@@ -238,12 +238,21 @@ export default function App() {
 
   const handleStartMultiplayerGame = () => {
     const state = useGameStore.getState();
-    // Turn-based mode needs ALL questions for server-side filtering per turn
-    // Standard mode uses pre-filtered questions (no category filter for multiplayer)
-    const questionsForGame = state.gameMode === 'turn-based'
-      ? state.questions  // All questions
-      : getFilteredQuestions(null);  // Filtered by types only
-    socketService.startGame(questionsForGame);
+    const { multiplayerSelectedTopics, questions, selectedTypes, questionCount } = state;
+    
+    // Filter questions by selected topics and types
+    let filteredQuestions = questions.filter(q => 
+      multiplayerSelectedTopics.includes(q.category) && selectedTypes.includes(q.type)
+    );
+    
+    if (state.gameMode === 'turn-based') {
+      // Turn-based mode: send all filtered questions for server-side turn filtering
+      socketService.startGame(filteredQuestions);
+    } else {
+      // Standard mode: shuffle and limit to questionCount
+      const shuffled = [...filteredQuestions].sort(() => Math.random() - 0.5);
+      socketService.startGame(shuffled.slice(0, questionCount));
+    }
   };
 
   const handleLeaveRoom = () => {
