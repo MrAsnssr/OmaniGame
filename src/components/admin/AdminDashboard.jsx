@@ -1178,6 +1178,19 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     const [uneditable] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    // Update state when template changes (for editing)
+    React.useEffect(() => {
+        if (template) {
+            setName(template.name || '');
+            setActive(template.active !== false);
+            setPreviewAsset(template.previewAsset || null);
+        } else {
+            setName('');
+            setActive(true);
+            setPreviewAsset(null);
+        }
+    }, [template]);
+
     const handleUpload = async (file) => {
         if (!file) return;
         const ext = file.name.toLowerCase().endsWith('.svg') ? 'svg' : 'png';
@@ -1224,10 +1237,24 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
                     <div className="text-sm font-bold text-white mb-2">
                         Full Avatar Image (PNG/SVG)
                     </div>
+                    {template && (previewAsset?.dataUrl || previewAsset?.url) && (
+                        <div className="mb-2 text-xs text-sand/60">
+                            Current image (upload new to replace)
+                        </div>
+                    )}
                     <input type="file" accept=".png,.webp,.svg" onChange={(e) => handleUpload(e.target.files?.[0])} className="w-full text-sm text-sand/70" />
                     {(previewAsset?.dataUrl || previewAsset?.url) && (
-                        <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
+                        <div className="mt-3 rounded-xl overflow-hidden border border-white/10 relative group">
                             <img src={previewAsset.dataUrl || previewAsset.url} alt="preview" className="w-full h-44 object-contain bg-black/20" />
+                            {template && (
+                                <button
+                                    onClick={() => setPreviewAsset(null)}
+                                    className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Remove image"
+                                >
+                                    Remove
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
