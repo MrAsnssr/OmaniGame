@@ -4,7 +4,7 @@ export default function Layout({ children }) {
     return (
         <div className="w-full h-full relative flex flex-col font-sans bg-omani-pattern overflow-hidden">
             {/* Decorative Top Border */}
-            <div className="h-2 w-full bg-gradient-to-r from-omani-red via-omani-white to-omani-green shadow-md z-50 flex-none" />
+            <div className="h-1 w-full bg-gradient-to-r from-omani-red/30 via-omani-white/20 to-omani-green/30 z-50 flex-none" />
             
             {/* Corner Ornaments (CSS shapes or simplified) */}
             <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-5">
@@ -28,7 +28,7 @@ export default function Layout({ children }) {
             </main>
 
              {/* Decorative Bottom Border */}
-             <div className="h-2 w-full bg-gradient-to-r from-omani-green via-omani-white to-omani-red shadow-md z-50 flex-none" />
+             <div className="h-1 w-full bg-gradient-to-r from-omani-green/30 via-omani-white/20 to-omani-red/30 z-50 flex-none" />
         </div>
     );
 }
