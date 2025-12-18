@@ -782,7 +782,9 @@ function AvatarAdmin({
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
     const [selectedPartId, setSelectedPartId] = useState('');
     const [selectedAssetId, setSelectedAssetId] = useState('');
-    const [transform, setTransform] = useState({ x: 50, y: 50, scale: 1, rotation: 0 });
+    const [transform, setTransform] = useState({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 });
+    const [showGuides, setShowGuides] = useState(true);
+    const [snapToGuides, setSnapToGuides] = useState(true);
 
     const slotLabel = (s) => {
         switch (s) {
@@ -806,8 +808,8 @@ function AvatarAdmin({
         if (!selectedTemplate || !selectedPart) return;
         const byTemplate = selectedPart.transformsByTemplate || {};
         const saved = byTemplate[selectedTemplate.id] || byTemplate['round'] || null;
-        if (saved) setTransform({ x: saved.x ?? 50, y: saved.y ?? 50, scale: saved.scale ?? 1, rotation: saved.rotation ?? 0 });
-        else setTransform({ x: 50, y: 50, scale: 1, rotation: 0 });
+        if (saved) setTransform({ x: saved.x ?? 50, y: saved.y ?? 50, scale: saved.scale ?? 1, rotation: saved.rotation ?? 0, sizePct: saved.sizePct ?? 40 });
+        else setTransform({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 });
     };
 
     const handleSave = async () => {
@@ -947,6 +949,19 @@ function AvatarAdmin({
                                 backgroundPosition: 'center'
                             }}
                         >
+                            {showGuides && (
+                                <>
+                                    <div className="absolute left-0 right-0 top-1/2 border-t border-white/10 pointer-events-none" />
+                                    <div className="absolute top-0 bottom-0 left-1/2 border-l border-white/10 pointer-events-none" />
+                                    {/* Suggested face landmarks (tuned for 0-100% square canvas) */}
+                                    <div className="absolute left-0 right-0 top-[42%] border-t border-white/10 pointer-events-none" />
+                                    <div className="absolute left-0 right-0 top-[58%] border-t border-white/10 pointer-events-none" />
+                                    <div className="absolute left-0 right-0 top-[74%] border-t border-white/10 pointer-events-none" />
+                                    <div className="absolute right-2 top-2 text-[10px] text-sand/40 font-bold pointer-events-none">
+                                        guides: eyes(42) nose(58) mouth(74)
+                                    </div>
+                                </>
+                            )}
                             {!canvasBgUrl && (
                                 <div className="absolute inset-0 flex items-center justify-center text-sand/40 text-sm font-bold">
                                     No template preview. Upload a preview to position accurately.
@@ -957,8 +972,20 @@ function AvatarAdmin({
                                     url={selectedAsset.url}
                                     transform={transform}
                                     onChange={setTransform}
+                                    snapToGuides={snapToGuides}
                                 />
                             )}
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                            <label className="flex items-center gap-2 text-xs text-sand/70">
+                                <input type="checkbox" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} />
+                                Show guides
+                            </label>
+                            <label className="flex items-center gap-2 text-xs text-sand/70">
+                                <input type="checkbox" checked={snapToGuides} onChange={(e) => setSnapToGuides(e.target.checked)} />
+                                Snap
+                            </label>
                         </div>
 
                         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -969,6 +996,10 @@ function AvatarAdmin({
                             <label className="text-xs text-sand/70">
                                 Y ({transform.y.toFixed(1)}%)
                                 <input type="range" min="0" max="100" step="0.1" value={transform.y} onChange={(e) => setTransform(t => ({ ...t, y: Number(e.target.value) }))} className="w-full" />
+                            </label>
+                            <label className="text-xs text-sand/70">
+                                Size ({transform.sizePct.toFixed(0)}%)
+                                <input type="range" min="10" max="90" step="1" value={transform.sizePct} onChange={(e) => setTransform(t => ({ ...t, sizePct: Number(e.target.value) }))} className="w-full" />
                             </label>
                             <label className="text-xs text-sand/70">
                                 Scale ({transform.scale.toFixed(2)})
@@ -988,7 +1019,7 @@ function AvatarAdmin({
                                 Load saved
                             </button>
                             <button
-                                onClick={() => setTransform({ x: 50, y: 50, scale: 1, rotation: 0 })}
+                                onClick={() => setTransform({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 })}
                                 className="flex-1 py-2 rounded-xl bg-wood-dark/50 border border-white/10 text-sand font-bold hover:bg-wood-dark/70"
                             >
                                 Reset
@@ -1008,7 +1039,7 @@ function AvatarAdmin({
     );
 }
 
-function DraggableAsset({ url, transform, onChange }) {
+function DraggableAsset({ url, transform, onChange, snapToGuides }) {
     const [dragging, setDragging] = useState(false);
 
     const handlePointerDown = (e) => {
@@ -1026,7 +1057,25 @@ function DraggableAsset({ url, transform, onChange }) {
         const rect = parent.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-        onChange(t => ({ ...t, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) }));
+        const clamp = (v) => Math.max(0, Math.min(100, v));
+        let nx = clamp(x);
+        let ny = clamp(y);
+
+        if (snapToGuides) {
+            const guidesX = [50];
+            const guidesY = [50, 42, 58, 74];
+            const threshold = 1.2; // percent
+            const snap = (val, guides) => {
+                for (const g of guides) {
+                    if (Math.abs(val - g) <= threshold) return g;
+                }
+                return val;
+            };
+            nx = snap(nx, guidesX);
+            ny = snap(ny, guidesY);
+        }
+
+        onChange(t => ({ ...t, x: nx, y: ny }));
     };
 
     return (
@@ -1044,8 +1093,8 @@ function DraggableAsset({ url, transform, onChange }) {
                 top: `${transform.y}%`,
                 transform: `translate(-50%, -50%) rotate(${transform.rotation}deg) scale(${transform.scale})`,
                 transformOrigin: 'center',
-                width: '40%',
-                height: '40%',
+                width: `${Number.isFinite(Number(transform.sizePct)) ? Number(transform.sizePct) : 40}%`,
+                height: `${Number.isFinite(Number(transform.sizePct)) ? Number(transform.sizePct) : 40}%`,
                 objectFit: 'contain',
                 userSelect: 'none',
                 pointerEvents: 'auto'

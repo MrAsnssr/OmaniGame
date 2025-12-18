@@ -272,7 +272,8 @@ export const useGameStore = create((set, get) => ({
                 x: Number(transform.x || 0),
                 y: Number(transform.y || 0),
                 scale: Number(transform.scale || 1),
-                rotation: Number(transform.rotation || 0)
+                rotation: Number(transform.rotation || 0),
+                sizePct: Number(transform.sizePct || 40)
             };
             await updateDoc(partRef, { transformsByTemplate, updatedAt: new Date().toISOString() });
         } catch (error) {

@@ -72,7 +72,8 @@ export default function AvatarLayered({
 
       {/* Layers */}
       {layers.map((l) => {
-        const tr = l.transform || { x: 50, y: 50, scale: 1, rotation: 0 };
+        const tr = l.transform || { x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 };
+        const sizePct = Number.isFinite(Number(tr.sizePct)) ? Number(tr.sizePct) : 40;
         return (
           <img
             key={`${l.part.id}-${l.asset.assetId}`}
@@ -83,8 +84,8 @@ export default function AvatarLayered({
             style={{
               left: `${tr.x}%`,
               top: `${tr.y}%`,
-              width: '40%',
-              height: '40%',
+              width: `${sizePct}%`,
+              height: `${sizePct}%`,
               transform: `translate(-50%, -50%) rotate(${tr.rotation}deg) scale(${tr.scale})`,
               transformOrigin: 'center',
               objectFit: 'contain',
