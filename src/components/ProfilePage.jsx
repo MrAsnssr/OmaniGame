@@ -12,11 +12,16 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
     const [isSuccess, setIsSuccess] = useState(false);
     const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
-    const { avatarV2, saveUserAvatarV2, avatarFaceTemplates, getBuiltinFaceTemplates } = useGameStore();
+    const { avatarV2, saveUserAvatarV2, avatarFaceTemplates, getBuiltinFaceTemplates, ownedAvatarIds } = useGameStore();
 
     // Only show uneditable (static) templates
+    // Show free avatars + premium avatars that are owned
     const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
-    const staticTemplates = allTemplates.filter(t => t?.uneditable && t?.active !== false);
+    const staticTemplates = allTemplates.filter(t => {
+        if (!t?.uneditable) return false;
+        if (!t.premium) return true; // Free avatars
+        return ownedAvatarIds?.includes(t.id); // Premium avatars must be owned
+    });
     const selectedTemplate = staticTemplates.find(t => t.id === avatarV2?.templateId) || staticTemplates[0] || null;
 
     const handleUpdate = async (e) => {
@@ -180,7 +185,7 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                             <div className="flex-1 overflow-y-auto min-h-0 pb-4">
                                 {staticTemplates.length === 0 ? (
                                     <div className="text-center py-8 text-sand/50 font-bold">
-                                        لا توجد صور رمزية متاحة
+                                        لا توجد شخصيات متاحة
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-3 gap-3">

@@ -7,8 +7,13 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
     const navigate = useNavigate();
     const { dirhams, avatarV2, avatarFaceTemplates, getBuiltinFaceTemplates } = useGameStore();
     // Only show static (uneditable) avatars
+    const { ownedAvatarIds } = useGameStore();
     const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
-    const staticTemplates = allTemplates.filter(t => t?.uneditable && t?.active !== false);
+    const staticTemplates = allTemplates.filter(t => {
+        if (!t?.uneditable) return false;
+        if (!t.premium) return true; // Free avatars
+        return ownedAvatarIds?.includes(t.id); // Premium avatars must be owned
+    });
     const selectedTemplate = staticTemplates.find(t => t.id === avatarV2?.templateId) || staticTemplates[0] || null;
     
     const handleLeaderboardClick = () => {

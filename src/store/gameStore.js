@@ -168,6 +168,7 @@ export const useGameStore = create((set, get) => ({
     // Purchases / Ownership (Firestore users/{uid})
     ownedSubjectIds: [],
     ownedTopicIds: [],
+    ownedAvatarIds: [],
     ownedMarketItemIds: [],
     purchasesLoaded: false,
 
@@ -181,11 +182,12 @@ export const useGameStore = create((set, get) => ({
                 set({
                     ownedSubjectIds: Array.isArray(data.ownedSubjectIds) ? data.ownedSubjectIds : [],
                     ownedTopicIds: Array.isArray(data.ownedTopicIds) ? data.ownedTopicIds : [],
+                    ownedAvatarIds: Array.isArray(data.ownedAvatarIds) ? data.ownedAvatarIds : [],
                     ownedMarketItemIds: Array.isArray(data.ownedMarketItemIds) ? data.ownedMarketItemIds : [],
                     purchasesLoaded: true
                 });
             } else {
-                set({ ownedSubjectIds: [], ownedTopicIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
+                set({ ownedSubjectIds: [], ownedTopicIds: [], ownedAvatarIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
             }
         } catch (error) {
             console.error('Error loading user purchases:', error);
@@ -434,7 +436,7 @@ export const useGameStore = create((set, get) => ({
         if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'invalid_price' };
 
         const stateBefore = get();
-        const { dirhams, spendDirhams, ownedMarketItemIds, ownedTopicIds, ownedSubjectIds } = stateBefore;
+        const { dirhams, spendDirhams, ownedMarketItemIds, ownedTopicIds, ownedSubjectIds, ownedAvatarIds } = stateBefore;
 
         // Already owned
         if (ownedMarketItemIds.includes(item.id)) return { ok: false, error: 'already_owned' };
@@ -443,6 +445,9 @@ export const useGameStore = create((set, get) => ({
         }
         if (item.type === 'subject_unlock' && item.subjectId && ownedSubjectIds.includes(item.subjectId)) {
             return { ok: false, error: 'subject_already_owned' };
+        }
+        if (item.type === 'avatar_unlock' && item.avatarTemplateId && ownedAvatarIds.includes(item.avatarTemplateId)) {
+            return { ok: false, error: 'avatar_already_owned' };
         }
 
         if (dirhams < price) return { ok: false, error: 'insufficient_funds' };
@@ -466,6 +471,9 @@ export const useGameStore = create((set, get) => ({
             if (item.type === 'subject_unlock' && item.subjectId) {
                 updates.ownedSubjectIds = arrayUnion(item.subjectId);
             }
+            if (item.type === 'avatar_unlock' && item.avatarTemplateId) {
+                updates.ownedAvatarIds = arrayUnion(item.avatarTemplateId);
+            }
 
             await setDoc(userRef, updates, { merge: true });
 
@@ -477,7 +485,10 @@ export const useGameStore = create((set, get) => ({
                     : ownedSubjectIds,
                 ownedTopicIds: (item.type === 'topic_unlock' && item.topicId)
                     ? Array.from(new Set([...ownedTopicIds, item.topicId]))
-                    : ownedTopicIds
+                    : ownedTopicIds,
+                ownedAvatarIds: (item.type === 'avatar_unlock' && item.avatarTemplateId)
+                    ? Array.from(new Set([...ownedAvatarIds, item.avatarTemplateId]))
+                    : ownedAvatarIds
             });
 
             return { ok: true };

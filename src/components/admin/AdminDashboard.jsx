@@ -193,6 +193,7 @@ export default function AdminDashboard({ onBack }) {
                     item={editingMarketItem}
                     categories={categories}
                     subjects={subjects}
+                    avatarFaceTemplates={avatarFaceTemplates}
                     onClose={() => { setShowMarketItemForm(false); setEditingMarketItem(null); }}
                     onCreate={addMarketItem}
                     onUpdate={editMarketItem}
@@ -639,7 +640,7 @@ function MarketList({ marketItems, categories, onEdit, onDelete, onAdd }) {
     );
 }
 
-function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdate }) {
+function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClose, onCreate, onUpdate }) {
     const [type, setType] = useState(item?.type || 'topic_unlock');
     const [title, setTitle] = useState(item?.title || '');
     const [description, setDescription] = useState(item?.description || '');
@@ -648,6 +649,7 @@ function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdat
     const [active, setActive] = useState(item?.active !== false);
     const [topicId, setTopicId] = useState(item?.topicId || '');
     const [subjectId, setSubjectId] = useState(item?.subjectId || '');
+    const [avatarTemplateId, setAvatarTemplateId] = useState(item?.avatarTemplateId || '');
 
     const selectedTopic = categories.find(c => c.id === topicId) || null;
     const isTopicUnlock = type === 'topic_unlock';
@@ -657,17 +659,19 @@ function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdat
     const handleSubmit = () => {
         if (isTopicUnlock && !topicId) return;
         if (isSubjectUnlock && !subjectId) return;
-        if (!isTopicUnlock && !isSubjectUnlock && !title.trim()) return;
+        if (isAvatarUnlock && !avatarTemplateId) return;
+        if (!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock && !title.trim()) return;
         const payload = {
             type,
-            title: isTopicUnlock ? (selectedTopic?.name || '') : isSubjectUnlock ? (selectedSubject?.name || '') : title.trim(),
+            title: isTopicUnlock ? (selectedTopic?.name || '') : isSubjectUnlock ? (selectedSubject?.name || '') : isAvatarUnlock ? (selectedAvatar?.name || '') : title.trim(),
             description: description.trim(),
-            icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : icon.trim(),
+            icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : isAvatarUnlock ? '👤' : icon.trim(),
             priceDirhams: Math.max(0, Number(priceDirhams || 0)),
             active: !!active
         };
         if (type === 'topic_unlock') payload.topicId = topicId || null;
         if (type === 'subject_unlock') payload.subjectId = subjectId || null;
+        if (type === 'avatar_unlock') payload.avatarTemplateId = avatarTemplateId || null;
         if (item) onUpdate(item.id, payload);
         else onCreate(payload);
         onClose();
@@ -690,6 +694,7 @@ function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdat
                 >
                     <option value="subject_unlock">Subject Unlock</option>
                     <option value="topic_unlock">Topic Unlock</option>
+                    <option value="avatar_unlock">Avatar Unlock</option>
                     <option value="hint">Hint</option>
                     <option value="cosmetic">Cosmetic</option>
                 </select>
@@ -732,7 +737,31 @@ function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdat
                     </>
                 )}
 
-                {(!isTopicUnlock && !isSubjectUnlock) && (
+                {type === 'avatar_unlock' && (
+                    <>
+                        <label className="block text-sm font-bold text-sand/70 mb-1">Avatar</label>
+                        <select
+                            value={avatarTemplateId}
+                            onChange={(e) => setAvatarTemplateId(e.target.value)}
+                            className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white mb-3"
+                        >
+                            <option value="">-- select avatar --</option>
+                            {(avatarFaceTemplates || []).filter(a => a.premium).map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                            ))}
+                        </select>
+                        {selectedAvatar && (
+                            <div className="mb-3 rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                                <img src={selectedAvatar.previewAsset?.dataUrl || selectedAvatar.previewAsset?.url} alt={selectedAvatar.name} className="w-full h-32 object-contain" />
+                            </div>
+                        )}
+                        <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3 text-xs text-sand/60">
+                            Title and icon are auto-filled from the selected avatar.
+                        </div>
+                    </>
+                )}
+
+                {(!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock) && (
                     <input
                         type="text"
                         value={title}
@@ -890,7 +919,7 @@ function AvatarAdmin({
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="text-white font-bold truncate">{t.name || 'Untitled'}</div>
-                                <div className="text-xs text-sand/50">active: {t.active === false ? 'no' : 'yes'}</div>
+                                <div className="text-xs text-sand/50">{t.premium ? 'Premium' : 'Free'}</div>
                             </div>
                             {t.isBuiltin ? (
                                 <span className="text-[10px] px-2 py-1 rounded-full bg-wood-dark/60 border border-white/10 text-sand/60 font-bold">
@@ -1172,7 +1201,7 @@ function DraggableAsset({ url, transform, onChange, snapToGuides }) {
 
 function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvatarAsset }) {
     const [name, setName] = useState(template?.name || '');
-    const [active, setActive] = useState(template?.active !== false);
+    const [premium, setPremium] = useState(!!template?.premium);
     const [previewAsset, setPreviewAsset] = useState(template?.previewAsset || null);
     // All avatars are static (uneditable) now
     const [uneditable] = useState(true);
@@ -1182,11 +1211,11 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     React.useEffect(() => {
         if (template) {
             setName(template.name || '');
-            setActive(template.active !== false);
+            setPremium(!!template.premium);
             setPreviewAsset(template.previewAsset || null);
         } else {
             setName('');
-            setActive(true);
+            setPremium(false);
             setPreviewAsset(null);
         }
     }, [template]);
@@ -1205,7 +1234,7 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
         setSaving(true);
         const payload = {
             name: name.trim(),
-            active: !!active,
+            premium: !!premium,
             uneditable: !!uneditable,
             previewAsset: previewAsset || null,
             updatedAt: new Date().toISOString(),
