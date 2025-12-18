@@ -12,8 +12,8 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
         alert("قريباً! جاري العمل على السوق.");
     };
 
-    const handleRedeemClick = () => {
-        alert("قريباً! جاري العمل على الهدايا.");
+    const handleCoinShopClick = () => {
+        alert("قريباً! جاري العمل على متجر الدراهم.");
     };
 
     return (
@@ -76,17 +76,20 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     </div>
                 </motion.button>
 
-                {/* Currency Display */}
-                <motion.div
+                {/* Currency Display - Game Coins (دراهم) */}
+                <motion.button
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 bg-wood-light/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-lg"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCoinShopClick}
+                    className="flex items-center gap-2 bg-wood-light/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-lg hover:border-primary/30 transition-colors"
                 >
-                    <span className="material-symbols-outlined text-primary text-[20px]">monetization_on</span>
+                    <span className="material-symbols-outlined text-[#FFD700] text-[20px]">toll</span>
                     <span className="text-sm font-bold tracking-wide engraved-text">
-                        1,250 <span className="text-xs text-sand font-normal">OMR</span>
+                        1,250 <span className="text-xs text-sand font-normal">دراهم</span>
                     </span>
-                </motion.div>
+                    <span className="material-symbols-outlined text-sand/50 text-[16px]">add_circle</span>
+                </motion.button>
             </div>
 
             {/* Main Content */}
@@ -157,16 +160,16 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                         <span className="text-[10px] font-bold text-sand uppercase tracking-wider">Souq</span>
                     </motion.button>
 
-                    {/* Gift/Redeem Button */}
+                    {/* Coin Shop Button */}
                     <motion.button
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={handleRedeemClick}
-                        className="flex flex-col items-center justify-center size-12 rounded-full bg-wood-dark border border-primary/30 hover:border-primary transition-colors shadow-lg"
+                        onClick={handleCoinShopClick}
+                        className="flex flex-col items-center justify-center size-12 rounded-full bg-gradient-to-br from-[#FFD700] to-[#B8860B] border border-[#FFD700]/50 hover:brightness-110 transition-all shadow-lg"
                     >
-                        <span className="material-symbols-outlined text-primary text-xl">redeem</span>
+                        <span className="material-symbols-outlined text-wood-dark text-xl">toll</span>
                     </motion.button>
 
                     {/* Settings Button */}
