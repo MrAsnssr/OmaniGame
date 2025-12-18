@@ -23,7 +23,7 @@ export default function AvatarLayered({
   fallback = null,
 }) {
   const templateId = template?.id;
-  const bg = template?.previewAsset?.url;
+  const bg = template?.previewAsset?.dataUrl || template?.previewAsset?.url;
 
   const layers = useMemo(() => {
     if (!templateId) return [];

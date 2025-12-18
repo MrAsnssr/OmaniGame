@@ -834,7 +834,7 @@ function AvatarAdmin({
     const selectedPart = parts.find(p => p.id === selectedPartId) || null;
     const selectedAsset = selectedPart?.assets?.find(a => a.assetId === selectedAssetId) || selectedPart?.assets?.[0] || null;
 
-    const canvasBgUrl = selectedTemplate?.previewAsset?.url || null;
+    const canvasBgUrl = selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url || null;
 
     const applyExistingTransform = () => {
         if (!selectedTemplate || !selectedPart) return;
@@ -881,8 +881,8 @@ function AvatarAdmin({
                     {combinedTemplates.map(t => (
                         <div key={t.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
                             <div className="size-10 rounded-xl bg-wood-dark/60 border border-white/5 overflow-hidden flex items-center justify-center">
-                                {t.previewAsset?.url ? (
-                                    <img src={t.previewAsset.url} alt={t.name} className="w-full h-full object-cover" />
+                                {(t.previewAsset?.dataUrl || t.previewAsset?.url) ? (
+                                    <img src={t.previewAsset.dataUrl || t.previewAsset.url} alt={t.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-sand/40 text-xs font-bold">No\npreview</span>
                                 )}
@@ -917,8 +917,8 @@ function AvatarAdmin({
                     {parts.map(p => (
                         <div key={p.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
                             <div className="size-10 rounded-xl bg-wood-dark/60 border border-white/5 overflow-hidden flex items-center justify-center">
-                                {Array.isArray(p.assets) && p.assets[0]?.url ? (
-                                    <img src={p.assets[0].url} alt={p.name} className="w-full h-full object-cover" />
+                                {Array.isArray(p.assets) && (p.assets[0]?.dataUrl || p.assets[0]?.url) ? (
+                                    <img src={p.assets[0].dataUrl || p.assets[0].url} alt={p.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-sand/40 text-xs font-bold">No\nasset</span>
                                 )}
@@ -1216,9 +1216,9 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
                 <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
                     <div className="text-sm font-bold text-white mb-2">Preview (PNG/SVG)</div>
                     <input type="file" accept=".png,.webp,.svg" onChange={(e) => handleUpload(e.target.files?.[0])} className="w-full text-sm text-sand/70" />
-                    {previewAsset?.url && (
+                    {(previewAsset?.dataUrl || previewAsset?.url) && (
                         <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
-                            <img src={previewAsset.url} alt="preview" className="w-full h-44 object-contain bg-black/20" />
+                            <img src={previewAsset.dataUrl || previewAsset.url} alt="preview" className="w-full h-44 object-contain bg-black/20" />
                         </div>
                     )}
                 </div>
