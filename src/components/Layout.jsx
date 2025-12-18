@@ -23,9 +23,6 @@ export default function Layout({ children }) {
                     {children}
                 </div>
             </main>
-
-             {/* Decorative Bottom Border */}
-             <div className="h-1 w-full bg-gradient-to-r from-omani-green/30 via-omani-white/20 to-omani-red/30 z-50 flex-none" />
         </div>
     );
 }
