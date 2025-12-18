@@ -10,6 +10,7 @@ const SELECTION_TIME = 15; // 15 seconds to pick
 export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const {
         categories,
+        ownedTopicIds,
         turnPhase, // 'category' or 'type'
         categorySelectorId,
         typeSelectorId,
@@ -33,6 +34,12 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         if (!turnCategoryIds || turnCategoryIds.length === 0) return [];
         return categories.filter(c => turnCategoryIds.includes(c.id));
     }, [categories, turnCategoryIds]);
+
+    const canUseTopicOnline = (cat) => {
+        if (!cat) return false;
+        if (!cat.isPremium) return true;
+        return ownedTopicIds.includes(cat.id);
+    };
 
     // Get the selected category object for display during type phase
     const selectedCategory = useMemo(() => {
@@ -132,12 +139,24 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.1 }}
                                 whileTap={isMyTurnToPickCategory ? { scale: 0.95 } : {}}
-                                onClick={() => isMyTurnToPickCategory && onSelectCategory(category.id)}
+                                onClick={() => {
+                                    if (!isMyTurnToPickCategory) return;
+                                    if (!canUseTopicOnline(category)) {
+                                        alert('هذا المجال Premium. افتح السوق لشراءه.');
+                                        return;
+                                    }
+                                    onSelectCategory(category.id);
+                                }}
                                 disabled={!isMyTurnToPickCategory}
-                                className={`${category.color} p-6 rounded-2xl text-white font-bold flex flex-col items-center justify-center gap-2 shadow-lg border-b-4 border-black/30 h-32 ${!isMyTurnToPickCategory ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:brightness-110'}`}
+                                className={`${category.color} p-6 rounded-2xl text-white font-bold flex flex-col items-center justify-center gap-2 shadow-lg border-b-4 border-black/30 h-32 ${!isMyTurnToPickCategory ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:brightness-110'} ${(!canUseTopicOnline(category)) ? 'opacity-60' : ''}`}
                             >
                                 <span className="text-4xl">{category.icon}</span>
                                 <span className="text-sm text-center">{category.name}</span>
+                                {category.isPremium && !ownedTopicIds.includes(category.id) && (
+                                    <span className="text-[10px] bg-black/30 px-2 py-1 rounded-full border border-white/20">
+                                        🔒 Premium
+                                    </span>
+                                )}
                             </motion.button>
                         ))}
                     </div>

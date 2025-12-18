@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play, Flag, Folder } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play, Flag, Folder, Store } from 'lucide-react';
 import Button from '../Button';
 import QuestionFormModal from './QuestionFormModal';
 
 export default function AdminDashboard({ onBack }) {
     const navigate = useNavigate();
-    const { categories, questions, subjects, deleteCategory, deleteQuestion, deleteSubject, startAdminReviewGame } = useGameStore();
+    const { categories, questions, subjects, marketItems, addMarketItem, editMarketItem, deleteMarketItem, deleteCategory, deleteQuestion, deleteSubject, startAdminReviewGame } = useGameStore();
     const [activeTab, setActiveTab] = useState('subjects');
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingQuestion, setEditingQuestion] = useState(null);
     const [editingSubject, setEditingSubject] = useState(null);
+    const [editingMarketItem, setEditingMarketItem] = useState(null);
     const [showCategoryForm, setShowCategoryForm] = useState(false);
     const [showQuestionForm, setShowQuestionForm] = useState(false);
     const [showSubjectForm, setShowSubjectForm] = useState(false);
+    const [showMarketItemForm, setShowMarketItemForm] = useState(false);
     const [showJsonImport, setShowJsonImport] = useState(false);
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterType, setFilterType] = useState('all');
@@ -73,6 +75,12 @@ export default function AdminDashboard({ onBack }) {
                     <HelpCircle size={16} /> Questions
                 </button>
                 <button
+                    onClick={() => setActiveTab('market')}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'market' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
+                >
+                    <Store size={16} /> Market
+                </button>
+                <button
                     onClick={() => navigate('/admin/reports')}
                     className="py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80 border-b-4 text-sm"
                 >
@@ -116,6 +124,15 @@ export default function AdminDashboard({ onBack }) {
                         setFilterType={setFilterType}
                     />
                 )}
+                {activeTab === 'market' && (
+                    <MarketList
+                        marketItems={marketItems}
+                        categories={categories}
+                        onEdit={setEditingMarketItem}
+                        onDelete={deleteMarketItem}
+                        onAdd={() => setShowMarketItemForm(true)}
+                    />
+                )}
             </div>
 
             {/* Modals */}
@@ -137,6 +154,15 @@ export default function AdminDashboard({ onBack }) {
                     question={editingQuestion}
                     categories={categories}
                     onClose={() => { setShowQuestionForm(false); setEditingQuestion(null); }}
+                />
+            )}
+            {(showMarketItemForm || editingMarketItem) && (
+                <MarketItemForm
+                    item={editingMarketItem}
+                    categories={categories}
+                    onClose={() => { setShowMarketItemForm(false); setEditingMarketItem(null); }}
+                    onCreate={addMarketItem}
+                    onUpdate={editMarketItem}
                 />
             )}
             {showJsonImport && (
@@ -383,12 +409,24 @@ function CategoryForm({ category, subjects, onClose }) {
     const [icon, setIcon] = useState(category?.icon || '📚');
     const [color, setColor] = useState(category?.color || 'bg-primary');
     const [subjectId, setSubjectId] = useState(category?.subjectId || '');
+    const [isPremium, setIsPremium] = useState(!!category?.isPremium);
+    const [priceDirhams, setPriceDirhams] = useState(
+        Number.isFinite(Number(category?.priceDirhams)) ? String(category.priceDirhams) : '0'
+    );
 
     const colors = ['bg-primary', 'bg-orange-700', 'bg-wood-light', 'bg-wood-dark', 'bg-sand', 'bg-red-600', 'bg-green-700'];
 
     const handleSubmit = () => {
         if (!name.trim()) return;
-        const topicData = { name, icon, color, subjectId: subjectId || null };
+        const parsedPrice = Math.max(0, Number(priceDirhams || 0));
+        const topicData = {
+            name,
+            icon,
+            color,
+            subjectId: subjectId || null,
+            isPremium: !!isPremium,
+            priceDirhams: Number.isFinite(parsedPrice) ? parsedPrice : 0
+        };
         if (category) {
             editCategory(category.id, topicData);
         } else {
@@ -435,11 +473,226 @@ function CategoryForm({ category, subjects, onClose }) {
                     placeholder="Emoji Icon (e.g., 📚)"
                     className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
+                
+                {/* Premium Toggle */}
+                <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
+                    <label className="flex items-center justify-between gap-3">
+                        <div>
+                            <div className="text-sm font-bold text-white">Premium Topic</div>
+                            <div className="text-xs text-sand/50">Online only: requires purchase in Market</div>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={isPremium}
+                            onChange={(e) => setIsPremium(e.target.checked)}
+                            className="size-5 accent-[#FFD700]"
+                        />
+                    </label>
+                    <div className="mt-2">
+                        <label className="block text-xs font-bold text-sand/70 mb-1">Price (Dirhams)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={priceDirhams}
+                            onChange={(e) => setPriceDirhams(e.target.value)}
+                            className={`w-full p-3 bg-wood-dark/50 border-2 rounded-xl outline-none text-white placeholder-sand/30 ${isPremium ? 'border-primary/40 focus:border-primary' : 'border-white/10 focus:border-primary/50'}`}
+                            placeholder="0"
+                            disabled={!isPremium}
+                        />
+                    </div>
+                </div>
                 <div className="flex gap-2 flex-wrap mb-4">
                     {colors.map(c => (
                         <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full ${c} ${color === c ? 'ring-2 ring-offset-2 ring-primary border-2 border-white/20' : 'border border-white/10'}`} />
                     ))}
                 </div>
+                <div className="flex gap-3">
+                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
+                    <Button onClick={handleSubmit} className="flex-1 shadow-lg">Save</Button>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
+function MarketList({ marketItems, categories, onEdit, onDelete, onAdd }) {
+    const active = marketItems.filter(i => i?.active !== false);
+    const inactive = marketItems.filter(i => i?.active === false);
+
+    const getTypeLabel = (t) => {
+        if (t === 'topic_unlock') return 'Topic Unlock';
+        if (t === 'hint') return 'Hint';
+        if (t === 'cosmetic') return 'Cosmetic';
+        return 'Other';
+    };
+
+    const getTopicLabel = (topicId) => {
+        const t = categories.find(c => c.id === topicId);
+        return t ? `${t.icon || '📚'} ${t.name}` : 'Unknown topic';
+    };
+
+    const renderItem = (item) => (
+        <div key={item.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 shadow-md">
+            <div className="flex items-start gap-3">
+                <div className="size-10 rounded-xl bg-wood-dark/60 border border-white/5 flex items-center justify-center text-xl">
+                    {item.icon || '🛒'}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <p className="font-bold text-white text-sm truncate">{item.title || 'Untitled'}</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
+                            {getTypeLabel(item.type)}
+                        </span>
+                        {item.active === false && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/10 text-red-300 font-bold border border-red-400/20">
+                                Inactive
+                            </span>
+                        )}
+                    </div>
+                    {item.description && (
+                        <p className="text-xs text-sand/50 mt-1 line-clamp-2">{item.description}</p>
+                    )}
+                    {item.type === 'topic_unlock' && item.topicId && (
+                        <p className="text-xs text-sand/60 mt-1">Unlock: {getTopicLabel(item.topicId)}</p>
+                    )}
+                    <p className="text-xs text-[#FFD700] font-bold mt-2">💰 {Number(item.priceDirhams || 0)} دراهم</p>
+                </div>
+                <button onClick={() => onEdit(item)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
+                <button onClick={() => onDelete(item.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="space-y-3">
+            <Button onClick={onAdd} variant="primary" className="w-full shadow-lg">
+                <Plus size={18} /> Add Market Item
+            </Button>
+            {active.map(renderItem)}
+            {inactive.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-white/5">
+                    <div className="text-xs text-sand/50 font-bold mb-2">Inactive</div>
+                    <div className="space-y-2">
+                        {inactive.map(renderItem)}
+                    </div>
+                </div>
+            )}
+            {marketItems.length === 0 && (
+                <div className="text-center py-8 text-sand/50 font-bold">
+                    No market items yet.
+                </div>
+            )}
+        </div>
+    );
+}
+
+function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
+    const [type, setType] = useState(item?.type || 'topic_unlock');
+    const [title, setTitle] = useState(item?.title || '');
+    const [description, setDescription] = useState(item?.description || '');
+    const [icon, setIcon] = useState(item?.icon || '🛒');
+    const [priceDirhams, setPriceDirhams] = useState(String(Number(item?.priceDirhams || 0)));
+    const [active, setActive] = useState(item?.active !== false);
+    const [topicId, setTopicId] = useState(item?.topicId || '');
+
+    const handleSubmit = () => {
+        if (!title.trim()) return;
+        const payload = {
+            type,
+            title: title.trim(),
+            description: description.trim(),
+            icon: icon.trim(),
+            priceDirhams: Math.max(0, Number(priceDirhams || 0)),
+            active: !!active
+        };
+        if (type === 'topic_unlock') payload.topicId = topicId || null;
+        if (item) onUpdate(item.id, payload);
+        else onCreate(payload);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4"
+            >
+                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{item ? 'Edit' : 'Add'} Market Item</h3>
+
+                <label className="block text-sm font-bold text-sand/70 mb-1">Type</label>
+                <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white mb-3"
+                >
+                    <option value="topic_unlock">Topic Unlock</option>
+                    <option value="hint">Hint</option>
+                    <option value="cosmetic">Cosmetic</option>
+                </select>
+
+                {type === 'topic_unlock' && (
+                    <>
+                        <label className="block text-sm font-bold text-sand/70 mb-1">Topic</label>
+                        <select
+                            value={topicId}
+                            onChange={(e) => setTopicId(e.target.value)}
+                            className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white mb-3"
+                        >
+                            <option value="">-- select topic --</option>
+                            {categories.map(c => (
+                                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                            ))}
+                        </select>
+                    </>
+                )}
+
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Title"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
+                />
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Description"
+                    rows={3}
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
+                />
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                    <input
+                        type="text"
+                        value={icon}
+                        onChange={(e) => setIcon(e.target.value)}
+                        placeholder="Icon (emoji)"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
+                    />
+                    <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={priceDirhams}
+                        onChange={(e) => setPriceDirhams(e.target.value)}
+                        placeholder="Price"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
+                    />
+                </div>
+                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
+                    <div>
+                        <div className="text-sm font-bold text-white">Active</div>
+                        <div className="text-xs text-sand/50">Show in Market</div>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={(e) => setActive(e.target.checked)}
+                        className="size-5 accent-primary"
+                    />
+                </label>
+
                 <div className="flex gap-3">
                     <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
                     <Button onClick={handleSubmit} className="flex-1 shadow-lg">Save</Button>

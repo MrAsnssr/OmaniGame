@@ -12,7 +12,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
     };
 
     const handleSouqClick = () => {
-        alert("قريباً! جاري العمل على السوق.");
+        navigate('/market');
     };
 
     const handleCoinShopClick = () => {

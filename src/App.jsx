@@ -16,6 +16,7 @@ import SettingsPage from './components/SettingsPage';
 import ProfilePage from './components/ProfilePage';
 import CoinShop from './components/CoinShop';
 import Leaderboard from './components/Leaderboard';
+import MarketPage from './components/MarketPage';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -105,6 +106,7 @@ export default function App() {
       // Load user's streak when authenticated
       if (authUser?.uid) {
         useGameStore.getState().loadUserStreak(authUser.uid);
+        useGameStore.getState().loadUserPurchases(authUser.uid);
       }
     });
     return () => unsubscribe();
@@ -457,6 +459,19 @@ export default function App() {
               className="h-full"
             >
               <CoinShop onBack={() => navigate('/')} />
+            </motion.div>
+          } />
+
+          {/* Market */}
+          <Route path="/market" element={
+            <motion.div
+              key="market"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <MarketPage onBack={() => navigate('/')} user={user} />
             </motion.div>
           } />
 

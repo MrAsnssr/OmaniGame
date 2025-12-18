@@ -13,7 +13,8 @@ import {
     setDoc,
     orderBy,
     limit,
-    getDoc
+    getDoc,
+    arrayUnion
 } from 'firebase/firestore';
 import { initialCategories, initialQuestions } from '../data/questions';
 
@@ -37,6 +38,109 @@ export const useGameStore = create((set, get) => ({
             return true;
         }
         return false;
+    },
+
+    // Purchases / Ownership (Firestore users/{uid})
+    ownedTopicIds: [],
+    ownedMarketItemIds: [],
+    purchasesLoaded: false,
+
+    loadUserPurchases: async (userId) => {
+        if (!userId) return;
+        try {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data() || {};
+                set({
+                    ownedTopicIds: Array.isArray(data.ownedTopicIds) ? data.ownedTopicIds : [],
+                    ownedMarketItemIds: Array.isArray(data.ownedMarketItemIds) ? data.ownedMarketItemIds : [],
+                    purchasesLoaded: true
+                });
+            } else {
+                set({ ownedTopicIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
+            }
+        } catch (error) {
+            console.error('Error loading user purchases:', error);
+            set({ purchasesLoaded: true });
+        }
+    },
+
+    // Market catalog (Firestore marketItems)
+    marketItems: [],
+
+    addMarketItem: async (item) => {
+        try {
+            await addDoc(collection(db, 'marketItems'), item);
+        } catch (error) {
+            console.error('Error adding market item:', error);
+        }
+    },
+    editMarketItem: async (id, updates) => {
+        try {
+            const ref = doc(db, 'marketItems', id);
+            await updateDoc(ref, updates);
+        } catch (error) {
+            console.error('Error updating market item:', error);
+        }
+    },
+    deleteMarketItem: async (id) => {
+        try {
+            await deleteDoc(doc(db, 'marketItems', id));
+        } catch (error) {
+            console.error('Error deleting market item:', error);
+        }
+    },
+
+    purchaseMarketItem: async ({ userId, displayName, item }) => {
+        if (!userId || !item?.id) return { ok: false, error: 'missing_user_or_item' };
+
+        const price = Number(item.priceDirhams || 0);
+        if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'invalid_price' };
+
+        const stateBefore = get();
+        const { dirhams, spendDirhams, ownedMarketItemIds, ownedTopicIds } = stateBefore;
+
+        // Already owned
+        if (ownedMarketItemIds.includes(item.id)) return { ok: false, error: 'already_owned' };
+        if (item.type === 'topic_unlock' && item.topicId && ownedTopicIds.includes(item.topicId)) {
+            return { ok: false, error: 'topic_already_owned' };
+        }
+
+        if (dirhams < price) return { ok: false, error: 'insufficient_funds' };
+
+        // Spend locally first
+        if (!spendDirhams(price)) return { ok: false, error: 'insufficient_funds' };
+
+        try {
+            const userRef = doc(db, 'users', userId);
+            const updates = {
+                displayName: displayName || null,
+                ownedMarketItemIds: arrayUnion(item.id),
+                updatedAt: new Date().toISOString()
+            };
+
+            if (item.type === 'topic_unlock' && item.topicId) {
+                updates.ownedTopicIds = arrayUnion(item.topicId);
+            }
+
+            await setDoc(userRef, updates, { merge: true });
+
+            // Update local ownership
+            set({
+                ownedMarketItemIds: Array.from(new Set([...ownedMarketItemIds, item.id])),
+                ownedTopicIds: (item.type === 'topic_unlock' && item.topicId)
+                    ? Array.from(new Set([...ownedTopicIds, item.topicId]))
+                    : ownedTopicIds
+            });
+
+            return { ok: true };
+        } catch (error) {
+            console.error('Error purchasing market item:', error);
+            // refund local balance
+            set({ dirhams: dirhams });
+            return { ok: false, error: 'purchase_failed' };
+        }
     },
 
     // Daily Streak System
@@ -242,6 +346,17 @@ export const useGameStore = create((set, get) => ({
                 }
             );
 
+            const unsubscribeMarketItems = onSnapshot(
+                collection(db, 'marketItems'),
+                (snapshot) => {
+                    const marketItems = snapshot.docs.map(d => ({
+                        ...d.data(),
+                        id: d.id
+                    }));
+                    set({ marketItems });
+                }
+            );
+
             const unsubscribeReports = onSnapshot(
                 collection(db, 'reports'),
                 (snapshot) => {
@@ -254,7 +369,7 @@ export const useGameStore = create((set, get) => ({
             );
 
             // Store unsubscribe functions
-            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeReports });
+            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeMarketItems, unsubscribeReports });
         } catch (error) {
             console.error('Error initializing Firestore:', error);
             set({ isLoading: false });
