@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Button from '../Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
+// Helper to get a stable question identifier
+function getQuestionId(question) {
+    return question?.id || question?.question || '';
+}
+
 export default function Match({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
-    // Track the question ID to detect actual question changes
-    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
+    // Use a ref to track which question we've initialized for
+    const initializedForRef = useRef(null);
     const [leftItems, setLeftItems] = useState([]);
     const [rightItems, setRightItems] = useState([]);
     const [selectedLeft, setSelectedLeft] = useState(null);
@@ -28,24 +33,28 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
         }
     };
 
-    // Initialize items ONLY when question actually changes (by ID, not reference)
+    // Initialize items ONLY ONCE per question (using ref to prevent re-runs)
     useEffect(() => {
-        const currentQuestionId = question?.id || question?.question;
-        if (currentQuestionId !== lastQuestionId || leftItems.length === 0) {
-            setLastQuestionId(currentQuestionId);
-            // Initialize items with IDs
-            const lefts = question.pairs.map((p, i) => ({ id: `l-${i}`, text: p.left }));
-            // Shuffle right items
-            const rights = question.pairs.map((p, i) => ({ id: `r-${i}`, text: p.right }))
-                .sort(() => Math.random() - 0.5);
-
-            setLeftItems(lefts);
-            setRightItems(rights);
-            setMatches({});
-            setSelectedLeft(null);
-            setCompleted(false);
+        const currentQuestionId = getQuestionId(question);
+        // Only initialize if we haven't initialized for this question yet
+        if (initializedForRef.current === currentQuestionId) {
+            return; // Already initialized for this question
         }
-    }, [question, lastQuestionId, leftItems.length]);
+        
+        initializedForRef.current = currentQuestionId;
+        
+        // Initialize items with IDs
+        const lefts = question.pairs.map((p, i) => ({ id: `l-${i}`, text: p.left }));
+        // Shuffle right items
+        const rights = question.pairs.map((p, i) => ({ id: `r-${i}`, text: p.right }))
+            .sort(() => Math.random() - 0.5);
+
+        setLeftItems(lefts);
+        setRightItems(rights);
+        setMatches({});
+        setSelectedLeft(null);
+        setCompleted(false);
+    }, [question]);
 
     // Draft updates (no submit required)
     useEffect(() => {

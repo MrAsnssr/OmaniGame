@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Button from '../Button';
 import { Reorder, useDragControls, motion } from 'framer-motion';
 import { GripVertical, Flag } from 'lucide-react';
@@ -25,10 +25,15 @@ function shuffleArray(array) {
     return shuffled;
 }
 
+// Helper to get a stable question identifier
+function getQuestionId(question) {
+    return question?.id || question?.question || '';
+}
+
 export default function Order({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
-    // Track the question ID to detect actual question changes
-    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
+    // Use a ref to track which question we've initialized for
+    const initializedForRef = useRef(null);
     const [items, setItems] = useState(() => shuffleArray(question.items));
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -45,14 +50,17 @@ export default function Order({ question, onAnswer, onUpdate, disabled = false }
         }
     };
 
-    // Shuffle items ONLY when question actually changes (by ID, not reference)
+    // Shuffle items ONLY ONCE per question (using ref to prevent re-runs)
     useEffect(() => {
-        const currentQuestionId = question?.id || question?.question;
-        if (currentQuestionId !== lastQuestionId) {
-            setLastQuestionId(currentQuestionId);
-            setItems(shuffleArray(question.items));
+        const currentQuestionId = getQuestionId(question);
+        // Only shuffle if we haven't initialized for this question yet
+        if (initializedForRef.current === currentQuestionId) {
+            return; // Already initialized for this question
         }
-    }, [question, lastQuestionId]);
+        
+        initializedForRef.current = currentQuestionId;
+        setItems(shuffleArray(question.items));
+    }, [question]);
 
     // Draft updates for multiplayer (no submit required)
     useEffect(() => {

@@ -11,10 +11,15 @@ function isArabic(text) {
     return arabicRegex.test(text.trim().charAt(0));
 }
 
+// Helper to get a stable question identifier
+function getQuestionId(question) {
+    return question?.id || question?.question || '';
+}
+
 export default function FillBlank({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
-    // Track the question ID to detect actual question changes
-    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
+    // Use a ref to track which question we've reset for
+    const initializedForRef = useRef(null);
     const [typedAnswer, setTypedAnswer] = useState('');
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -24,14 +29,17 @@ export default function FillBlank({ question, onAnswer, onUpdate, disabled = fal
     const answerIsArabic = isArabic(question.answer);
     const languageHint = answerIsArabic ? 'الإجابة بالعربي' : 'Answer in English';
 
-    // Reset answer when question actually changes
+    // Reset answer ONLY ONCE per question (using ref to prevent re-runs)
     useEffect(() => {
-        const currentQuestionId = question?.id || question?.question;
-        if (currentQuestionId !== lastQuestionId) {
-            setLastQuestionId(currentQuestionId);
-            setTypedAnswer('');
+        const currentQuestionId = getQuestionId(question);
+        // Only reset if we haven't initialized for this question yet
+        if (initializedForRef.current === currentQuestionId) {
+            return; // Already initialized for this question
         }
-    }, [question, lastQuestionId]);
+        
+        initializedForRef.current = currentQuestionId;
+        setTypedAnswer('');
+    }, [question]);
 
     const handleReport = async () => {
         if (!reportReason.trim()) return;
