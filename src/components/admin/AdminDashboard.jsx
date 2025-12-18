@@ -980,6 +980,27 @@ function AvatarAdmin({
                         <div className="text-xs text-sand/60 mb-2">
                             Drag the asset to position it. Adjust sliders for scale/rotation. Saved per head shape (template).
                         </div>
+
+                        {selectedPart && (!Array.isArray(selectedPart.assets) || selectedPart.assets.length === 0) && (
+                            <div className="mb-3 bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-300 text-sm font-bold">
+                                هذا الجزء ما عنده Assets. افتح Parts Catalog وارفع PNG/SVG لهذا الجزء.
+                            </div>
+                        )}
+
+                        {selectedAsset?.url && (
+                            <div className="mb-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="size-12 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
+                                        <img src={selectedAsset.url} alt="thumb" className="w-full h-full object-contain" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-xs text-sand/60 font-bold truncate">Asset URL:</div>
+                                        <div className="text-[10px] text-sand/40 break-all leading-snug">{selectedAsset.url}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div
                             className="relative w-full aspect-square rounded-xl overflow-hidden border border-white/10 bg-black/20"
                             style={{
@@ -1136,6 +1157,9 @@ function DraggableAsset({ url, transform, onChange, snapToGuides }) {
                 width: `${Number.isFinite(Number(transform.sizePct)) ? Number(transform.sizePct) : 40}%`,
                 height: `${Number.isFinite(Number(transform.sizePct)) ? Number(transform.sizePct) : 40}%`,
                 objectFit: 'contain',
+                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))',
+                outline: '1px solid rgba(255,255,255,0.08)',
+                outlineOffset: '2px',
                 userSelect: 'none',
                 pointerEvents: 'auto'
             }}
