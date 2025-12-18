@@ -8,7 +8,8 @@ const firebaseConfig = {
     apiKey: "AIzaSyD0ui4PQq5gBgLJvvRERkcaJTklrE5LiPA",
     authDomain: "omangame-b024e.firebaseapp.com",
     projectId: "omangame-b024e",
-    storageBucket: "omangame-b024e.firebasestorage.app",
+    // Firebase Storage bucket must be the appspot.com bucket (not firebasestorage.app)
+    storageBucket: "omangame-b024e.appspot.com",
     messagingSenderId: "824811009546",
     appId: "1:824811009546:web:1401a6114a8c0d414c91f3",
     measurementId: "G-9LXKXLWBV8"
