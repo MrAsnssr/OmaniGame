@@ -1257,28 +1257,44 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
         }
         setUploading(true);
         setStatus('');
-        const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
-        const kind = isSvg ? 'svg' : 'png';
-        const assetId = `${Date.now()}`;
-        const path = `avatar/parts/${partId}/${assetId}-${file.name}`;
-        const res = await uploadAvatarAsset({ file, path });
-        if (res.ok) {
-            const nextAsset = { assetId, kind, storagePath: res.storagePath, url: res.url };
-            const nextAssets = [...assetsRef.current, nextAsset];
-            assetsRef.current = nextAssets;
-            setAssets(nextAssets);
+        try {
+            const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
+            const kind = isSvg ? 'svg' : 'png';
+            const assetId = `${Date.now()}`;
+            const path = `avatar/parts/${partId}/${assetId}-${file.name}`;
 
-            // Persist immediately
-            const result = await onUpdate(partId, { assets: nextAssets, updatedAt: new Date().toISOString() });
-            if (result?.ok === false) {
-                setStatus('تم رفع الصورة، لكن صار خطأ أثناء حفظها. اضغط Save أو جرّب مرة ثانية.');
+            // Timeout guard (firebase upload can hang if auth/storage rules block silently)
+            const timeoutMs = 25000;
+            const timeoutPromise = new Promise((resolve) =>
+                setTimeout(() => resolve({ ok: false, error: { message: 'Upload timed out' } }), timeoutMs)
+            );
+
+            const res = await Promise.race([
+                uploadAvatarAsset({ file, path }),
+                timeoutPromise
+            ]);
+
+            if (res.ok) {
+                const nextAsset = { assetId, kind, storagePath: res.storagePath, url: res.url };
+                const nextAssets = [...assetsRef.current, nextAsset];
+                assetsRef.current = nextAssets;
+                setAssets(nextAssets);
+
+                // Persist immediately
+                const result = await onUpdate(partId, { assets: nextAssets, updatedAt: new Date().toISOString() });
+                if (result?.ok === false) {
+                    setStatus(`تم رفع الصورة، لكن صار خطأ أثناء حفظها. ${result?.error?.message ? `(${result.error.message})` : ''}`);
+                } else {
+                    setStatus('تم رفع الصورة وحفظها تلقائياً ✅');
+                }
             } else {
-                setStatus('تم رفع الصورة وحفظها تلقائياً ✅');
+                setStatus(`فشل رفع الصورة. ${res?.error?.message ? `(${res.error.message})` : ''}`);
             }
-        } else {
-            setStatus('فشل رفع الصورة. جرّب مرة ثانية.');
+        } catch (err) {
+            setStatus(`فشل رفع الصورة. (${err?.message || 'Unknown error'})`);
+        } finally {
+            setUploading(false);
         }
-        setUploading(false);
     };
 
     const handleSave = async () => {
