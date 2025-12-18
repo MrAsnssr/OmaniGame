@@ -51,12 +51,15 @@ body {
 .bg-omani-pattern::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
   background: 
-    radial-gradient(ellipse 200% 200% at 0% 0%, rgba(254, 249, 243, 0.4) 0%, transparent 60%),
-    radial-gradient(ellipse 200% 200% at 100% 100%, rgba(237, 217, 181, 0.3) 0%, transparent 60%),
-    radial-gradient(circle 120% at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 80%);
+    radial-gradient(ellipse 300% 300% at 25% 25%, rgba(254, 249, 243, 0.3) 0%, transparent 70%),
+    radial-gradient(ellipse 300% 300% at 75% 75%, rgba(237, 217, 181, 0.25) 0%, transparent 70%),
+    radial-gradient(circle 150% at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 90%);
   pointer-events: none;
+  transform: translate(0, 0);
 }
 
 /* Glassmorphism Utilities */
