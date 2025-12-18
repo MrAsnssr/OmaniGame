@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, LogOut, User, Bell, HelpCircle, X, Armchair, Users, RotateCcw, CheckSquare, PenLine, ListOrdered, GitCompare } from 'lucide-react';
 import Button from './Button';
 import { signOut } from '../services/authService';
@@ -12,6 +13,7 @@ const ADMIN_EMAILS = [
 ];
 
 export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
+    const navigate = useNavigate();
     const isAdmin = user && ADMIN_EMAILS.includes(user.email);
     const [showHelpModal, setShowHelpModal] = useState(false);
 
@@ -22,7 +24,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
     };
 
     const settingsItems = [
-        { icon: User, label: 'الحساب', onClick: () => { }, show: !!user },
+        { icon: User, label: 'الملف الشخصي', onClick: () => navigate('/profile'), show: !!user },
         { icon: Bell, label: 'الإشعارات', onClick: () => { }, show: true },
         { icon: HelpCircle, label: 'المساعدة', onClick: () => setShowHelpModal(true), show: true },
         { icon: Shield, label: 'لوحة التحكم', onClick: onAdmin, show: isAdmin, special: true },

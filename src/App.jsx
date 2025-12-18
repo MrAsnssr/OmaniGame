@@ -13,6 +13,7 @@ import RoundLeaderboard from './components/multiplayer/RoundLeaderboard';
 import TurnSelection from './components/multiplayer/TurnSelection';
 import LoginPage from './components/LoginPage';
 import SettingsPage from './components/SettingsPage';
+import ProfilePage from './components/ProfilePage';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -410,6 +411,23 @@ export default function App() {
             </motion.div>
           } />
 
+          {/* Profile Page */}
+          <Route path="/profile" element={
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <ProfilePage 
+                user={user} 
+                onBack={() => navigate('/')} 
+                onUpdate={(updatedUser) => setUser(updatedUser)} 
+              />
+            </motion.div>
+          } />
+
           {/* Category Selection */}
           <Route path="/categories" element={
             <motion.div
@@ -563,6 +581,7 @@ export default function App() {
                 onRoomCreated={handleCreateRoom}
                 onRoomJoined={handleJoinRoom}
                 error={multiplayerError}
+                user={user}
               />
             </motion.div>
           } />

@@ -4,11 +4,24 @@ import {
     signInWithPopup,
     GoogleAuthProvider,
     signOut as firebaseSignOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    updateProfile
 } from 'firebase/auth';
 import { auth } from './firebase';
 
 const googleProvider = new GoogleAuthProvider();
+
+// Update user profile
+export async function updateUserProfile(displayName) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+        await updateProfile(user, { displayName });
+        return { success: true, user: auth.currentUser };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
 
 // Sign in with email/password
 export async function signInWithEmail(email, password) {

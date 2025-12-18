@@ -4,7 +4,7 @@ import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square } from 
 import Button from '../Button';
 import { useGameStore } from '../../store/gameStore';
 
-export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }) {
+export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, user }) {
     const {
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
@@ -14,7 +14,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
     const [mode, setMode] = useState('select'); // select, create, join
     const [gameMode, setGameMode] = useState('standard'); // standard, turn-based
-    const [playerName, setPlayerName] = useState('');
+    const [playerName, setPlayerName] = useState(user?.displayName || '');
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -27,17 +27,19 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
     ];
 
     const handleCreate = () => {
-        if (!playerName.trim()) {
+        const finalName = user?.displayName || playerName;
+        if (!finalName.trim()) {
             setError('اكتب اسمك لو سمحت');
             return;
         }
         setIsLoading(true);
         setError('');
-        onRoomCreated(playerName.trim(), gameMode);
+        onRoomCreated(finalName.trim(), gameMode);
     };
 
     const handleJoin = () => {
-        if (!playerName.trim()) {
+        const finalName = user?.displayName || playerName;
+        if (!finalName.trim()) {
             setError('اكتب اسمك لو سمحت');
             return;
         }
@@ -47,7 +49,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
         }
         setIsLoading(true);
         setError('');
-        onRoomJoined(roomCode.toUpperCase(), playerName.trim());
+        onRoomJoined(roomCode.toUpperCase(), finalName.trim());
     };
 
     return (
@@ -108,14 +110,21 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                         className="flex flex-col gap-2 h-full overflow-hidden"
                     >
                         {/* Nickname */}
-                        <input
-                            type="text"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="اسمك الكريم"
-                            maxLength={15}
-                            className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
-                        />
+                        {user ? (
+                            <div className="w-full p-4 rounded-xl bg-primary/10 border border-primary/20 text-white font-bold text-center text-lg">
+                                <span className="text-sand/50 text-sm block mb-1">بتلعب باسم</span>
+                                {user.displayName || 'اللاعب'}
+                            </div>
+                        ) : (
+                            <input
+                                type="text"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                placeholder="اسمك الكريم"
+                                maxLength={15}
+                                className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
+                            />
+                        )}
 
                         {/* Game Settings Panel */}
                         <div className="glass-panel rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
@@ -236,14 +245,21 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                         className="flex-1 flex flex-col items-center justify-center gap-4"
                     >
                         <div className="w-full max-w-xs space-y-4">
-                            <input
-                                type="text"
-                                value={playerName}
-                                onChange={(e) => setPlayerName(e.target.value)}
-                                placeholder="اسمك الكريم"
-                                maxLength={15}
-                                className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
-                            />
+                            {user ? (
+                                <div className="w-full p-4 rounded-xl bg-primary/10 border border-primary/20 text-white font-bold text-center text-lg">
+                                    <span className="text-sand/50 text-sm block mb-1">بتلعب باسم</span>
+                                    {user.displayName || 'اللاعب'}
+                                </div>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={playerName}
+                                    onChange={(e) => setPlayerName(e.target.value)}
+                                    placeholder="اسمك الكريم"
+                                    maxLength={15}
+                                    className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
+                                />
+                            )}
 
                             <input
                                 type="text"

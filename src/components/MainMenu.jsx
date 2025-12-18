@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
+    const navigate = useNavigate();
     const handleLeaderboardClick = () => {
         alert("قريباً! جاري العمل على لوحة المتصدرين.");
     };
@@ -44,7 +46,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={user ? onAdmin : onLogin}
+                    onClick={user ? () => navigate('/profile') : onLogin}
                     className="flex items-center gap-3 bg-wood-light/80 backdrop-blur-sm p-1.5 pr-4 rounded-full border border-white/10 shadow-lg hover:border-primary/30 transition-colors"
                 >
                     <div className="relative">
@@ -61,11 +63,6 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                                 ) : (
                                     <span className="material-symbols-outlined text-xl">person</span>
                                 )}
-                            </div>
-                        )}
-                        {user && (
-                            <div className="absolute -bottom-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[#221510]">
-                                Lvl 5
                             </div>
                         )}
                     </div>
