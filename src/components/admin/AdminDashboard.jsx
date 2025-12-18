@@ -798,7 +798,12 @@ function AvatarAdmin({
         }
     };
 
-    const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0] || null;
+    const combinedTemplates = [
+        ...useGameStore.getState().getBuiltinFaceTemplates(),
+        ...templates
+    ];
+
+    const selectedTemplate = combinedTemplates.find(t => t.id === selectedTemplateId) || combinedTemplates[0] || null;
     const selectedPart = parts.find(p => p.id === selectedPartId) || null;
     const selectedAsset = selectedPart?.assets?.find(a => a.assetId === selectedAssetId) || selectedPart?.assets?.[0] || null;
 
@@ -846,7 +851,7 @@ function AvatarAdmin({
                     <Button onClick={onAddTemplate} className="w-full">
                         <Plus size={18} /> Add Face Template
                     </Button>
-                    {templates.map(t => (
+                    {combinedTemplates.map(t => (
                         <div key={t.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
                             <div className="size-10 rounded-xl bg-wood-dark/60 border border-white/5 overflow-hidden flex items-center justify-center">
                                 {t.previewAsset?.url ? (
@@ -859,11 +864,19 @@ function AvatarAdmin({
                                 <div className="text-white font-bold truncate">{t.name || 'Untitled'}</div>
                                 <div className="text-xs text-sand/50">active: {t.active === false ? 'no' : 'yes'}</div>
                             </div>
-                            <button onClick={() => onEditTemplate(t)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
-                            <button onClick={() => onDeleteTemplate(t.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
+                            {t.isBuiltin ? (
+                                <span className="text-[10px] px-2 py-1 rounded-full bg-wood-dark/60 border border-white/10 text-sand/60 font-bold">
+                                    Built-in
+                                </span>
+                            ) : (
+                                <>
+                                    <button onClick={() => onEditTemplate(t)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
+                                    <button onClick={() => onDeleteTemplate(t.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
+                                </>
+                            )}
                         </div>
                     ))}
-                    {templates.length === 0 && (
+                    {combinedTemplates.length === 0 && (
                         <div className="text-center py-8 text-sand/50 font-bold">No face templates yet.</div>
                     )}
                 </div>
@@ -906,7 +919,7 @@ function AvatarAdmin({
                                 onChange={(e) => { setSelectedTemplateId(e.target.value); setTimeout(applyExistingTransform, 0); }}
                                 className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
                             >
-                                {templates.map(t => (
+                                {combinedTemplates.map(t => (
                                     <option key={t.id} value={t.id}>{t.name}</option>
                                 ))}
                             </select>

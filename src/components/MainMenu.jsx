@@ -7,9 +7,10 @@ import AvatarLayered from './AvatarLayered';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts } = useGameStore();
-    const avatarMode = avatarV2?.mode || 'builtin';
-    const selectedTemplate = avatarFaceTemplates.find(t => t.id === avatarV2?.templateId) || avatarFaceTemplates[0] || null;
+    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates } = useGameStore();
+    const combinedTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
+    const selectedTemplate = combinedTemplates.find(t => t.id === avatarV2?.templateId) || combinedTemplates[0] || null;
+    const isBuiltinTemplate = selectedTemplate?.isBuiltin;
     
     const handleLeaderboardClick = () => {
         navigate('/leaderboard');
@@ -58,7 +59,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 >
                     <div className="relative size-10 rounded-full overflow-hidden ring-2 ring-primary/50 bg-wood-dark">
                         {user ? (
-                            avatarMode === 'layered' ? (
+                            (!isBuiltinTemplate && avatarV2?.templateId) ? (
                                 <AvatarLayered
                                     size={40}
                                     template={selectedTemplate}

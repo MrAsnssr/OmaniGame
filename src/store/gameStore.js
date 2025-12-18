@@ -22,6 +22,13 @@ import { initialCategories, initialQuestions } from '../data/questions';
 export const useGameStore = create((set, get) => ({
     STARTING_DIRHAMS: 750,
 
+    // Built-in face templates (so admins can position parts for circle/oval/square)
+    getBuiltinFaceTemplates: () => ([
+        { id: 'builtin_round', name: 'Round (built-in)', active: true, isBuiltin: true, previewAsset: null },
+        { id: 'builtin_oval', name: 'Oval (built-in)', active: true, isBuiltin: true, previewAsset: null },
+        { id: 'builtin_square', name: 'Square (built-in)', active: true, isBuiltin: true, previewAsset: null },
+    ]),
+
     // Current user (for persistence)
     currentUserId: null,
     currentUserDisplayName: null,
