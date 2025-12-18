@@ -13,12 +13,17 @@ const COIN_PACKAGES = [
 ];
 
 export default function CoinShop({ onBack }) {
-    const { dirhams, addDirhams } = useGameStore();
+    const { dirhams, addDirhams, currentUserId } = useGameStore();
     const [purchasing, setPurchasing] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
     const [purchasedAmount, setPurchasedAmount] = useState(0);
+    const [toast, setToast] = useState(null);
 
     const handleTestPurchase = async (pkg) => {
+        if (!currentUserId) {
+            setToast('سجّل دخول عشان ينحفظ رصيد الدراهم بعد التحديث.');
+            setTimeout(() => setToast(null), 2500);
+        }
         setPurchasing(pkg.id);
         
         // Simulate payment processing
@@ -62,6 +67,12 @@ export default function CoinShop({ onBack }) {
                 <p className="text-primary font-bold text-sm">🧪 وضع الاختبار - الشراء مجاني!</p>
                 <p className="text-sand/70 text-xs mt-1">سيتم إضافة طرق الدفع الحقيقية قريباً</p>
             </motion.div>
+
+            {toast && (
+                <div className="bg-wood-dark/60 border border-white/10 rounded-xl p-3 mb-3 text-center text-sand/70 text-sm">
+                    {toast}
+                </div>
+            )}
 
             {/* Coin Packages */}
             <div className="flex-1 overflow-y-auto space-y-3">

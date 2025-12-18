@@ -19,6 +19,13 @@ import {
 import { initialCategories, initialQuestions } from '../data/questions';
 
 export const useGameStore = create((set, get) => ({
+    // Current user (for persistence)
+    currentUserId: null,
+    currentUserDisplayName: null,
+    setCurrentUser: (userId, displayName) => {
+        set({ currentUserId: userId || null, currentUserDisplayName: displayName || null });
+    },
+
     // Game State
     score: 0,
     currentQuestionIndex: 0,
@@ -29,12 +36,55 @@ export const useGameStore = create((set, get) => ({
     // Currency (Dirhams - دراهم)
     dirhams: 1250, // Starting balance
     
+    loadUserDirhams: async (userId) => {
+        if (!userId) return;
+        try {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data() || {};
+                if (Number.isFinite(Number(data.dirhams))) {
+                    set({ dirhams: Number(data.dirhams) });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user dirhams:', error);
+        }
+    },
+
+    persistDirhams: async (userId, displayName, dirhams) => {
+        if (!userId) return;
+        try {
+            await setDoc(doc(db, 'users', userId), {
+                displayName: displayName || null,
+                dirhams,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving dirhams:', error);
+        }
+    },
+
     // Currency Actions
-    addDirhams: (amount) => set((state) => ({ dirhams: state.dirhams + amount })),
+    addDirhams: (amount) => {
+        const { dirhams, currentUserId, currentUserDisplayName } = get();
+        const next = dirhams + Number(amount || 0);
+        set({ dirhams: next });
+        // Persist for logged-in users
+        if (currentUserId) {
+            get().persistDirhams(currentUserId, currentUserDisplayName, next);
+        }
+    },
     spendDirhams: (amount) => {
-        const { dirhams } = get();
-        if (dirhams >= amount) {
-            set({ dirhams: dirhams - amount });
+        const { dirhams, currentUserId, currentUserDisplayName } = get();
+        const n = Number(amount || 0);
+        if (dirhams >= n) {
+            const next = dirhams - n;
+            set({ dirhams: next });
+            // Persist for logged-in users
+            if (currentUserId) {
+                get().persistDirhams(currentUserId, currentUserDisplayName, next);
+            }
             return true;
         }
         return false;
@@ -109,7 +159,7 @@ export const useGameStore = create((set, get) => ({
 
         if (dirhams < price) return { ok: false, error: 'insufficient_funds' };
 
-        // Spend locally first
+        // Spend locally first (will persist via spendDirhams if currentUserId set)
         if (!spendDirhams(price)) return { ok: false, error: 'insufficient_funds' };
 
         try {
@@ -117,6 +167,8 @@ export const useGameStore = create((set, get) => ({
             const updates = {
                 displayName: displayName || null,
                 ownedMarketItemIds: arrayUnion(item.id),
+                // also persist latest dirhams value for safety
+                dirhams: get().dirhams,
                 updatedAt: new Date().toISOString()
             };
 

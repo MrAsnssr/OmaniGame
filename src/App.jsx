@@ -105,8 +105,12 @@ export default function App() {
       setUser(authUser);
       // Load user's streak when authenticated
       if (authUser?.uid) {
+        useGameStore.getState().setCurrentUser(authUser.uid, authUser.displayName);
         useGameStore.getState().loadUserStreak(authUser.uid);
         useGameStore.getState().loadUserPurchases(authUser.uid);
+        useGameStore.getState().loadUserDirhams(authUser.uid);
+      } else {
+        useGameStore.getState().setCurrentUser(null, null);
       }
     });
     return () => unsubscribe();
