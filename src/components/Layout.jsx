@@ -22,7 +22,7 @@ export default function Layout({ children }) {
 
             {/* Main Content Area */}
             <main className="flex-1 relative z-10 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
-                <div className="max-w-md mx-auto w-full h-full flex flex-col">
+                <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto w-full h-full flex flex-col">
                     {children}
                 </div>
             </main>

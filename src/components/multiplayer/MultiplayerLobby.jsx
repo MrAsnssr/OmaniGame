@@ -168,20 +168,22 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col gap-2 h-full overflow-hidden"
+                        className="flex flex-col gap-2 h-full overflow-hidden md:grid md:grid-cols-2 md:gap-4"
                     >
-                        {/* Nickname */}
-                        <input
-                            type="text"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="اسمك الكريم"
-                            maxLength={15}
-                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
-                        />
+                        {/* Left Column: Settings */}
+                        <div className="flex flex-col gap-2 md:gap-4">
+                            {/* Nickname */}
+                            <input
+                                type="text"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                placeholder="اسمك الكريم"
+                                maxLength={15}
+                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
+                            />
 
-                        {/* Game Settings Panel */}
-                        <div className="glass-panel rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
+                            {/* Game Settings Panel */}
+                            <div className="glass-panel rounded-2xl p-3 md:p-4 space-y-2 md:space-y-4 flex-1 overflow-y-auto min-h-0">
                             <h3 className="text-omani-dark font-bold text-center">إعدادات اللعب</h3>
 
                             {/* Game Mode Toggle */}
@@ -276,8 +278,11 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                     كل واحد يختار المجال ونوع السؤال بدوره!
                                 </div>
                             )}
-                            
-                            {/* Topic Selection */}
+                            </div>
+                        </div>
+                        
+                        {/* Right Column: Topic Selection */}
+                        <div className="glass-panel rounded-2xl p-3 md:p-4 flex-1 overflow-y-auto min-h-0">
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-bold text-omani-dark text-sm">
@@ -370,17 +375,20 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             </div>
                         </div>
 
-                        {error && (
-                            <p className="text-red-600 text-center text-sm font-bold">{error}</p>
-                        )}
+                        {/* Error & Button - spans both columns on desktop */}
+                        <div className="md:col-span-2">
+                            {error && (
+                                <p className="text-red-600 text-center text-sm font-bold mb-2">{error}</p>
+                            )}
 
-                        <Button
-                            onClick={handleCreate}
-                            disabled={isLoading}
-                            className="w-full"
-                        >
-                            {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
-                        </Button>
+                            <Button
+                                onClick={handleCreate}
+                                disabled={isLoading}
+                                className="w-full"
+                            >
+                                {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
+                            </Button>
+                        </div>
                     </motion.div>
                 )}
 
@@ -390,7 +398,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex-1 flex flex-col items-center justify-center gap-4"
                     >
-                        <div className="w-full max-w-xs space-y-4">
+                        <div className="w-full max-w-xs md:max-w-md space-y-4">
                             <input
                                 type="text"
                                 value={playerName}

@@ -35,7 +35,7 @@ export default function MultipleChoice({ question, onAnswer }) {
                     {question.question}
                 </h2>
             </div>
-            <div className="grid gap-3 pb-4 overflow-y-auto min-h-0">
+            <div className="grid gap-3 md:grid-cols-2 pb-4 overflow-y-auto min-h-0">
                 {question.options.map((option, index) => (
                     <motion.div
                         key={index}
