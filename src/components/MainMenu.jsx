@@ -8,7 +8,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
     const { dirhams } = useGameStore();
     
     const handleLeaderboardClick = () => {
-        alert("قريباً! جاري العمل على لوحة المتصدرين.");
+        navigate('/leaderboard');
     };
 
     const handleSouqClick = () => {

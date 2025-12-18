@@ -9,7 +9,11 @@ import {
     doc,
     onSnapshot,
     query,
-    writeBatch
+    writeBatch,
+    setDoc,
+    orderBy,
+    limit,
+    getDoc
 } from 'firebase/firestore';
 import { initialCategories, initialQuestions } from '../data/questions';
 
@@ -33,6 +37,130 @@ export const useGameStore = create((set, get) => ({
             return true;
         }
         return false;
+    },
+
+    // Daily Streak System
+    currentStreak: 0,
+    longestStreak: 0,
+    lastOnlineGameDate: null,
+    streakLeaderboard: [],
+    streakLoading: false,
+
+    // Check and update streak when completing an online game
+    recordOnlineGame: async (userId, displayName) => {
+        if (!userId) return { streakUpdated: false };
+        
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const { lastOnlineGameDate, currentStreak, longestStreak, addDirhams } = get();
+        
+        // Already played today
+        if (lastOnlineGameDate === today) {
+            return { streakUpdated: false, alreadyPlayed: true };
+        }
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        let newStreak;
+        let bonusEarned = 0;
+        
+        if (lastOnlineGameDate === yesterdayStr) {
+            // Continuing streak
+            newStreak = currentStreak + 1;
+        } else {
+            // Starting new streak (broke or first time)
+            newStreak = 1;
+        }
+        
+        const newLongest = Math.max(longestStreak, newStreak);
+        
+        // Streak bonus rewards
+        if (newStreak >= 7) bonusEarned = 100;
+        else if (newStreak >= 3) bonusEarned = 50;
+        else bonusEarned = 10;
+        
+        // Update local state
+        set({
+            currentStreak: newStreak,
+            longestStreak: newLongest,
+            lastOnlineGameDate: today
+        });
+        
+        // Add bonus dirhams
+        addDirhams(bonusEarned);
+        
+        // Save to Firebase
+        try {
+            const streakRef = doc(db, 'streaks', userId);
+            await setDoc(streakRef, {
+                odisplayName: displayName || 'لاعب',
+                currentStreak: newStreak,
+                longestStreak: newLongest,
+                lastPlayedDate: today,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving streak:', error);
+        }
+        
+        return { streakUpdated: true, newStreak, bonusEarned };
+    },
+
+    // Load user's streak from Firebase
+    loadUserStreak: async (userId) => {
+        if (!userId) return;
+        
+        try {
+            const streakRef = doc(db, 'streaks', userId);
+            const streakDoc = await getDoc(streakRef);
+            
+            if (streakDoc.exists()) {
+                const data = streakDoc.data();
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+                
+                // Check if streak is still valid
+                let validStreak = data.currentStreak || 0;
+                if (data.lastPlayedDate !== today && data.lastPlayedDate !== yesterdayStr) {
+                    // Streak broken
+                    validStreak = 0;
+                }
+                
+                set({
+                    currentStreak: validStreak,
+                    longestStreak: data.longestStreak || 0,
+                    lastOnlineGameDate: data.lastPlayedDate || null
+                });
+            }
+        } catch (error) {
+            console.error('Error loading streak:', error);
+        }
+    },
+
+    // Fetch leaderboard
+    fetchStreakLeaderboard: async () => {
+        set({ streakLoading: true });
+        try {
+            const streaksRef = collection(db, 'streaks');
+            const q = query(streaksRef, orderBy('currentStreak', 'desc'), limit(50));
+            const snapshot = await getDocs(q);
+            
+            const leaderboard = snapshot.docs.map((doc, index) => ({
+                rank: index + 1,
+                odisplayName: doc.data().odisplayName || 'لاعب',
+                currentStreak: doc.data().currentStreak || 0,
+                longestStreak: doc.data().longestStreak || 0,
+                oduserId: doc.id
+            }));
+            
+            set({ streakLeaderboard: leaderboard, streakLoading: false });
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            set({ streakLoading: false });
+        }
     },
 
     // Admin Review Game (play all filtered questions from Admin page)

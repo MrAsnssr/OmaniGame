@@ -15,6 +15,7 @@ import LoginPage from './components/LoginPage';
 import SettingsPage from './components/SettingsPage';
 import ProfilePage from './components/ProfilePage';
 import CoinShop from './components/CoinShop';
+import Leaderboard from './components/Leaderboard';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -101,6 +102,10 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthChange((authUser) => {
       setUser(authUser);
+      // Load user's streak when authenticated
+      if (authUser?.uid) {
+        useGameStore.getState().loadUserStreak(authUser.uid);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -181,7 +186,7 @@ export default function App() {
         setAnsweredCount(0);
       });
 
-      socket.on('game-over', ({ finalResults, winner }) => {
+      socket.on('game-over', async ({ finalResults, winner }) => {
         setGameOver(finalResults, winner);
       });
 
@@ -207,6 +212,19 @@ export default function App() {
       };
     }
   }, [location.pathname]);
+
+  // Record online game completion for daily streak
+  const streakRecorded = useRef(false);
+  useEffect(() => {
+    if (isGameOver && user?.uid && !streakRecorded.current) {
+      streakRecorded.current = true;
+      useGameStore.getState().recordOnlineGame(user.uid, user.displayName);
+    }
+    // Reset when game ends
+    if (!isGameOver) {
+      streakRecorded.current = false;
+    }
+  }, [isGameOver, user]);
 
   // Navigation handlers
   const handleNavigateToCategories = () => navigate('/categories');
@@ -439,6 +457,19 @@ export default function App() {
               className="h-full"
             >
               <CoinShop onBack={() => navigate('/')} />
+            </motion.div>
+          } />
+
+          {/* Leaderboard */}
+          <Route path="/leaderboard" element={
+            <motion.div
+              key="leaderboard"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <Leaderboard onBack={() => navigate('/')} currentUserId={user?.uid} />
             </motion.div>
           } />
 
