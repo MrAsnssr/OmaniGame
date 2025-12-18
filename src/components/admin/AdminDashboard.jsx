@@ -1239,23 +1239,47 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
     const [active, setActive] = useState(part?.active !== false);
     const [assets, setAssets] = useState(Array.isArray(part?.assets) ? part.assets : []);
     const [saving, setSaving] = useState(false);
+    const [status, setStatus] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const [partId, setPartId] = useState(part?.id || null);
 
     const handleUpload = async (file) => {
         if (!file) return;
+        if (!partId) {
+            setStatus('لازم تحفظ الـ Part أولاً، وبعدها ارفع الصور عشان تنحفظ تحت نفس الـ ID.');
+            return;
+        }
+        setUploading(true);
+        setStatus('');
         const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
         const kind = isSvg ? 'svg' : 'png';
-        const idPart = part?.id || `new-${Date.now()}`;
         const assetId = `${Date.now()}`;
-        const path = `avatar/parts/${idPart}/${assetId}-${file.name}`;
+        const path = `avatar/parts/${partId}/${assetId}-${file.name}`;
         const res = await uploadAvatarAsset({ file, path });
         if (res.ok) {
-            setAssets(prev => [...prev, { assetId, kind, storagePath: res.storagePath, url: res.url }]);
+            const nextAsset = { assetId, kind, storagePath: res.storagePath, url: res.url };
+            setAssets((prev) => {
+                const nextAssets = [...prev, nextAsset];
+                return nextAssets;
+            });
+
+            // Persist immediately
+            const result = await onUpdate(partId, { assets: [...assets, nextAsset], updatedAt: new Date().toISOString() });
+            if (result?.ok === false) {
+                setStatus('تم رفع الصورة، لكن صار خطأ أثناء حفظها. اضغط Save أو جرّب مرة ثانية.');
+            } else {
+                setStatus('تم رفع الصورة وحفظها تلقائياً ✅');
+            }
+        } else {
+            setStatus('فشل رفع الصورة. جرّب مرة ثانية.');
         }
+        setUploading(false);
     };
 
     const handleSave = async () => {
         if (!name.trim()) return;
         setSaving(true);
+        setStatus('');
         const payload = {
             name: name.trim(),
             slot,
@@ -1266,10 +1290,26 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
             updatedAt: new Date().toISOString(),
             createdAt: part?.createdAt || new Date().toISOString()
         };
-        if (part) onUpdate(part.id, payload);
-        else onCreate(payload);
+        if (partId) {
+            const res = await onUpdate(partId, payload);
+            setSaving(false);
+            if (res?.ok === false) {
+                setStatus('فشل الحفظ. جرّب مرة ثانية.');
+                return;
+            }
+            setStatus('تم الحفظ ✅');
+            onClose();
+            return;
+        }
+
+        const created = await onCreate(payload);
         setSaving(false);
-        onClose();
+        if (!created?.ok) {
+            setStatus('فشل إنشاء الـ Part. جرّب مرة ثانية.');
+            return;
+        }
+        setPartId(created.id);
+        setStatus('تم إنشاء الـ Part ✅ الآن ارفع الصور، وبعدها تقدر تروح Position Editor.');
     };
 
     return (
@@ -1298,7 +1338,23 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
 
                 <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
                     <div className="text-sm font-bold text-white mb-2">Assets (PNG/SVG)</div>
-                    <input type="file" accept=".png,.webp,.svg" onChange={(e) => handleUpload(e.target.files?.[0])} className="w-full text-sm text-sand/70" />
+                    <input
+                        type="file"
+                        accept=".png,.webp,.svg"
+                        disabled={!partId || uploading}
+                        onChange={(e) => handleUpload(e.target.files?.[0])}
+                        className="w-full text-sm text-sand/70 disabled:opacity-50"
+                    />
+                    {!partId && (
+                        <div className="mt-2 text-xs text-sand/50">
+                            احفظ الـ Part أولاً ثم ارفع الصور (عشان تنحفظ تحت نفس الـ ID).
+                        </div>
+                    )}
+                    {status && (
+                        <div className="mt-2 text-xs font-bold text-sand/70">
+                            {status}
+                        </div>
+                    )}
                     <div className="mt-3 grid grid-cols-4 gap-2">
                         {assets.map(a => (
                             <div key={a.assetId} className="aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20">

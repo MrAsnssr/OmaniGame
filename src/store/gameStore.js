@@ -249,16 +249,20 @@ export const useGameStore = create((set, get) => ({
     // Admin: Parts
     addAvatarPart: async (payload) => {
         try {
-            await addDoc(collection(db, 'avatarParts'), payload);
+            const ref = await addDoc(collection(db, 'avatarParts'), payload);
+            return { ok: true, id: ref.id };
         } catch (error) {
             console.error('Error adding avatar part:', error);
+            return { ok: false, error };
         }
     },
     editAvatarPart: async (id, updates) => {
         try {
             await updateDoc(doc(db, 'avatarParts', id), updates);
+            return { ok: true };
         } catch (error) {
             console.error('Error updating avatar part:', error);
+            return { ok: false, error };
         }
     },
     deleteAvatarPart: async (id) => {
