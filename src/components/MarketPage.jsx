@@ -88,6 +88,8 @@ export default function MarketPage({ onBack, user }) {
                         const price = Number(item.priceDirhams || 0);
                         const owned = isOwned(item);
                         const topic = item.type === 'topic_unlock' ? getTopic(item.topicId) : null;
+                        const displayTitle = item.type === 'topic_unlock' ? (topic?.name || 'مجال') : (item.title || 'عنصر');
+                        const displayIcon = item.type === 'topic_unlock' ? (topic?.icon || '📚') : (item.icon || '🛒');
 
                         return (
                             <motion.div
@@ -99,12 +101,12 @@ export default function MarketPage({ onBack, user }) {
                             >
                                 <div className="flex items-start gap-3">
                                     <div className="size-12 rounded-xl bg-wood-dark/60 border border-white/5 flex items-center justify-center text-2xl">
-                                        {item.icon || '🛒'}
+                                        {displayIcon}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <p className="font-black text-white truncate">{item.title || 'عنصر'}</p>
+                                            <p className="font-black text-white truncate">{displayTitle}</p>
                                             {item.type === 'topic_unlock' && (
                                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
                                                     فتح مجال

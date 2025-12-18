@@ -596,13 +596,17 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
     const [active, setActive] = useState(item?.active !== false);
     const [topicId, setTopicId] = useState(item?.topicId || '');
 
+    const selectedTopic = categories.find(c => c.id === topicId) || null;
+    const isTopicUnlock = type === 'topic_unlock';
+
     const handleSubmit = () => {
-        if (!title.trim()) return;
+        if (isTopicUnlock && !topicId) return;
+        if (!isTopicUnlock && !title.trim()) return;
         const payload = {
             type,
-            title: title.trim(),
+            title: isTopicUnlock ? (selectedTopic?.name || '') : title.trim(),
             description: description.trim(),
-            icon: icon.trim(),
+            icon: isTopicUnlock ? (selectedTopic?.icon || '') : icon.trim(),
             priceDirhams: Math.max(0, Number(priceDirhams || 0)),
             active: !!active
         };
@@ -645,16 +649,21 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                                 <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                             ))}
                         </select>
+                        <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3 text-xs text-sand/60">
+                            الاسم والإيموجي يتم أخذهم تلقائياً من المجال المختار.
+                        </div>
                     </>
                 )}
 
-                <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Title"
-                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
-                />
+                {!isTopicUnlock && (
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Title"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
+                    />
+                )}
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -663,13 +672,20 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                     className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                    <input
-                        type="text"
-                        value={icon}
-                        onChange={(e) => setIcon(e.target.value)}
-                        placeholder="Icon (emoji)"
-                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
-                    />
+                    {!isTopicUnlock ? (
+                        <input
+                            type="text"
+                            value={icon}
+                            onChange={(e) => setIcon(e.target.value)}
+                            placeholder="Icon (emoji)"
+                            className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
+                        />
+                    ) : (
+                        <div className="w-full p-3 bg-wood-dark/30 border-2 border-white/5 rounded-xl text-white flex items-center justify-center gap-2">
+                            <span className="text-xl">{selectedTopic?.icon || '📚'}</span>
+                            <span className="text-sm font-bold truncate">{selectedTopic?.name || 'اختر مجال'}</span>
+                        </div>
+                    )}
                     <input
                         type="number"
                         min="0"
