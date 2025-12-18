@@ -268,10 +268,10 @@ export default function AdminReviewGame() {
     if (!adminReviewActive) {
         return (
             <div className="h-full flex flex-col items-center justify-center p-6 text-center gap-4">
-                <div className="bg-white/90 rounded-3xl p-8 max-w-md w-full">
-                    <h2 className="text-2xl font-black text-gray-800 mb-2">No review game running</h2>
-                    <p className="text-gray-500 text-sm mb-6">Start a review game from the Admin page (Questions tab) after applying your filters.</p>
-                    <Button onClick={() => navigate('/admin')} className="w-full">Go to Admin</Button>
+                <div className="bg-wood-dark border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                    <h2 className="text-2xl font-black text-white mb-2 engraved-text">No review game running</h2>
+                    <p className="text-sand/50 text-sm mb-6">Start a review game from the Admin page (Questions tab) after applying your filters.</p>
+                    <Button onClick={() => navigate('/admin')} className="w-full shadow-lg">Go to Admin</Button>
                 </div>
             </div>
         );
@@ -280,12 +280,12 @@ export default function AdminReviewGame() {
     if (total === 0) {
         return (
             <div className="h-full flex flex-col items-center justify-center p-6 text-center gap-4">
-                <div className="bg-white/90 rounded-3xl p-8 max-w-md w-full">
-                    <h2 className="text-2xl font-black text-gray-800 mb-2">No questions in this review set</h2>
-                    <p className="text-gray-500 text-sm mb-6">Your filter returned 0 questions.</p>
+                <div className="bg-wood-dark border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                    <h2 className="text-2xl font-black text-white mb-2 engraved-text">No questions in this review set</h2>
+                    <p className="text-sand/50 text-sm mb-6">Your filter returned 0 questions.</p>
                     <div className="flex gap-3">
-                        <Button onClick={handleBackToAdmin} variant="ghost" className="flex-1 text-gray-700">Back</Button>
-                        <Button onClick={handleExitReview} className="flex-1">Exit</Button>
+                        <Button onClick={handleBackToAdmin} variant="ghost" className="flex-1 text-sand border border-white/5">Back</Button>
+                        <Button onClick={handleExitReview} className="flex-1 shadow-lg">Exit</Button>
                     </div>
                 </div>
             </div>
@@ -298,15 +298,15 @@ export default function AdminReviewGame() {
             <div className="flex items-center gap-3 mb-4">
                 <button
                     onClick={handleBackToAdmin}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors shadow-md"
                     title="Back to Admin"
                 >
                     <ArrowLeft size={20} />
                 </button>
 
                 <div className="flex-1 min-w-0">
-                    <div className="text-omani-dark font-black text-lg truncate">Admin Review Game</div>
-                    <div className="text-gray-600 text-xs font-bold truncate">
+                    <div className="text-white font-black text-lg truncate engraved-text">Admin Review Game</div>
+                    <div className="text-sand/50 text-xs font-bold truncate">
                         {adminReviewMeta?.filterCategory && adminReviewMeta.filterCategory !== 'all'
                             ? `Category: ${categoriesById.get(adminReviewMeta.filterCategory)?.name || adminReviewMeta.filterCategory}`
                             : 'Category: All'}
@@ -319,7 +319,7 @@ export default function AdminReviewGame() {
 
                 <button
                     onClick={() => setIsListOpen(true)}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors shadow-md"
                     title="Question list"
                 >
                     <List size={18} />
@@ -327,7 +327,7 @@ export default function AdminReviewGame() {
 
                 <button
                     onClick={() => openEditorForId(currentQuestion?.id)}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-md"
                     title="Edit current question"
                     disabled={!currentQuestion}
                 >
@@ -336,24 +336,24 @@ export default function AdminReviewGame() {
             </div>
 
             {/* Progress Bar */}
-            <div className="flex items-center justify-between mb-4 text-sm font-bold text-gray-700 glass-panel p-2 rounded-lg">
+            <div className="flex items-center justify-between mb-4 text-xs font-bold text-sand/70 glass-panel p-2 rounded-lg border border-white/5">
                 <span>Question {index + 1}/{total}</span>
                 <span className="truncate">{currentCategory?.icon || '❓'} {currentCategory?.name || 'Unknown'}</span>
             </div>
 
             {/* Question Card */}
-            <div className="flex-1 overflow-y-auto bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border-4 border-white/50">
+            <div className="flex-1 overflow-y-auto bg-wood-dark/40 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/10 relative">
                 <QuestionRenderer question={currentQuestion} onAnswer={handleAnswer} />
 
                 {/* Result */}
                 {isAnswered && (
-                    <div className={`mt-6 border-2 rounded-2xl p-4 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <div className={`font-black text-lg ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                    <div className={`mt-6 border-2 rounded-2xl p-4 ${isCorrect ? 'bg-green-400/10 border-green-400/20' : 'bg-red-400/10 border-red-400/20'}`}>
+                        <div className={`font-black text-lg ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
                             {isCorrect ? 'Correct' : 'Wrong'}
                         </div>
 
-                        <div className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">
-                            <span className="font-bold">Correct answer:</span> {correctAnswerText || '(not set)'}
+                        <div className="mt-2 text-sm text-sand/80 whitespace-pre-wrap">
+                            <span className="font-bold text-white">Correct answer:</span> {correctAnswerText || '(not set)'}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 mt-4">
@@ -373,7 +373,7 @@ export default function AdminReviewGame() {
                 <Button
                     onClick={() => setIndex(i => Math.max(0, i - 1))}
                     variant="ghost"
-                    className="flex-1 w-auto text-omani-brown hover:bg-white/50 hover:text-omani-dark"
+                    className="flex-1 w-auto text-sand hover:bg-white/5 hover:text-white border border-white/5"
                     disabled={index === 0}
                 >
                     <ChevronLeft size={18} /> Prev
@@ -381,7 +381,7 @@ export default function AdminReviewGame() {
                 <Button
                     onClick={() => setIndex(i => Math.min(total - 1, i + 1))}
                     variant="ghost"
-                    className="flex-1 w-auto text-omani-brown hover:bg-white/50 hover:text-omani-dark"
+                    className="flex-1 w-auto text-sand hover:bg-white/5 hover:text-white border border-white/5"
                     disabled={index >= total - 1}
                 >
                     Next <ChevronRight size={18} />
@@ -390,7 +390,7 @@ export default function AdminReviewGame() {
 
             {/* Exit */}
             <div className="mt-2">
-                <Button onClick={handleExitReview} variant="ghost" className="w-full text-omani-brown hover:bg-white/50 hover:text-omani-dark font-bold">
+                <Button onClick={handleExitReview} variant="ghost" className="w-full text-sand hover:bg-white/5 hover:text-white font-bold border border-white/5">
                     End review session
                 </Button>
             </div>

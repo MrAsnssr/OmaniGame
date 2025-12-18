@@ -46,10 +46,10 @@ export default function ReportsPage({ onBack }) {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'pending': return 'bg-yellow-100 text-yellow-700';
-            case 'resolved': return 'bg-green-100 text-green-700';
-            case 'dismissed': return 'bg-gray-100 text-gray-700';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'pending': return 'bg-primary/20 text-primary';
+            case 'resolved': return 'bg-green-400/20 text-green-400';
+            case 'dismissed': return 'bg-sand/20 text-sand/70';
+            default: return 'bg-sand/10 text-sand/50';
         }
     };
 
@@ -68,17 +68,17 @@ export default function ReportsPage({ onBack }) {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={onBack || (() => navigate('/admin'))}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-omani-dark flex-1 flex items-center gap-2">
-                    <Flag size={24} className="text-omani-red" /> Question Reports
+                <h2 className="text-2xl font-black text-white flex-1 flex items-center gap-2 engraved-text">
+                    <Flag size={24} className="text-primary" /> Question Reports
                 </h2>
             </div>
 
             {/* Filter */}
-            <div className="mb-4 glass-panel rounded-xl p-3">
+            <div className="mb-4 glass-panel rounded-xl p-3 border border-white/5 shadow-inner">
                 <div className="flex gap-2">
                     {['all', 'pending', 'resolved', 'dismissed'].map(status => (
                         <button
@@ -86,8 +86,8 @@ export default function ReportsPage({ onBack }) {
                             onClick={() => setFilterStatus(status)}
                             className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors capitalize ${
                                 filterStatus === status
-                                    ? 'bg-omani-red text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-primary text-white border-b-2 border-black/30 shadow-md'
+                                    : 'bg-wood-dark/50 text-sand hover:bg-wood-dark border border-white/5'
                             }`}
                         >
                             {status === 'all' ? 'All' : getStatusText(status)}
@@ -97,9 +97,9 @@ export default function ReportsPage({ onBack }) {
             </div>
 
             {/* Reports List */}
-            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0">
+            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0 border border-white/5">
                 {filteredReports.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 font-bold">
+                    <div className="text-center py-8 text-sand/50 font-bold">
                         No reports found.
                     </div>
                 ) : (
@@ -123,28 +123,28 @@ export default function ReportsPage({ onBack }) {
                                     key={report.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white rounded-xl p-4 shadow-sm"
+                                    className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 shadow-md"
                                 >
                                     <div className="flex items-start gap-3 mb-3">
                                         <span className="text-xl">{category?.icon || '❓'}</span>
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(report.status)}`}>
+                                                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusColor(report.status)}`}>
                                                     {getStatusText(report.status)}
                                                 </span>
-                                                <span className="text-xs text-gray-400">
+                                                <span className="text-[10px] text-sand/40">
                                                     {reportDate.toLocaleDateString()}
                                                 </span>
                                             </div>
-                                            <p className="font-medium text-gray-800 text-sm mb-1">{question?.question || 'Question not found'}</p>
-                                            <span className="text-xs text-gray-400 capitalize">{question?.type}</span>
+                                            <p className="font-bold text-white text-sm mb-1 line-clamp-2">{question?.question || 'Question not found'}</p>
+                                            <span className="text-[10px] text-sand/40 capitalize font-bold">{question?.type}</span>
                                         </div>
                                     </div>
 
                                     {report.reason && (
-                                        <div className="mb-3 p-2 bg-gray-50 rounded-lg">
-                                            <p className="text-xs font-bold text-gray-600 mb-1">Report Reason:</p>
-                                            <p className="text-sm text-gray-700">{report.reason}</p>
+                                        <div className="mb-3 p-2 bg-wood-dark/80 rounded-lg border border-white/5">
+                                            <p className="text-[10px] font-bold text-sand/50 mb-1">Report Reason:</p>
+                                            <p className="text-xs text-sand">{report.reason}</p>
                                         </div>
                                     )}
 
@@ -152,21 +152,21 @@ export default function ReportsPage({ onBack }) {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleEdit(report)}
-                                                className="flex-1 py-2 px-3 bg-blue-100 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-200 transition-colors flex items-center justify-center gap-2"
+                                                className="flex-1 py-2 px-3 bg-primary/10 text-primary border border-primary/20 rounded-lg font-bold text-xs hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
                                             >
-                                                <Edit2 size={16} /> Edit Question
+                                                <Edit2 size={14} /> Edit
                                             </button>
                                             <button
                                                 onClick={() => handleResolve(report.id, 'resolve')}
-                                                className="flex-1 py-2 px-3 bg-green-100 text-green-600 rounded-lg font-bold text-sm hover:bg-green-200 transition-colors flex items-center justify-center gap-2"
+                                                className="flex-1 py-2 px-3 bg-green-400/10 text-green-400 border border-green-400/20 rounded-lg font-bold text-xs hover:bg-green-400/20 transition-colors flex items-center justify-center gap-2"
                                             >
-                                                <Check size={16} /> Resolve
+                                                <Check size={14} /> Resolve
                                             </button>
                                             <button
                                                 onClick={() => handleResolve(report.id, 'dismiss')}
-                                                className="flex-1 py-2 px-3 bg-gray-100 text-gray-600 rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                                                className="flex-1 py-2 px-3 bg-sand/10 text-sand rounded-lg font-bold text-xs hover:bg-sand/20 transition-colors flex items-center justify-center gap-2 border border-white/5"
                                             >
-                                                <X size={16} /> Dismiss
+                                                <X size={14} /> Dismiss
                                             </button>
                                         </div>
                                     )}
@@ -175,15 +175,15 @@ export default function ReportsPage({ onBack }) {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleEdit(report)}
-                                                className="flex-1 py-2 px-3 bg-blue-100 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-200 transition-colors flex items-center justify-center gap-2"
+                                                className="flex-1 py-2 px-3 bg-primary/10 text-primary border border-primary/20 rounded-lg font-bold text-xs hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
                                             >
-                                                <Edit2 size={16} /> Edit Question
+                                                <Edit2 size={14} /> Edit
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteReport(report.id)}
-                                                className="py-2 px-3 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+                                                className="py-2 px-3 bg-red-400/10 text-red-400 border border-red-400/20 rounded-lg font-bold text-xs hover:bg-red-400/20 transition-colors flex items-center justify-center gap-2"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
                                     )}

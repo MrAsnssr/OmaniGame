@@ -5,7 +5,7 @@ export default function Layout({ children, variant = 'dark' }) {
     const isDark = variant === 'dark';
 
     return (
-        <div className={`w-full h-full relative flex flex-col font-sans overflow-hidden ${isDark ? 'bg-wood-pattern' : 'bg-omani-pattern'}`}>
+        <div className={`w-full h-full relative flex flex-col font-sans overflow-hidden selection:bg-primary selection:text-white ${isDark ? 'bg-wood-pattern text-white' : 'bg-omani-pattern text-gray-800'}`}>
             {/* Background layers for dark theme */}
             {isDark && (
                 <>

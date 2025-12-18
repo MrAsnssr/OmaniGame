@@ -39,23 +39,23 @@ export default function RoundLeaderboard({
     };
     const getPositionStyle = (rank) => {
         switch (rank) {
-            case 1: return 'bg-gradient-to-r from-yellow-400 to-amber-500 border-yellow-600';
-            case 2: return 'bg-gradient-to-r from-gray-300 to-gray-400 border-gray-500';
-            case 3: return 'bg-gradient-to-r from-amber-600 to-orange-700 border-amber-800';
-            default: return 'bg-white/80 border-gray-200';
+            case 1: return 'bg-gradient-to-r from-yellow-400 to-amber-500 border-yellow-600 shadow-[0_0_15px_rgba(251,191,36,0.3)]';
+            case 2: return 'bg-gradient-to-r from-gray-300 to-gray-400 border-gray-500 shadow-[0_0_15px_rgba(156,163,175,0.2)]';
+            case 3: return 'bg-gradient-to-r from-amber-600 to-orange-700 border-amber-800 shadow-[0_0_15px_rgba(180,83,9,0.2)]';
+            default: return 'bg-wood-dark/40 border-white/5';
         }
     };
 
     const getPositionIcon = (rank) => {
-        if (rank === 1) return <Trophy size={24} className="text-yellow-300" />;
-        if (rank === 2) return <Medal size={24} className="text-gray-100" />;
-        if (rank === 3) return <Medal size={24} className="text-amber-300" />;
-        return <span className="text-omani-dark font-bold">{rank}</span>;
+        if (rank === 1) return <Trophy size={24} className="text-yellow-300 drop-shadow-md" />;
+        if (rank === 2) return <Medal size={24} className="text-gray-100 drop-shadow-md" />;
+        if (rank === 3) return <Medal size={24} className="text-amber-300 drop-shadow-md" />;
+        return <span className="text-sand font-bold">{rank}</span>;
     };
 
     const getTextColor = (rank) => {
         if (rank <= 3) return 'text-white';
-        return 'text-omani-dark';
+        return 'text-white';
     };
 
     return (
@@ -68,13 +68,13 @@ export default function RoundLeaderboard({
             >
                 {isGameOver ? (
                     <>
-                        <h2 className="text-3xl font-black text-omani-gold mb-2">🏆 انتهت اللعبة!</h2>
-                        <p className="text-omani-dark text-lg font-bold">الفائز هو {winner?.playerName}!</p>
+                        <h2 className="text-3xl font-black text-primary mb-2 engraved-text">🏆 انتهت اللعبة!</h2>
+                        <p className="text-sand text-lg font-bold">الفائز هو {winner?.playerName}!</p>
                     </>
                 ) : (
                     <>
-                        <h2 className="text-2xl font-black text-omani-dark">الكبارية</h2>
-                        <p className="text-gray-600 font-bold">السؤال {questionIndex + 1} من {totalQuestions}</p>
+                        <h2 className="text-2xl font-black text-white engraved-text">الكبارية</h2>
+                        <p className="text-sand/70 font-bold">السؤال {questionIndex + 1} من {totalQuestions}</p>
                     </>
                 )}
             </motion.div>
@@ -84,10 +84,10 @@ export default function RoundLeaderboard({
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-green-100 border-2 border-green-500 rounded-xl p-3 mb-4 text-center"
+                    className="bg-primary/10 border-2 border-primary/30 rounded-xl p-3 mb-4 text-center"
                 >
-                    <p className="text-green-700 text-sm font-bold">الجواب الصح:</p>
-                    <p className="text-green-800 font-black text-lg">
+                    <p className="text-primary text-sm font-bold">الجواب الصح:</p>
+                    <p className="text-white font-black text-lg">
                         {Array.isArray(correctAnswer) ? correctAnswer.join(' → ') : correctAnswer}
                     </p>
                 </motion.div>
@@ -113,15 +113,15 @@ export default function RoundLeaderboard({
                             <p className={`${getTextColor(result.rank)} font-bold`}>{result.playerName}</p>
                             <div className="flex items-center gap-2 text-sm">
                                 {result.isCorrect ? (
-                                    <span className={`${result.rank <= 3 ? 'text-green-200' : 'text-green-600'} flex items-center gap-1 font-bold`}>
+                                    <span className={`${result.rank <= 3 ? 'text-green-200' : 'text-green-400'} flex items-center gap-1 font-bold`}>
                                         <Check size={14} /> +{result.points}
                                     </span>
                                 ) : (
-                                    <span className={`${result.rank <= 3 ? 'text-red-200' : 'text-red-500'} flex items-center gap-1 font-bold`}>
+                                    <span className={`${result.rank <= 3 ? 'text-red-200' : 'text-red-400'} flex items-center gap-1 font-bold`}>
                                         <X size={14} /> +0
                                     </span>
                                 )}
-                                <span className={`${result.rank <= 3 ? 'text-white/70' : 'text-gray-500'} flex items-center gap-1`}>
+                                <span className={`${result.rank <= 3 ? 'text-white/70' : 'text-sand/60'} flex items-center gap-1`}>
                                     <Clock size={12} /> {result.timeTaken.toFixed(1)}s
                                 </span>
                             </div>
@@ -130,7 +130,7 @@ export default function RoundLeaderboard({
                         {/* Total Score */}
                         <div className="text-right">
                             <p className={`text-2xl font-black ${getTextColor(result.rank)}`}>{result.totalScore}</p>
-                            <p className={`${result.rank <= 3 ? 'text-white/70' : 'text-gray-500'} text-xs font-bold`}>نقطة</p>
+                            <p className={`${result.rank <= 3 ? 'text-white/70' : 'text-sand/60'} text-xs font-bold`}>نقطة</p>
                         </div>
                     </motion.div>
                 ))}
@@ -143,7 +143,7 @@ export default function RoundLeaderboard({
                     {playedQuestions.length > 0 && (
                         <button
                             onClick={() => setShowReportModal(true)}
-                            className="w-full p-3 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 flex items-center justify-center gap-2"
+                            className="w-full p-3 rounded-xl bg-wood-dark/50 border border-white/5 text-sand hover:text-white font-bold hover:bg-wood-dark flex items-center justify-center gap-2 transition-colors"
                         >
                             <Flag size={18} />
                             الإبلاغ عن سؤال
@@ -152,13 +152,13 @@ export default function RoundLeaderboard({
                     <div className="flex gap-3">
                         <button
                             onClick={onLeave}
-                            className="flex-1 p-4 rounded-xl glass-card text-omani-dark font-bold hover:bg-white/90"
+                            className="flex-1 p-4 rounded-xl glass-card text-sand font-bold hover:bg-wood-light/80 transition-colors"
                         >
                             خروج
                         </button>
                         <button
                             onClick={onPlayAgain}
-                            className="flex-1 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold"
+                            className="flex-1 p-4 rounded-xl bg-gradient-to-r from-primary to-orange-700 text-white font-bold shadow-lg"
                         >
                             لعب مرة ثانية
                         </button>
@@ -171,7 +171,7 @@ export default function RoundLeaderboard({
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center text-gray-600 font-bold"
+                    className="text-center text-sand/70 font-bold"
                 >
                     الجولة الجاية...
                 </motion.div>
@@ -179,29 +179,29 @@ export default function RoundLeaderboard({
 
             {/* Report Modal */}
             {showReportModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl max-h-[80vh] overflow-hidden flex flex-col"
+                        className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col"
                     >
                         {reportSubmitted ? (
                             <div className="text-center py-8">
                                 <div className="text-5xl mb-4">✅</div>
-                                <p className="text-xl font-bold text-green-600">تم الإبلاغ بنجاح!</p>
+                                <p className="text-xl font-bold text-primary">تم الإبلاغ بنجاح!</p>
                             </div>
                         ) : !selectedQuestion ? (
                             <>
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">اختر السؤال للإبلاغ عنه</h3>
+                                <h3 className="text-xl font-bold text-white mb-4">اختر السؤال للإبلاغ عنه</h3>
                                 <div className="flex-1 overflow-y-auto space-y-2 mb-4">
                                     {playedQuestions.map((q, idx) => (
                                         <button
                                             key={q.id}
                                             onClick={() => setSelectedQuestion(q)}
-                                            className="w-full p-3 text-right rounded-xl border-2 border-gray-200 hover:border-omani-red hover:bg-red-50 transition-colors"
+                                            className="w-full p-3 text-right rounded-xl border-2 border-white/5 bg-wood-dark/50 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                                         >
-                                            <p className="text-sm text-gray-500 mb-1">سؤال {idx + 1}</p>
-                                            <p className="text-gray-800 font-bold line-clamp-2">
+                                            <p className="text-sm text-sand/50 mb-1">سؤال {idx + 1}</p>
+                                            <p className="text-white font-bold line-clamp-2">
                                                 {q.question?.substring(0, 80)}{q.question?.length > 80 ? '...' : ''}
                                             </p>
                                         </button>
@@ -209,22 +209,22 @@ export default function RoundLeaderboard({
                                 </div>
                                 <button
                                     onClick={() => setShowReportModal(false)}
-                                    className="w-full p-3 rounded-xl bg-gray-100 text-gray-600 font-bold"
+                                    className="w-full p-3 rounded-xl bg-wood-dark/80 text-sand font-bold border border-white/5"
                                 >
                                     إلغاء
                                 </button>
                             </>
                         ) : (
                             <>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">الإبلاغ عن السؤال</h3>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                <h3 className="text-xl font-bold text-white mb-2">الإبلاغ عن السؤال</h3>
+                                <p className="text-sand/70 text-sm mb-4 line-clamp-2">
                                     {selectedQuestion.question}
                                 </p>
                                 <textarea
                                     value={reportReason}
                                     onChange={(e) => setReportReason(e.target.value)}
                                     placeholder="اكتب سبب الإبلاغ..."
-                                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-4 focus:border-red-500 outline-none text-gray-900 placeholder-gray-500 min-h-[100px] resize-none"
+                                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/5 rounded-xl mb-4 focus:border-primary outline-none text-white placeholder-sand/40 min-h-[100px] resize-none"
                                 />
                                 <div className="flex gap-3">
                                     <button
@@ -232,14 +232,14 @@ export default function RoundLeaderboard({
                                             setSelectedQuestion(null);
                                             setReportReason('');
                                         }}
-                                        className="flex-1 p-3 rounded-xl bg-gray-100 text-gray-600 font-bold"
+                                        className="flex-1 p-3 rounded-xl bg-wood-dark/80 text-sand font-bold border border-white/5"
                                     >
                                         رجوع
                                     </button>
                                     <button
                                         onClick={handleSubmitReport}
                                         disabled={!reportReason.trim()}
-                                        className="flex-1 p-3 rounded-xl bg-red-500 text-white font-bold disabled:opacity-50"
+                                        className="flex-1 p-3 rounded-xl bg-primary text-white font-bold disabled:opacity-50"
                                     >
                                         إبلاغ
                                     </button>

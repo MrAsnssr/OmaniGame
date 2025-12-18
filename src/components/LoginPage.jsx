@@ -50,11 +50,11 @@ export default function LoginPage({ onBack, onSuccess }) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={onBack}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors shadow-md"
                 >
                     <ArrowRight size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-omani-dark">
+                <h2 className="text-2xl font-black text-white engraved-text">
                     {mode === 'login' ? 'تسجيل الدخول' : 'إنشاء حساب'}
                 </h2>
             </div>
@@ -67,7 +67,7 @@ export default function LoginPage({ onBack, onSuccess }) {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
-                    className="w-full p-4 rounded-2xl bg-white text-gray-800 font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-gray-300 disabled:opacity-50"
+                    className="w-full p-4 rounded-2xl bg-white text-gray-800 font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-gray-300 disabled:opacity-50 hover:brightness-105 transition-all"
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -79,9 +79,9 @@ export default function LoginPage({ onBack, onSuccess }) {
                 </motion.button>
 
                 <div className="flex items-center gap-4 w-full">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="text-gray-600 text-sm font-bold">أو</span>
-                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <div className="flex-1 h-px bg-white/10"></div>
+                    <span className="text-sand/50 text-sm font-bold">أو</span>
+                    <div className="flex-1 h-px bg-white/10"></div>
                 </div>
 
                 {/* Email/Password Form */}
@@ -93,34 +93,34 @@ export default function LoginPage({ onBack, onSuccess }) {
                     className="w-full space-y-3"
                 >
                     <div className="relative">
-                        <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-sand/40" size={20} />
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="البريد الإلكتروني"
-                            className="w-full p-4 pr-12 rounded-xl bg-white/90 text-gray-800 font-bold placeholder-gray-400 text-right"
+                            className="w-full p-4 pr-12 rounded-xl bg-wood-dark/50 border-2 border-white/5 text-white font-bold placeholder-sand/30 outline-none focus:border-primary"
                             dir="ltr"
                         />
                     </div>
 
                     <div className="relative">
-                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-sand/40" size={20} />
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="كلمة المرور"
-                            className="w-full p-4 pr-12 rounded-xl bg-white/90 text-gray-800 font-bold placeholder-gray-400 text-right"
+                            className="w-full p-4 pr-12 rounded-xl bg-wood-dark/50 border-2 border-white/5 text-white font-bold placeholder-sand/30 outline-none focus:border-primary"
                             dir="ltr"
                         />
                     </div>
 
                     {error && (
-                        <p className="text-red-300 text-center text-sm">{error}</p>
+                        <p className="text-red-400 text-center text-sm font-bold">{error}</p>
                     )}
 
-                    <Button type="submit" disabled={isLoading} className="w-full">
+                    <Button type="submit" disabled={isLoading} className="w-full shadow-lg">
                         {isLoading ? 'جاري التحميل...' : (mode === 'login' ? 'دخول' : 'إنشاء حساب')}
                     </Button>
                 </motion.form>
@@ -128,7 +128,7 @@ export default function LoginPage({ onBack, onSuccess }) {
                 {/* Toggle Login/Signup */}
                 <button
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                    className="text-omani-brown hover:text-omani-red transition-colors text-sm font-bold"
+                    className="text-sand hover:text-primary transition-colors text-sm font-bold"
                 >
                     {mode === 'login' ? 'ما عندك حساب؟ سجل الحين' : 'عندك حساب؟ سجل دخول'}
                 </button>

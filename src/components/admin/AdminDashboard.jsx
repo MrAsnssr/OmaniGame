@@ -45,43 +45,43 @@ export default function AdminDashboard({ onBack }) {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={onBack || (() => navigate('/'))}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors shadow-md"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-omani-dark flex-1">Admin Panel</h2>
+                <h2 className="text-2xl font-black text-white flex-1 engraved-text">Admin Panel</h2>
             </div>
 
             {/* Tabs */}
             <div className="flex gap-2 mb-4 flex-wrap">
                 <button
                     onClick={() => setActiveTab('subjects')}
-                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm ${activeTab === 'subjects' ? 'bg-omani-red text-white' : 'glass-card text-omani-dark hover:bg-white/90'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'subjects' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
                 >
                     <Folder size={16} /> Subjects
                 </button>
                 <button
                     onClick={() => setActiveTab('categories')}
-                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm ${activeTab === 'categories' ? 'bg-omani-red text-white' : 'glass-card text-omani-dark hover:bg-white/90'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'categories' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
                 >
                     <Book size={16} /> Topics
                 </button>
                 <button
                     onClick={() => setActiveTab('questions')}
-                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm ${activeTab === 'questions' ? 'bg-omani-red text-white' : 'glass-card text-omani-dark hover:bg-white/90'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'questions' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
                 >
                     <HelpCircle size={16} /> Questions
                 </button>
                 <button
                     onClick={() => navigate('/admin/reports')}
-                    className="py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors glass-card text-omani-dark hover:bg-white/90 text-sm"
+                    className="py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80 border-b-4 text-sm"
                 >
                     <Flag size={16} /> Reports
                 </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0">
+            <div className="flex-1 overflow-y-auto glass-panel rounded-2xl p-4 min-h-0 border border-white/5">
                 {activeTab === 'subjects' && (
                     <SubjectList
                         subjects={subjects}
@@ -153,27 +153,27 @@ export default function AdminDashboard({ onBack }) {
 function SubjectList({ subjects, categories, onEdit, onDelete, onAdd }) {
     return (
         <div className="space-y-3">
-            <Button onClick={onAdd} variant="secondary" className="w-full">
+            <Button onClick={onAdd} variant="primary" className="w-full shadow-lg">
                 <Plus size={18} /> Add Subject
             </Button>
             {subjects.map(subject => {
                 const topicCount = categories.filter(c => c.subjectId === subject.id).length;
                 return (
-                    <div key={subject.id} className="bg-white rounded-xl p-4 shadow-sm">
+                    <div key={subject.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 shadow-md">
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{subject.icon}</span>
                             <div className="flex-1">
-                                <span className="font-bold text-gray-800 block">{subject.name}</span>
-                                <span className="text-xs text-gray-500">{topicCount} topics</span>
+                                <span className="font-bold text-white block">{subject.name}</span>
+                                <span className="text-xs text-sand/50">{topicCount} topics</span>
                             </div>
-                            <button onClick={() => onEdit(subject)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={18} /></button>
-                            <button onClick={() => onDelete(subject.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                            <button onClick={() => onEdit(subject)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
+                            <button onClick={() => onDelete(subject.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
                         </div>
                     </div>
                 );
             })}
             {subjects.length === 0 && (
-                <div className="text-center py-8 text-gray-500 font-bold">
+                <div className="text-center py-8 text-sand/50 font-bold">
                     No subjects yet. Add one to organize your topics!
                 </div>
             )}
@@ -192,20 +192,20 @@ function CategoryList({ categories, subjects, onEdit, onDelete, onAdd }) {
 
     return (
         <div className="space-y-3">
-            <Button onClick={onAdd} variant="secondary" className="w-full">
+            <Button onClick={onAdd} variant="primary" className="w-full shadow-lg">
                 <Plus size={18} /> Add Topic
             </Button>
             
             {/* Uncategorized Topics */}
             {uncategorized.length > 0 && (
-                <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 mb-4">
-                    <p className="text-amber-700 font-bold text-sm mb-2">⚠️ Uncategorized ({uncategorized.length}) - Won't appear in game!</p>
+                <div className="bg-primary/10 border-2 border-primary/20 rounded-xl p-3 mb-4">
+                    <p className="text-primary font-bold text-sm mb-2">⚠️ Uncategorized ({uncategorized.length}) - Won't appear in game!</p>
                     {uncategorized.map(cat => (
-                        <div key={cat.id} className="bg-white rounded-lg p-3 flex items-center gap-3 shadow-sm mb-2 last:mb-0">
+                        <div key={cat.id} className="bg-wood-dark/50 border border-white/5 rounded-lg p-3 flex items-center gap-3 shadow-sm mb-2 last:mb-0">
                             <span className="text-xl">{cat.icon}</span>
-                            <span className="flex-1 font-bold text-gray-800 text-sm">{cat.name}</span>
-                            <button onClick={() => onEdit(cat)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
-                            <button onClick={() => onDelete(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                            <span className="flex-1 font-bold text-white text-sm">{cat.name}</span>
+                            <button onClick={() => onEdit(cat)} className="p-1.5 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                            <button onClick={() => onDelete(cat.id)} className="p-1.5 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={16} /></button>
                         </div>
                     ))}
                 </div>
@@ -213,16 +213,16 @@ function CategoryList({ categories, subjects, onEdit, onDelete, onAdd }) {
             
             {/* Categorized Topics by Subject */}
             {categorized.map(group => (
-                <div key={group.subject.id} className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-gray-600 font-bold text-sm mb-2 flex items-center gap-2">
+                <div key={group.subject.id} className="bg-wood-dark/30 border border-white/5 rounded-xl p-3">
+                    <p className="text-sand font-bold text-sm mb-2 flex items-center gap-2">
                         <span>{group.subject.icon}</span> {group.subject.name}
                     </p>
                     {group.topics.map(cat => (
-                        <div key={cat.id} className="bg-white rounded-lg p-3 flex items-center gap-3 shadow-sm mb-2 last:mb-0">
+                        <div key={cat.id} className="bg-wood-dark/50 border border-white/5 rounded-lg p-3 flex items-center gap-3 shadow-sm mb-2 last:mb-0">
                             <span className="text-xl">{cat.icon}</span>
-                            <span className="flex-1 font-bold text-gray-800 text-sm">{cat.name}</span>
-                            <button onClick={() => onEdit(cat)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
-                            <button onClick={() => onDelete(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                            <span className="flex-1 font-bold text-white text-sm">{cat.name}</span>
+                            <button onClick={() => onEdit(cat)} className="p-1.5 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                            <button onClick={() => onDelete(cat.id)} className="p-1.5 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={16} /></button>
                         </div>
                     ))}
                 </div>
@@ -249,21 +249,21 @@ function QuestionList({
     return (
         <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 mb-2">
-                <Button onClick={onAdd} variant="secondary" className="w-full">
+                <Button onClick={onAdd} variant="primary" className="w-full">
                     <Plus size={18} /> Add
                 </Button>
-                <Button onClick={onImport} variant="ghost" className="w-full border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-500">
+                <Button onClick={onImport} variant="ghost" className="w-full border-2 border-dashed border-white/10 text-sand hover:border-primary hover:text-white transition-all">
                     <FileJson size={18} /> Import
                 </Button>
             </div>
 
             {/* Filters */}
-            <div className="bg-white/50 p-3 rounded-xl flex flex-col gap-2">
+            <div className="bg-wood-dark/50 border border-white/5 p-3 rounded-xl flex flex-col gap-2 shadow-inner">
                 <div className="flex gap-2">
                     <select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        className="flex-1 p-2 rounded-lg border-2 border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
+                        className="flex-1 p-2 rounded-lg bg-wood-dark border-2 border-white/10 text-sm font-bold text-white outline-none focus:border-primary"
                     >
                         <option value="all">All Categories</option>
                         {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
@@ -271,7 +271,7 @@ function QuestionList({
                     <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="flex-1 p-2 rounded-lg border-2 border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
+                        className="flex-1 p-2 rounded-lg bg-wood-dark border-2 border-white/10 text-sm font-bold text-white outline-none focus:border-primary"
                     >
                         <option value="all">All Types</option>
                         <option value="multiple-choice">Multiple Choice</option>
@@ -284,7 +284,7 @@ function QuestionList({
                 <Button
                     onClick={onStartReviewGame}
                     disabled={questions.length === 0}
-                    className="w-full"
+                    className="w-full shadow-lg"
                 >
                     <Play size={18} /> Play filtered ({questions.length})
                 </Button>
@@ -292,36 +292,36 @@ function QuestionList({
                 {(filterCategory !== 'all' || filterType !== 'all') && questions.length > 0 && (
                     <button
                         onClick={handleDeleteFiltered}
-                        className="w-full py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-lg font-bold text-sm hover:bg-red-400/20 transition-colors flex items-center justify-center gap-2"
                     >
                         <Trash2 size={16} /> Delete {questions.length} Filtered Questions
                     </button>
                 )}
             </div>
 
-            <div className="text-xs text-gray-600 font-bold px-1">
+            <div className="text-xs text-sand/50 font-bold px-1">
                 Showing {questions.length} of {allQuestionsCount} questions
             </div>
 
             {questions.map(q => {
                 const cat = categories.find(c => c.id === q.category);
                 return (
-                    <div key={q.id} className="bg-white rounded-xl p-4 shadow-sm">
+                    <div key={q.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 shadow-md">
                         <div className="flex items-start gap-3">
                             <span className="text-xl">{cat?.icon || '❓'}</span>
-                            <div className="flex-1">
-                                <p className="font-medium text-gray-800 text-sm line-clamp-2">{q.question}</p>
-                                <span className="text-xs text-gray-400 capitalize">{q.type}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-white text-sm line-clamp-2">{q.question}</p>
+                                <span className="text-xs text-sand/40 capitalize">{q.type}</span>
                             </div>
-                            <button onClick={() => onEdit(q)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={18} /></button>
-                            <button onClick={() => onDelete(q.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                            <button onClick={() => onEdit(q)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
+                            <button onClick={() => onDelete(q.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
                         </div>
                     </div>
                 );
             })}
 
             {questions.length === 0 && (
-                <div className="text-center py-8 text-gray-500 font-bold">
+                <div className="text-center py-8 text-sand/50 font-bold">
                     No questions match your filters.
                 </div>
             )}
@@ -346,30 +346,30 @@ function SubjectForm({ subject, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
             >
-                <h3 className="text-xl font-bold text-gray-800 mb-4">{subject ? 'Edit' : 'Add'} Subject</h3>
+                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{subject ? 'Edit' : 'Add'} Subject</h3>
                 <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Subject Name (e.g., التاريخ)"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 focus:border-blue-500 outline-none text-gray-900 placeholder-gray-500"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <input
                     type="text"
                     value={icon}
                     onChange={(e) => setIcon(e.target.value)}
                     placeholder="Emoji Icon (e.g., 📁)"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 focus:border-blue-500 outline-none text-gray-900 placeholder-gray-500"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600">Cancel</Button>
-                    <Button onClick={handleSubmit} className="flex-1">Save</Button>
+                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
+                    <Button onClick={handleSubmit} className="flex-1 shadow-lg">Save</Button>
                 </div>
             </motion.div>
         </div>
@@ -381,10 +381,10 @@ function CategoryForm({ category, subjects, onClose }) {
     const { addCategory, editCategory } = useGameStore();
     const [name, setName] = useState(category?.name || '');
     const [icon, setIcon] = useState(category?.icon || '📚');
-    const [color, setColor] = useState(category?.color || 'bg-blue-500');
+    const [color, setColor] = useState(category?.color || 'bg-primary');
     const [subjectId, setSubjectId] = useState(category?.subjectId || '');
 
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-red-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-cyan-500'];
+    const colors = ['bg-primary', 'bg-orange-700', 'bg-wood-light', 'bg-wood-dark', 'bg-sand', 'bg-red-600', 'bg-green-700'];
 
     const handleSubmit = () => {
         if (!name.trim()) return;
@@ -398,21 +398,21 @@ function CategoryForm({ category, subjects, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4"
             >
-                <h3 className="text-xl font-bold text-gray-800 mb-4">{category ? 'Edit' : 'Add'} Topic</h3>
+                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{category ? 'Edit' : 'Add'} Topic</h3>
                 
                 {/* Subject Selection */}
                 <div className="mb-3">
-                    <label className="block text-sm font-bold text-gray-600 mb-1">Subject (Required for game)</label>
+                    <label className="block text-sm font-bold text-sand/70 mb-1">Subject (Required for game)</label>
                     <select
                         value={subjectId}
                         onChange={(e) => setSubjectId(e.target.value)}
-                        className={`w-full p-3 border-2 rounded-xl outline-none ${subjectId ? 'border-green-400 bg-green-50' : 'border-amber-400 bg-amber-50'} text-gray-900`}
+                        className={`w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 ${subjectId ? 'border-primary/50 text-white' : 'border-primary/30 text-sand/50'}`}
                     >
                         <option value="">-- No Subject (Won't appear in game) --</option>
                         {subjects.map(s => (
@@ -426,23 +426,23 @@ function CategoryForm({ category, subjects, onClose }) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Topic Name"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 focus:border-blue-500 outline-none text-gray-900 placeholder-gray-500"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <input
                     type="text"
                     value={icon}
                     onChange={(e) => setIcon(e.target.value)}
                     placeholder="Emoji Icon (e.g., 📚)"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 focus:border-blue-500 outline-none text-gray-900 placeholder-gray-500"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <div className="flex gap-2 flex-wrap mb-4">
                     {colors.map(c => (
-                        <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full ${c} ${color === c ? 'ring-2 ring-offset-2 ring-gray-800' : ''}`} />
+                        <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full ${c} ${color === c ? 'ring-2 ring-offset-2 ring-primary border-2 border-white/20' : 'border border-white/10'}`} />
                     ))}
                 </div>
                 <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600">Cancel</Button>
-                    <Button onClick={handleSubmit} className="flex-1">Save</Button>
+                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
+                    <Button onClick={handleSubmit} className="flex-1 shadow-lg">Save</Button>
                 </div>
             </motion.div>
         </div>
@@ -592,24 +592,24 @@ function JsonImportModal({ onClose }) {
 ]`;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl flex flex-col h-[80vh]"
+                className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl flex flex-col h-[80vh]"
             >
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Import Questions from JSON</h3>
-                <p className="text-sm text-gray-500 mb-4">
+                <h3 className="text-xl font-bold text-white mb-2 engraved-text">Import Questions from JSON</h3>
+                <p className="text-sm text-sand/50 mb-4">
                     Supports: <b>fill-blank</b>, <b>four-options</b>, <b>order-challenge</b>, <b>who-and-who</b>
                 </p>
 
                 {/* Category Selector */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Import to Category:</label>
+                    <label className="block text-sm font-bold text-sand/70 mb-1">Import to Category:</label>
                     <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 outline-none bg-white ${selectedCategory ? 'border-gray-300 text-gray-900' : 'border-amber-400 text-gray-500'}`}
+                        className={`w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 ${selectedCategory ? 'border-primary/50 text-white' : 'border-primary/30 text-sand/50'}`}
                         disabled={isProcessing}
                     >
                         <option value="" disabled>-- Select a category --</option>
@@ -620,28 +620,28 @@ function JsonImportModal({ onClose }) {
                 </div>
 
                 <div className="flex-1 mb-4 flex flex-col overflow-hidden">
-                    <label className="text-sm font-medium text-gray-700 mb-1">JSON Data:</label>
+                    <label className="text-sm font-bold text-sand/70 mb-1">JSON Data:</label>
                     <textarea
                         value={jsonInput}
                         onChange={(e) => setJsonInput(e.target.value)}
                         placeholder={exampleJSON}
-                        className="flex-1 p-4 border-2 border-gray-300 rounded-xl font-mono text-sm resize-none focus:border-blue-500 outline-none text-gray-900 placeholder-gray-400"
+                        className="flex-1 p-4 bg-wood-dark/50 border-2 border-white/10 rounded-xl font-mono text-sm resize-none focus:border-primary outline-none text-white placeholder-sand/20"
                         disabled={isProcessing}
                     />
                 </div>
 
                 {status && (
-                    <div className={`mb-4 p-3 rounded-lg font-medium ${status.includes('✅') ? 'bg-green-100 text-green-700' :
-                        status.includes('⚠️') ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
+                    <div className={`mb-4 p-3 rounded-lg font-bold ${status.includes('✅') ? 'bg-green-400/10 text-green-400' :
+                        status.includes('⚠️') ? 'bg-yellow-400/10 text-yellow-400' :
+                            'bg-red-400/10 text-red-400'
                         }`}>
                         {status}
                     </div>
                 )}
 
                 <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600" disabled={isProcessing}>Cancel</Button>
-                    <Button onClick={handleImport} className="flex-1" disabled={isProcessing}>
+                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5" disabled={isProcessing}>Cancel</Button>
+                    <Button onClick={handleImport} className="flex-1 shadow-lg" disabled={isProcessing}>
                         {isProcessing ? 'Importing...' : 'Import'}
                     </Button>
                 </div>

@@ -56,11 +56,11 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={mode === 'select' ? onBack : () => setMode('select')}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-omani-dark">
+                <h2 className="text-2xl font-black text-white">
                     {mode === 'select' ? 'السبلة' : mode === 'create' ? 'افتح السبلة' : 'دخل السبلة'}
                 </h2>
             </div>
@@ -74,7 +74,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="text-center mb-4"
                         >
                             <Users size={64} className="text-omani-gold mx-auto mb-2" />
-                            <p className="text-omani-brown font-bold">لعب مع ربعك وتتحداهم!</p>
+                            <p className="text-sand font-bold">لعب مع ربعك وتتحداهم!</p>
                         </motion.div>
 
                         <motion.button
@@ -82,7 +82,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             animate={{ opacity: 1, x: 0 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setMode('create')}
-                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-green-700"
+                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-primary to-orange-700 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-black/30"
                         >
                             <Plus size={24} />
                             افتح السبلة
@@ -93,7 +93,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             animate={{ opacity: 1, x: 0 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setMode('join')}
-                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-blue-700"
+                            className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-br from-wood-light to-wood-dark text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-black/30"
                         >
                             <LogIn size={24} />
                             دخل السبلة
@@ -114,20 +114,20 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             onChange={(e) => setPlayerName(e.target.value)}
                             placeholder="اسمك الكريم"
                             maxLength={15}
-                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
+                            className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
                         />
 
                         {/* Game Settings Panel */}
                         <div className="glass-panel rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
-                            <h3 className="text-omani-dark font-bold text-center">إعدادات اللعب</h3>
+                            <h3 className="text-white font-bold text-center">إعدادات اللعب</h3>
 
                             {/* Game Mode Toggle */}
-                            <div className="flex bg-gray-200 p-1 rounded-xl">
+                            <div className="flex bg-wood-dark/40 p-1 rounded-xl border border-white/10">
                                 <button
                                     onClick={() => setGameMode('standard')}
                                     className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'standard'
-                                        ? 'bg-white text-gray-800 shadow-md'
-                                        : 'text-gray-600 hover:text-gray-800'
+                                        ? 'bg-wood-light text-white shadow-md'
+                                        : 'text-sand/70 hover:text-sand'
                                         }`}
                                 >
                                     عادي
@@ -135,8 +135,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 <button
                                     onClick={() => setGameMode('turn-based')}
                                     className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'turn-based'
-                                        ? 'bg-omani-gold text-white shadow-md'
-                                        : 'text-gray-600 hover:text-gray-800'
+                                        ? 'bg-primary text-white shadow-md'
+                                        : 'text-sand/70 hover:text-sand'
                                         }`}
                                 >
                                     بالدور
@@ -145,8 +145,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
                             {/* Question Count */}
                             <div>
-                                <div className="flex items-center gap-2 text-omani-dark mb-2">
-                                    <Hash size={16} className="text-omani-red" />
+                                <div className="flex items-center gap-2 text-sand mb-2">
+                                    <Hash size={16} className="text-primary" />
                                     <span className="font-bold text-sm">عدد الأسئلة: {questionCount}</span>
                                 </div>
                                 <input
@@ -156,9 +156,9 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                     step="5"
                                     value={questionCount}
                                     onChange={(e) => setQuestionCount(Number(e.target.value))}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-omani-red"
+                                    className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
-                                <div className="flex justify-between text-xs text-gray-600 mt-1 font-bold">
+                                <div className="flex justify-between text-xs text-sand/60 mt-1 font-bold">
                                     <span>5</span>
                                     <span>30</span>
                                 </div>
@@ -166,8 +166,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
 
                             {/* Time Per Question */}
                             <div>
-                                <div className="flex items-center gap-2 text-omani-dark mb-2">
-                                    <Clock size={16} className="text-omani-green" />
+                                <div className="flex items-center gap-2 text-sand mb-2">
+                                    <Clock size={16} className="text-primary" />
                                     <span className="font-bold text-sm">الوقت: {timePerQuestion} ثانية</span>
                                 </div>
                                 <input
@@ -177,9 +177,9 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                     step="5"
                                     value={timePerQuestion}
                                     onChange={(e) => setTimePerQuestion(Number(e.target.value))}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-omani-green"
+                                    className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
-                                <div className="flex justify-between text-xs text-gray-600 mt-1 font-bold">
+                                <div className="flex justify-between text-xs text-sand/60 mt-1 font-bold">
                                     <span>10s</span>
                                     <span>60s</span>
                                 </div>
@@ -188,15 +188,15 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             {/* Question Types (Only for Standard Mode) */}
                             {gameMode === 'standard' && (
                                 <div>
-                                    <span className="font-bold text-omani-dark text-sm block mb-2">أنواع الأسئلة:</span>
+                                    <span className="font-bold text-sand text-sm block mb-2">أنواع الأسئلة:</span>
                                     <div className="grid grid-cols-2 gap-2">
                                         {allTypes.map(type => (
                                             <button
                                                 key={type.id}
                                                 onClick={() => toggleType(type.id)}
                                                 className={`flex items-center gap-2 p-2 rounded-lg font-bold text-xs transition-colors ${selectedTypes.includes(type.id)
-                                                    ? 'bg-omani-green text-white'
-                                                    : 'bg-gray-100 text-gray-600'
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-wood-dark/40 text-sand/70'
                                                     }`}
                                             >
                                                 {selectedTypes.includes(type.id) ? <CheckSquare size={14} /> : <Square size={14} />}
@@ -209,14 +209,14 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             )}
 
                             {gameMode === 'turn-based' && (
-                                <div className="bg-omani-gold/10 rounded-lg p-3 text-xs text-omani-brown text-center font-bold border border-omani-gold/30">
+                                <div className="bg-primary/10 rounded-lg p-3 text-xs text-sand text-center font-bold border border-primary/30">
                                     كل واحد يختار المجال ونوع السؤال بدوره!
                                 </div>
                             )}
                         </div>
 
                         {error && (
-                            <p className="text-red-600 text-center text-sm font-bold">{error}</p>
+                            <p className="text-red-400 text-center text-sm font-bold">{error}</p>
                         )}
 
                         <Button
@@ -242,7 +242,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 onChange={(e) => setPlayerName(e.target.value)}
                                 placeholder="اسمك الكريم"
                                 maxLength={15}
-                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
+                                className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
                             />
 
                             <input
@@ -251,11 +251,11 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                                 placeholder="مفتاح السبلة"
                                 maxLength={6}
-                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-400 text-lg tracking-widest"
+                                className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/50 text-lg tracking-widest outline-none focus:border-primary/50"
                             />
 
                             {error && (
-                                <p className="text-red-600 text-center text-sm font-bold">{error}</p>
+                                <p className="text-red-400 text-center text-sm font-bold">{error}</p>
                             )}
 
                             <Button

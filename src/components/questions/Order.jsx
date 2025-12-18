@@ -65,27 +65,27 @@ export default function Order({ question, onAnswer, onUpdate, disabled = false }
         <div className="flex flex-col gap-6 h-full overflow-hidden relative">
             <button
                 onClick={() => setShowReportModal(true)}
-                className="absolute top-0 left-0 p-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                className="absolute top-0 left-0 p-2 text-sand/40 hover:text-primary transition-colors z-10"
                 title="الإبلاغ عن السؤال"
             >
                 <Flag size={20} />
             </button>
             <div className="flex-none pb-4">
-                <h2 className="text-xl font-bold text-center text-gray-800 leading-relaxed">
+                <h2 className="text-xl font-bold text-center text-white leading-relaxed engraved-text">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-700 font-bold mt-2">اسحب عشان ترتبهم</p>
+                <p className="text-center text-sm text-sand/70 font-bold mt-2">اسحب عشان ترتبهم</p>
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-0">
                 <Reorder.Group axis="y" values={items} onReorder={setItems} className="flex flex-col gap-3">
                     {items.map((item) => (
                         <Reorder.Item key={item.id} value={item}>
-                            <div className="bg-white border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 shadow-sm cursor-grab active:cursor-grabbing hover:border-omani-gold/50">
-                                <div className="text-gray-500">
+                            <div className="bg-wood-dark/50 border-2 border-white/5 rounded-xl p-4 flex items-center gap-4 shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors">
+                                <div className="text-sand/40">
                                     <GripVertical size={20} />
                                 </div>
-                                <span className="font-medium text-gray-700">{removeYears(item.text)}</span>
+                                <span className="font-bold text-white">{removeYears(item.text)}</span>
                             </div>
                         </Reorder.Item>
                     ))}
@@ -97,21 +97,21 @@ export default function Order({ question, onAnswer, onUpdate, disabled = false }
             </Button>
 
             {showReportModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                        className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
                     >
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">الإبلاغ عن السؤال</h3>
+                        <h3 className="text-xl font-bold text-white mb-4">الإبلاغ عن السؤال</h3>
                         <textarea
                             value={reportReason}
                             onChange={(e) => setReportReason(e.target.value)}
                             placeholder="اكتب سبب الإبلاغ..."
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-4 focus:border-red-500 outline-none text-gray-900 placeholder-gray-500 min-h-[100px] resize-none"
+                            className="w-full p-3 bg-wood-dark/50 border-2 border-white/5 rounded-xl mb-4 focus:border-primary outline-none text-white placeholder-sand/40 min-h-[100px] resize-none"
                         />
                         <div className="flex gap-3">
-                            <Button onClick={() => { setShowReportModal(false); setReportReason(''); }} variant="ghost" className="flex-1 text-gray-600">
+                            <Button onClick={() => { setShowReportModal(false); setReportReason(''); }} variant="ghost" className="flex-1 text-sand border border-white/5">
                                 إلغاء
                             </Button>
                             <Button onClick={handleReport} className="flex-1" disabled={!reportReason.trim()}>

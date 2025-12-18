@@ -373,10 +373,10 @@ export default function App() {
           </Routes>
         </AnimatePresence>
       ) : (
-    <Layout variant="light">
+    <Layout variant="dark">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          {/* Placeholder for "/" route in light layout (won't be reached) */}
+          {/* Placeholder for "/" route in app layout (won't be reached) */}
           <Route path="/" element={null} />
 
           {/* Settings Page */}

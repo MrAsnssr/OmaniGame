@@ -34,11 +34,11 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={onBack}
-                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-omani-brown hover:bg-white/90 transition-colors"
+                    className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-sand hover:bg-wood-light/80 transition-colors"
                 >
                     <ArrowRight size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-omani-dark">الإعدادات</h2>
+                <h2 className="text-2xl font-black text-white engraved-text">الإعدادات</h2>
             </div>
 
             {/* User Info Card */}
@@ -46,9 +46,9 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-panel rounded-2xl p-4 mb-4 flex items-center gap-4"
+                    className="glass-panel rounded-2xl p-4 mb-4 flex items-center gap-4 border border-white/5"
                 >
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-omani-gold to-yellow-600 flex items-center justify-center overflow-hidden ring-2 ring-white/50">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center overflow-hidden ring-2 ring-primary/50 shadow-inner">
                         {user.photoURL ? (
                             <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                         ) : (
@@ -58,10 +58,10 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-omani-dark font-black text-lg truncate">{user.displayName || 'مستخدم'}</p>
-                        <p className="text-gray-700 text-sm font-bold truncate">{user.email}</p>
+                        <p className="text-white font-black text-lg truncate engraved-text">{user.displayName || 'مستخدم'}</p>
+                        <p className="text-sand/50 text-sm font-bold truncate">{user.email}</p>
                         {isAdmin && (
-                            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-omani-gold to-yellow-600 text-white text-xs px-3 py-1 rounded-full mt-1 font-bold shadow-sm">
+                            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-primary to-orange-700 text-white text-[10px] px-3 py-1 rounded-full mt-1 font-bold shadow-lg uppercase tracking-wider">
                                 <Shield size={10} /> مسؤول
                             </span>
                         )}
@@ -80,9 +80,9 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
                             onClick={item.onClick}
-                            className={`w-full p-4 rounded-xl flex items-center gap-4 transition-colors ${item.special
-                                ? 'bg-gradient-to-r from-omani-red to-red-600 text-white shadow-lg'
-                                : 'glass-card text-omani-dark hover:bg-white/90 font-bold'
+                            className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${item.special
+                                ? 'bg-gradient-to-r from-primary to-orange-700 text-white shadow-lg border-b-4 border-black/20 hover:brightness-110'
+                                : 'glass-card text-sand hover:bg-wood-light/80 hover:text-white font-bold border border-white/5'
                                 }`}
                         >
                             <item.icon size={24} />
@@ -99,7 +99,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                     transition={{ delay: 0.3 }}
                     className="mt-4"
                 >
-                    <Button onClick={handleLogout} variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 font-bold">
+                    <Button onClick={handleLogout} variant="ghost" className="w-full text-red-400 hover:text-red-300 hover:bg-white/5 font-bold">
                         <LogOut size={20} />
                         تسجيل الخروج
                     </Button>
@@ -111,7 +111,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-4 text-center text-gray-700 font-bold"
+                    className="mt-4 text-center text-sand/50 font-bold"
                 >
                     <p>سجل دخولك لمزيد من الإعدادات</p>
                 </motion.div>
@@ -119,18 +119,18 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
 
             {/* Help Modal */}
             {showHelpModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[85vh] overflow-hidden flex flex-col"
+                        className="bg-wood-dark border border-white/10 rounded-2xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                            <h3 className="text-xl font-black text-omani-dark">المساعدة</h3>
+                        <div className="flex items-center justify-between p-4 border-b border-white/5">
+                            <h3 className="text-xl font-black text-white engraved-text">المساعدة</h3>
                             <button
                                 onClick={() => setShowHelpModal(false)}
-                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                                className="w-8 h-8 rounded-full bg-wood-dark/80 flex items-center justify-center text-sand/50 hover:bg-wood-dark hover:text-white transition-colors border border-white/5"
                             >
                                 <X size={18} />
                             </button>
@@ -140,39 +140,39 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                         <div className="flex-1 overflow-y-auto p-4 space-y-6">
                             {/* Game Modes Section */}
                             <div>
-                                <h4 className="text-lg font-black text-omani-red mb-3 flex items-center gap-2">
+                                <h4 className="text-lg font-black text-primary mb-3 flex items-center gap-2">
                                     🎮 أنواع اللعب
                                 </h4>
                                 
                                 {/* Solo Mode */}
-                                <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-3 mb-3">
+                                <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Armchair size={18} className="text-omani-red" />
-                                        <span className="font-bold text-omani-dark">الحجرة (فردي)</span>
+                                        <Armchair size={18} className="text-primary" />
+                                        <span className="font-bold text-white">الحجرة (فردي)</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         لعب فردي بدون إنترنت. اختار الموضوع وعدد الأسئلة وجاوب بروقانك!
                                     </p>
                                 </div>
 
                                 {/* Online Classic */}
-                                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-3 mb-3">
+                                <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Users size={18} className="text-omani-green" />
-                                        <span className="font-bold text-omani-dark">السبلة - العادي (أونلاين)</span>
+                                        <Users size={18} className="text-primary" />
+                                        <span className="font-bold text-white">السبلة - العادي (أونلاين)</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         العب مع ربعك أونلاين! كلكم تجاوبون على نفس السؤال بنفس الوقت. اللي يجاوب أسرع ياخذ نقاط أكثر.
                                     </p>
                                 </div>
 
                                 {/* Online Turn-based */}
-                                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-3">
+                                <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <RotateCcw size={18} className="text-blue-600" />
-                                        <span className="font-bold text-omani-dark">السبلة - بالدور (أونلاين)</span>
+                                        <RotateCcw size={18} className="text-primary" />
+                                        <span className="font-bold text-white">السبلة - بالدور (أونلاين)</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         كل لاعب يختار موضوع السؤال بالدور. استراتيجية أكثر! اختار الموضوع اللي تعرفه عشان تتفوق على ربعك.
                                     </p>
                                 </div>
@@ -185,45 +185,45 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                                 </h4>
 
                                 {/* Multiple Choice */}
-                                <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                                <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <CheckSquare size={18} className="text-omani-gold" />
-                                        <span className="font-bold text-omani-dark">اختيار من متعدد</span>
+                                        <span className="font-bold text-white">اختيار من متعدد</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         أربع خيارات وجواب واحد صح. اختار الجواب الصحيح!
                                     </p>
                                 </div>
 
                                 {/* Fill in the Blank */}
-                                <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                                <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <PenLine size={18} className="text-omani-gold" />
-                                        <span className="font-bold text-omani-dark">كمّل الفراغ</span>
+                                        <span className="font-bold text-white">كمّل الفراغ</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         اكتب الكلمة الناقصة. انتبه للتلميح - إذا الجواب بالإنجليزي بيقولك!
                                     </p>
                                 </div>
 
                                 {/* Order */}
-                                <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                                <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <ListOrdered size={18} className="text-omani-gold" />
-                                        <span className="font-bold text-omani-dark">رتّب</span>
+                                        <span className="font-bold text-white">رتّب</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         رتب العناصر بالترتيب الصحيح. اسحب وحط! (السنين مخفية عشان ما تساعدك 😉)
                                     </p>
                                 </div>
 
                                 {/* Match */}
-                                <div className="bg-gray-50 rounded-xl p-3">
+                                <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <GitCompare size={18} className="text-omani-gold" />
-                                        <span className="font-bold text-omani-dark">وصّل</span>
+                                        <span className="font-bold text-white">وصّل</span>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-sand/70 text-sm">
                                         وصل كل عنصر من اليمين بالعنصر المناسب من اليسار.
                                     </p>
                                 </div>
@@ -231,10 +231,10 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-gray-100">
+                        <div className="p-4 border-t border-white/5">
                             <button
                                 onClick={() => setShowHelpModal(false)}
-                                className="w-full p-3 rounded-xl bg-omani-red text-white font-bold"
+                                className="w-full p-3 rounded-xl bg-primary text-white font-bold shadow-lg"
                             >
                                 فهمت! 👍
                             </button>

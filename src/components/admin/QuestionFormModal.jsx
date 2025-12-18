@@ -76,18 +76,18 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl my-4"
+                className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4"
             >
-                <h3 className="text-xl font-bold text-gray-800 mb-4">{isEdit ? 'Edit' : 'Add'} Question</h3>
+                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{isEdit ? 'Edit' : 'Add'} Question</h3>
 
                 <select
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 bg-white"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 text-white outline-none focus:border-primary"
                     disabled={isSaving}
                 >
                     <option value="multiple-choice">Multiple Choice</option>
@@ -99,7 +99,7 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                 <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 bg-white"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 text-white outline-none focus:border-primary"
                     disabled={isSaving}
                 >
                     {categories?.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
@@ -109,7 +109,7 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                     value={questionText}
                     onChange={(e) => setQuestionText(e.target.value)}
                     placeholder="Question text (use ______ for blanks)"
-                    className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-20 resize-none text-gray-900 placeholder-gray-500"
+                    className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 h-20 resize-none text-white placeholder-sand/30 outline-none focus:border-primary"
                     disabled={isSaving}
                 />
 
@@ -119,7 +119,7 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                             value={options}
                             onChange={(e) => setOptions(e.target.value)}
                             placeholder="Options (one per line)"
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
+                            className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 h-24 resize-none text-white placeholder-sand/30 outline-none focus:border-primary"
                             disabled={isSaving}
                         />
                         <input
@@ -127,7 +127,7 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             placeholder="Correct Answer"
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 text-gray-900 placeholder-gray-500"
+                            className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 text-white placeholder-sand/30 outline-none focus:border-primary"
                             disabled={isSaving}
                         />
                     </>
@@ -138,7 +138,7 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                         value={items}
                         onChange={(e) => setItems(e.target.value)}
                         placeholder="Items in correct order (one per line)"
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 h-24 resize-none text-white placeholder-sand/30 outline-none focus:border-primary"
                         disabled={isSaving}
                     />
                 )}
@@ -148,14 +148,14 @@ export default function QuestionFormModal({ question, categories, onClose, onSav
                         value={pairs}
                         onChange={(e) => setPairs(e.target.value)}
                         placeholder="Pairs (Left|Right, one per line)"
-                        className="w-full p-3 border-2 border-gray-300 rounded-xl mb-3 h-24 resize-none text-gray-900 placeholder-gray-500"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 h-24 resize-none text-white placeholder-sand/30 outline-none focus:border-primary"
                         disabled={isSaving}
                     />
                 )}
 
                 <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-gray-600" disabled={isSaving}>Cancel</Button>
-                    <Button onClick={handleSubmit} className="flex-1" disabled={isSaving}>
+                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5" disabled={isSaving}>Cancel</Button>
+                    <Button onClick={handleSubmit} className="flex-1 shadow-lg" disabled={isSaving}>
                         {isSaving ? 'Saving...' : 'Save'}
                     </Button>
                 </div>

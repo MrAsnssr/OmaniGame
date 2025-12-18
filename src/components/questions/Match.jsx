@@ -88,16 +88,16 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
         <div className="flex flex-col gap-4 h-full overflow-hidden relative">
             <button
                 onClick={() => setShowReportModal(true)}
-                className="absolute top-0 left-0 p-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                className="absolute top-0 left-0 p-2 text-sand/40 hover:text-primary transition-colors z-10"
                 title="الإبلاغ عن السؤال"
             >
                 <Flag size={20} />
             </button>
             <div className="flex-none">
-                <h2 className="text-xl font-bold text-center text-gray-800">
+                <h2 className="text-xl font-bold text-center text-white engraved-text">
                     {question.question}
                 </h2>
-                <p className="text-center text-sm text-gray-700 font-bold mt-1">اختار يمين ويسار عشان توصل</p>
+                <p className="text-center text-sm text-sand/70 font-bold mt-1">اختار يمين ويسار عشان توصل</p>
             </div>
 
             <div className="flex-1 grid grid-cols-2 gap-4 overflow-y-auto content-start min-h-0">
@@ -112,15 +112,15 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
                                 disabled={disabled}
                                 className={`p-4 rounded-xl text-sm font-bold text-left transition-all border-2 relative
                   ${isMatched
-                                        ? 'bg-green-50 border-green-500 text-green-700'
+                                        ? 'bg-primary/20 border-primary text-white'
                                         : isSelected
-                                            ? 'bg-omani-red/10 border-omani-red text-omani-red'
-                                            : 'bg-white border-gray-100 text-gray-700 hover:border-gray-300'
+                                            ? 'bg-primary/10 border-primary/60 text-primary animate-pulse'
+                                            : 'bg-wood-dark/50 border-white/5 text-sand hover:border-white/20'
                                     }`}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 {item.text}
-                                {isMatched && <Check size={16} className="absolute top-2 right-2 text-green-600" />}
+                                {isMatched && <Check size={16} className="absolute top-2 right-2 text-primary shadow-sm" />}
                             </motion.button>
                         );
                     })}
@@ -131,7 +131,6 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
                         const isMatched = Object.values(matches).includes(item.id);
                         // Find which left item matches this right item
                         const matchedLeftId = Object.keys(matches).find(key => matches[key] === item.id);
-                        const isSelectedMatch = selectedLeft && !isMatched; // Can be selected
 
                         return (
                             <motion.button
@@ -140,10 +139,10 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
                                 disabled={disabled || (isMatched && !matchedLeftId)} // Should always have a match if isMatched
                                 className={`p-4 rounded-xl text-sm font-bold text-left transition-all border-2
                   ${isMatched
-                                        ? 'bg-green-50 border-green-500 text-green-700 opacity-80'
+                                        ? 'bg-primary/20 border-primary text-white opacity-80'
                                         : selectedLeft
-                                            ? 'bg-white border-omani-red/30 text-gray-700 animate-pulse cursor-pointer'
-                                            : 'bg-white border-gray-200 text-gray-600'
+                                            ? 'bg-wood-dark/80 border-primary/30 text-white animate-pulse cursor-pointer'
+                                            : 'bg-wood-dark/50 border-white/5 text-sand hover:border-white/20'
                                     }`}
                                 whileTap={{ scale: 0.98 }}
                             >
@@ -163,21 +162,21 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
             </Button>
 
             {showReportModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                        className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
                     >
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">الإبلاغ عن السؤال</h3>
+                        <h3 className="text-xl font-bold text-white mb-4">الإبلاغ عن السؤال</h3>
                         <textarea
                             value={reportReason}
                             onChange={(e) => setReportReason(e.target.value)}
                             placeholder="اكتب سبب الإبلاغ..."
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl mb-4 focus:border-red-500 outline-none text-gray-900 placeholder-gray-500 min-h-[100px] resize-none"
+                            className="w-full p-3 bg-wood-dark/50 border-2 border-white/5 rounded-xl mb-4 focus:border-primary outline-none text-white placeholder-sand/40 min-h-[100px] resize-none"
                         />
                         <div className="flex gap-3">
-                            <Button onClick={() => { setShowReportModal(false); setReportReason(''); }} variant="ghost" className="flex-1 text-gray-600">
+                            <Button onClick={() => { setShowReportModal(false); setReportReason(''); }} variant="ghost" className="flex-1 text-sand border border-white/5">
                                 إلغاء
                             </Button>
                             <Button onClick={handleReport} className="flex-1" disabled={!reportReason.trim()}>
