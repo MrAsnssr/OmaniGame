@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '../Button';
 import { motion } from 'framer-motion';
 import { Flag } from 'lucide-react';
@@ -11,11 +11,12 @@ function isArabic(text) {
     return arabicRegex.test(text.trim().charAt(0));
 }
 
-export default function FillBlank({ question, onAnswer }) {
+export default function FillBlank({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
     const [typedAnswer, setTypedAnswer] = useState('');
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
+    const updateTimerRef = useRef(null);
 
     // Detect if answer should be in English or Arabic
     const answerIsArabic = isArabic(question.answer);
@@ -34,6 +35,21 @@ export default function FillBlank({ question, onAnswer }) {
     };
 
     const parts = question.question.split('______');
+
+    // Draft updates (no submit required). Debounced so we don't spam the server.
+    useEffect(() => {
+        if (!onUpdate) return;
+        if (disabled) return;
+
+        if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
+        updateTimerRef.current = setTimeout(() => {
+            onUpdate(typedAnswer.trim());
+        }, 250);
+
+        return () => {
+            if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
+        };
+    }, [typedAnswer, onUpdate, disabled]);
 
     const handleSubmit = () => {
         if (typedAnswer.trim()) {
@@ -84,6 +100,7 @@ export default function FillBlank({ question, onAnswer }) {
                     className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-omani-red outline-none text-center font-bold text-gray-800 placeholder-gray-400"
                     autoFocus
                     dir={answerIsArabic ? "rtl" : "ltr"}
+                    disabled={disabled}
                 />
             </motion.div>
 

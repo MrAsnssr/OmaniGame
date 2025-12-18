@@ -25,7 +25,7 @@ function shuffleArray(array) {
     return shuffled;
 }
 
-export default function Order({ question, onAnswer }) {
+export default function Order({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
     const [items, setItems] = useState(() => shuffleArray(question.items));
     const [showReportModal, setShowReportModal] = useState(false);
@@ -47,6 +47,14 @@ export default function Order({ question, onAnswer }) {
     useEffect(() => {
         setItems(shuffleArray(question.items));
     }, [question]);
+
+    // Draft updates (no submit required)
+    useEffect(() => {
+        if (!onUpdate) return;
+        if (disabled) return;
+        const currentOrder = items.map(item => item.id);
+        onUpdate(currentOrder);
+    }, [items, onUpdate, disabled]);
 
     const handleSubmit = () => {
         const currentOrder = items.map(item => item.id);
@@ -84,7 +92,7 @@ export default function Order({ question, onAnswer }) {
                 </Reorder.Group>
             </div>
 
-            <Button onClick={handleSubmit} className="mt-auto mb-4">
+            <Button onClick={handleSubmit} className="mt-auto mb-4" disabled={disabled}>
                 تأكيد الترتيب
             </Button>
 

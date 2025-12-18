@@ -22,31 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, RotateCcw, Home, Users } from 'lucide-react';
 import socketService from './services/socketService';
 import { onAuthChange, signOut } from './services/authService';
-
-// Levenshtein distance for fuzzy matching (allows typos)
-function levenshteinDistance(a, b) {
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-}
+import { isFillBlankCorrect } from './utils/answerValidation';
 
 // Map gameState to route paths
 const stateToRoute = {
@@ -88,8 +64,10 @@ export default function App() {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [user, setUser] = useState(null);
+  const [soloTimeLeft, setSoloTimeLeft] = useState(null);
   const tapCountRef = useRef(0);
   const tapTimeoutRef = useRef(null);
+  const soloTimerRef = useRef(null);
 
   // Use gameQuestions for singleplayer (set by startGame)
   const questions = gameQuestions;
@@ -228,8 +206,8 @@ export default function App() {
   };
   const handleLoginSuccess = () => navigate('/');
 
-  const handleCreateRoom = (playerName, gameMode, selectedTopics = []) => {
-    socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory, selectedTopics }, gameMode);
+  const handleCreateRoom = (playerName, gameMode) => {
+    socketService.createRoom(playerName, { questionCount, timePerQuestion, selectedTypes, categoryId: selectedCategory }, gameMode);
   };
 
   const handleJoinRoom = (roomCode, playerName) => {
@@ -238,21 +216,12 @@ export default function App() {
 
   const handleStartMultiplayerGame = () => {
     const state = useGameStore.getState();
-    const { multiplayerSelectedTopics, questions, selectedTypes, questionCount } = state;
-    
-    // Filter questions by selected topics and types
-    let filteredQuestions = questions.filter(q => 
-      multiplayerSelectedTopics.includes(q.category) && selectedTypes.includes(q.type)
-    );
-    
-    if (state.gameMode === 'turn-based') {
-      // Turn-based mode: send all filtered questions for server-side turn filtering
-      socketService.startGame(filteredQuestions);
-    } else {
-      // Standard mode: shuffle and limit to questionCount
-      const shuffled = [...filteredQuestions].sort(() => Math.random() - 0.5);
-      socketService.startGame(shuffled.slice(0, questionCount));
-    }
+    // Turn-based mode needs ALL questions for server-side filtering per turn
+    // Standard mode uses pre-filtered questions (no category filter for multiplayer)
+    const questionsForGame = state.gameMode === 'turn-based'
+      ? state.questions  // All questions
+      : getFilteredQuestions(null);  // Filtered by types only
+    socketService.startGame(questionsForGame);
   };
 
   const handleLeaveRoom = () => {
@@ -262,29 +231,30 @@ export default function App() {
     navigate('/');
   };
 
-  const handleMultiplayerAnswer = (answer) => {
-    if (hasAnswered) return;
-    setHasAnswered(true);
+  // Multiplayer: send draft updates (no submit required)
+  const handleMultiplayerAnswerUpdate = (answer) => {
+    setHasAnswered(!!(answer && (Array.isArray(answer) ? answer.length : typeof answer === 'object' ? Object.keys(answer).length : String(answer).trim())));
+    socketService.updateAnswer(answer);
+  };
+
+  // Optional: explicit submit still supported (ends round early if everyone answered)
+  const handleMultiplayerAnswerSubmit = (answer) => {
     socketService.submitAnswer(answer);
   };
 
   const handleAnswer = (answer) => {
+    // Stop any running single-player timer when the user answers
+    if (soloTimerRef.current) {
+      clearInterval(soloTimerRef.current);
+      soloTimerRef.current = null;
+    }
+
     let isCorrect = false;
 
     if (currentQuestion.type === 'multiple-choice') {
       isCorrect = answer === currentQuestion.answer;
     } else if (currentQuestion.type === 'fill-blank') {
-      const userAnswer = answer.toLowerCase().trim();
-      const correctAnswer = currentQuestion.answer.toLowerCase().trim();
-      
-      // If answer is a year (4-digit number), require exact match
-      const isYear = /^\d{4}$/.test(correctAnswer);
-      if (isYear) {
-        isCorrect = userAnswer === correctAnswer;
-      } else {
-        const distance = levenshteinDistance(userAnswer, correctAnswer);
-        isCorrect = distance <= 3;
-      }
+      isCorrect = isFillBlankCorrect(answer, currentQuestion.answer);
     } else if (currentQuestion.type === 'order') {
       isCorrect = JSON.stringify(answer) === JSON.stringify(currentQuestion.correctOrder);
     } else if (currentQuestion.type === 'match') {
@@ -309,18 +279,65 @@ export default function App() {
     }, 1500);
   };
 
+  // Enforced single-player countdown timer (uses timePerQuestion)
+  useEffect(() => {
+    if (location.pathname !== '/play') return;
+    if (!currentQuestion) return;
+    if (feedback) return; // pause during feedback
+
+    // Reset timer
+    if (soloTimerRef.current) {
+      clearInterval(soloTimerRef.current);
+      soloTimerRef.current = null;
+    }
+
+    const limit = Math.max(1, Number(timePerQuestion || 30));
+    setSoloTimeLeft(limit);
+
+    const startedAt = Date.now();
+    soloTimerRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const left = Math.max(0, limit - elapsed);
+      setSoloTimeLeft(left);
+
+      if (left <= 0) {
+        clearInterval(soloTimerRef.current);
+        soloTimerRef.current = null;
+
+        // Timeout counts as wrong, then advance like normal
+        setFeedback('incorrect');
+        setTimeout(() => {
+          setFeedback(null);
+          if (currentQuestionIndex < questions.length - 1) {
+            nextQuestion();
+          } else {
+            endGame();
+            navigate('/result');
+          }
+        }, 1500);
+      }
+    }, 250);
+
+    return () => {
+      if (soloTimerRef.current) {
+        clearInterval(soloTimerRef.current);
+        soloTimerRef.current = null;
+      }
+    };
+  }, [location.pathname, currentQuestionIndex, currentQuestion, feedback, timePerQuestion, questions.length, nextQuestion, endGame, navigate]);
+
   // Question renderer component
-  const QuestionRenderer = ({ question, onAnswer, disabled = false }) => {
+  const QuestionRenderer = ({ question, onAnswer, onUpdate, disabled = false }) => {
     if (!question) return null;
     switch (question.type) {
       case 'multiple-choice':
-        return <MultipleChoice question={question} onAnswer={onAnswer} disabled={disabled} />;
+        return <MultipleChoice question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
       case 'fill-blank':
-        return <FillBlank question={question} onAnswer={onAnswer} disabled={disabled} />;
+        return <FillBlank question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
       case 'order':
-        return <Order question={question} onAnswer={onAnswer} disabled={disabled} />;
+        return <Order question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
       case 'match':
-        return <Match question={question} onAnswer={onAnswer} disabled={disabled} />;
+        return <Match question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
       default:
         return null;
     }
@@ -446,6 +463,9 @@ export default function App() {
                 >
                   <div className="flex justify-between items-center mb-6 text-sm font-bold text-gray-800 bg-white/60 p-3 rounded-xl backdrop-blur-sm shadow-sm">
                     <span className="text-gray-600">السؤال {currentQuestionIndex + 1}/{questions.length}</span>
+                    {typeof soloTimeLeft === 'number' && (
+                      <span className="text-gray-600">⏱️ {soloTimeLeft}s</span>
+                    )}
                     <span className="text-omani-red font-black text-xl">النقاط: {score}</span>
                   </div>
 
@@ -589,7 +609,11 @@ export default function App() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto glass-panel rounded-3xl p-6 relative border-4 border-white/50">
-                  <QuestionRenderer question={multiplayerQuestion} onAnswer={handleMultiplayerAnswer} disabled={hasAnswered} />
+                  <QuestionRenderer
+                    question={multiplayerQuestion}
+                    onAnswer={handleMultiplayerAnswerSubmit}
+                    onUpdate={handleMultiplayerAnswerUpdate}
+                  />
                 </div>
 
                 {hasAnswered && (

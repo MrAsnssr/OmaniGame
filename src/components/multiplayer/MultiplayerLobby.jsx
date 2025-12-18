@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square } from 'lucide-react';
 import Button from '../Button';
 import { useGameStore } from '../../store/gameStore';
 
@@ -9,8 +9,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType,
-        categories, subjects, getCategorizedTopics, getTopicsBySubject,
-        setMultiplayerSelectedTopics
+        categories
     } = useGameStore();
 
     const [mode, setMode] = useState('select'); // select, create, join
@@ -19,58 +18,6 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
-    // Topic selection
-    const [selectedTopics, setSelectedTopics] = useState([]);
-    const [expandedSubjects, setExpandedSubjects] = useState({});
-    
-    const categorizedTopics = getCategorizedTopics();
-    const topicsBySubject = getTopicsBySubject();
-    
-    const toggleExpandSubject = (subjectId) => {
-        setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
-    };
-    
-    const toggleSelectTopic = (topicId) => {
-        setSelectedTopics(prev => 
-            prev.includes(topicId)
-                ? prev.filter(id => id !== topicId)
-                : [...prev, topicId]
-        );
-    };
-    
-    const toggleSelectAllSubjectTopics = (subjectId) => {
-        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
-        const allSelected = subjectTopicIds.every(id => selectedTopics.includes(id));
-        
-        if (allSelected) {
-            setSelectedTopics(prev => prev.filter(id => !subjectTopicIds.includes(id)));
-        } else {
-            setSelectedTopics(prev => [...new Set([...prev, ...subjectTopicIds])]);
-        }
-    };
-    
-    const selectAllTopics = () => {
-        setSelectedTopics(categorizedTopics.map(t => t.id));
-    };
-    
-    const clearAllTopics = () => {
-        setSelectedTopics([]);
-    };
-    
-    const isSubjectFullySelected = (subjectId) => {
-        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
-        return subjectTopicIds.length > 0 && subjectTopicIds.every(id => selectedTopics.includes(id));
-    };
-    
-    const isSubjectPartiallySelected = (subjectId) => {
-        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
-        const selectedCount = subjectTopicIds.filter(id => selectedTopics.includes(id)).length;
-        return selectedCount > 0 && selectedCount < subjectTopicIds.length;
-    };
-    
-    // Minimum topics for turn-based
-    const minTopicsForTurnBased = 3;
 
     const allTypes = [
         { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
@@ -84,19 +31,9 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
             setError('اكتب اسمك لو سمحت');
             return;
         }
-        if (selectedTopics.length === 0) {
-            setError('اختار موضوع واحد على الأقل');
-            return;
-        }
-        if (gameMode === 'turn-based' && selectedTopics.length < minTopicsForTurnBased) {
-            setError(`اختار ${minTopicsForTurnBased} مواضيع على الأقل للعب بالدور`);
-            return;
-        }
         setIsLoading(true);
         setError('');
-        // Store selected topics in the store for later use when starting game
-        setMultiplayerSelectedTopics(selectedTopics);
-        onRoomCreated(playerName.trim(), gameMode, selectedTopics);
+        onRoomCreated(playerName.trim(), gameMode);
     };
 
     const handleJoin = () => {
@@ -124,7 +61,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <ArrowLeft size={20} />
                 </button>
                 <h2 className="text-2xl font-black text-omani-dark">
-                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'سبلة جديدة' : 'دخل السبلة'}
+                    {mode === 'select' ? 'السبلة' : mode === 'create' ? 'افتح السبلة' : 'دخل السبلة'}
                 </h2>
             </div>
 
@@ -148,7 +85,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                             className="w-full max-w-xs p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold flex items-center justify-center gap-3 shadow-lg border-b-4 border-green-700"
                         >
                             <Plus size={24} />
-                            سبلة جديدة
+                            افتح السبلة
                         </motion.button>
 
                         <motion.button
@@ -168,22 +105,20 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col gap-2 h-full overflow-hidden md:grid md:grid-cols-2 md:gap-4"
+                        className="flex flex-col gap-2 h-full overflow-hidden"
                     >
-                        {/* Left Column: Settings */}
-                        <div className="flex flex-col gap-2 md:gap-4">
-                            {/* Nickname */}
-                            <input
-                                type="text"
-                                value={playerName}
-                                onChange={(e) => setPlayerName(e.target.value)}
-                                placeholder="اسمك الكريم"
-                                maxLength={15}
-                                className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
-                            />
+                        {/* Nickname */}
+                        <input
+                            type="text"
+                            value={playerName}
+                            onChange={(e) => setPlayerName(e.target.value)}
+                            placeholder="اسمك الكريم"
+                            maxLength={15}
+                            className="w-full p-4 rounded-xl bg-white/90 text-gray-800 font-bold text-center placeholder-gray-600 text-lg"
+                        />
 
-                            {/* Game Settings Panel */}
-                            <div className="glass-panel rounded-2xl p-3 md:p-4 space-y-2 md:space-y-4 flex-1 overflow-y-auto min-h-0">
+                        {/* Game Settings Panel */}
+                        <div className="glass-panel rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
                             <h3 className="text-omani-dark font-bold text-center">إعدادات اللعب</h3>
 
                             {/* Game Mode Toggle */}
@@ -278,117 +213,19 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                                     كل واحد يختار المجال ونوع السؤال بدوره!
                                 </div>
                             )}
-                            </div>
-                        </div>
-                        
-                        {/* Right Column: Topic Selection */}
-                        <div className="glass-panel rounded-2xl p-3 md:p-4 flex-1 overflow-y-auto min-h-0">
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-bold text-omani-dark text-sm">
-                                        المواضيع: {selectedTopics.length} مختار
-                                        {gameMode === 'turn-based' && selectedTopics.length < minTopicsForTurnBased && (
-                                            <span className="text-red-500 text-xs mr-2">(لازم {minTopicsForTurnBased}+)</span>
-                                        )}
-                                    </span>
-                                    <div className="flex gap-1">
-                                        <button
-                                            onClick={selectAllTopics}
-                                            className="text-xs px-2 py-1 bg-omani-green/20 text-omani-green rounded font-bold"
-                                        >
-                                            الكل
-                                        </button>
-                                        <button
-                                            onClick={clearAllTopics}
-                                            className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded font-bold"
-                                        >
-                                            مسح
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div className="space-y-2 max-h-48 overflow-y-auto">
-                                    {subjects.map((subject) => {
-                                        const subjectTopics = topicsBySubject[subject.id]?.topics || [];
-                                        if (subjectTopics.length === 0) return null;
-                                        
-                                        const isExpanded = expandedSubjects[subject.id];
-                                        const isFullySelected = isSubjectFullySelected(subject.id);
-                                        const isPartiallySelected = isSubjectPartiallySelected(subject.id);
-                                        
-                                        return (
-                                            <div key={subject.id} className="bg-white/50 rounded-lg overflow-hidden">
-                                                {/* Subject Header */}
-                                                <div className={`flex items-center gap-2 p-2 ${isFullySelected ? 'bg-omani-green/10' : isPartiallySelected ? 'bg-omani-gold/10' : ''}`}>
-                                                    <button
-                                                        onClick={() => toggleSelectAllSubjectTopics(subject.id)}
-                                                        className={`w-5 h-5 rounded flex items-center justify-center text-xs ${
-                                                            isFullySelected ? 'bg-omani-green text-white' : 
-                                                            isPartiallySelected ? 'bg-omani-gold text-white' : 
-                                                            'bg-gray-200 text-gray-400'
-                                                        }`}
-                                                    >
-                                                        {isFullySelected || isPartiallySelected ? <CheckSquare size={12} /> : <Square size={12} />}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => toggleExpandSubject(subject.id)}
-                                                        className="flex-1 flex items-center gap-2 text-sm"
-                                                    >
-                                                        <span>{subject.icon}</span>
-                                                        <span className="font-bold text-gray-700 flex-1 text-right">{subject.name}</span>
-                                                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                                    </button>
-                                                </div>
-                                                
-                                                {/* Topics */}
-                                                <AnimatePresence>
-                                                    {isExpanded && (
-                                                        <motion.div
-                                                            initial={{ height: 0 }}
-                                                            animate={{ height: 'auto' }}
-                                                            exit={{ height: 0 }}
-                                                            className="overflow-hidden"
-                                                        >
-                                                            <div className="flex flex-wrap gap-1 p-2 pt-0">
-                                                                {subjectTopics.map(topic => (
-                                                                    <button
-                                                                        key={topic.id}
-                                                                        onClick={() => toggleSelectTopic(topic.id)}
-                                                                        className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${
-                                                                            selectedTopics.includes(topic.id)
-                                                                                ? 'bg-omani-green text-white'
-                                                                                : 'bg-gray-100 text-gray-600'
-                                                                        }`}
-                                                                    >
-                                                                        <span>{topic.icon}</span>
-                                                                        <span>{topic.name}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
                         </div>
 
-                        {/* Error & Button - spans both columns on desktop */}
-                        <div className="md:col-span-2">
-                            {error && (
-                                <p className="text-red-600 text-center text-sm font-bold mb-2">{error}</p>
-                            )}
+                        {error && (
+                            <p className="text-red-600 text-center text-sm font-bold">{error}</p>
+                        )}
 
-                            <Button
-                                onClick={handleCreate}
-                                disabled={isLoading}
-                                className="w-full"
-                            >
-                                {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
-                            </Button>
-                        </div>
+                        <Button
+                            onClick={handleCreate}
+                            disabled={isLoading}
+                            className="w-full"
+                        >
+                            {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
+                        </Button>
                     </motion.div>
                 )}
 
@@ -398,7 +235,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined }
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex-1 flex flex-col items-center justify-center gap-4"
                     >
-                        <div className="w-full max-w-xs md:max-w-md space-y-4">
+                        <div className="w-full max-w-xs space-y-4">
                             <input
                                 type="text"
                                 value={playerName}

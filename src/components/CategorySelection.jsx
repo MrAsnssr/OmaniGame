@@ -264,7 +264,7 @@ export default function CategorySelection({ onBack }) {
                                                 transition={{ duration: 0.2 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 pt-0">
+                                                <div className="grid grid-cols-2 gap-3 p-4 pt-0">
                                                     {subjectTopics.map((topic, index) => {
                                                         const isTopicSelected = selectedTopics.includes(topic.id);
                                                         return (

@@ -71,7 +71,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="w-full max-w-md md:max-w-2xl lg:max-w-3xl flex flex-col items-center z-10 space-y-8"
+                className="w-full max-w-md flex flex-col items-center z-10 space-y-8"
             >
                 {/* Hero Title */}
                 <motion.div variants={itemVariants} className="text-center relative">
@@ -98,7 +98,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 </motion.div>
 
                 {/* Menu Buttons */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="w-full space-y-4">
                     <MenuCard 
                         title="الحجرة"
                         subtitle="لعب فردي سريع"
@@ -112,7 +112,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     <MenuCard 
                         title="السبلة"
                         subtitle="تحدى الجماعة أونلاين"
-                        icon={<img src={dallahIcon} alt="دلة" className="w-12 h-12 object-contain brightness-0 invert" />}
+                        icon={<img src={dallahIcon} alt="دلة" className="w-7 h-7 object-contain brightness-0 invert" />}
                         gradient="from-omani-green to-green-700"
                         shadowColor="shadow-omani-green/20"
                         onClick={onMultiplayer}
@@ -152,12 +152,11 @@ function MenuCard({ title, subtitle, icon, gradient, shadowColor, onClick, varia
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
             disabled={disabled}
-            className={`w-full relative overflow-hidden group rounded-2xl p-4 md:p-6 transition-all ${disabled ? 'opacity-70 grayscale cursor-not-allowed' : ''}`}
+            className={`w-full relative overflow-hidden group rounded-2xl p-4 transition-all ${disabled ? 'opacity-70 grayscale cursor-not-allowed' : ''}`}
         >
             <div className={`absolute inset-0 bg-white/60 backdrop-blur-md border border-white/50 shadow-lg ${shadowColor} transition-all duration-300 group-hover:bg-white/80`} />
             
-            {/* Mobile: horizontal layout */}
-            <div className="relative z-10 flex md:hidden items-center justify-between">
+            <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md transform group-hover:rotate-6 transition-transform duration-300`}>
                         {icon}
@@ -174,21 +173,6 @@ function MenuCard({ title, subtitle, icon, gradient, shadowColor, onClick, varia
                 
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 group-hover:bg-white group-hover:text-omani-gold transition-colors">
                     <ChevronLeft size={20} />
-                </div>
-            </div>
-            
-            {/* Desktop: vertical centered layout */}
-            <div className="relative z-10 hidden md:flex flex-col items-center text-center gap-4">
-                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md transform group-hover:rotate-6 transition-transform duration-300`}>
-                    {icon}
-                </div>
-                <div className="flex flex-col items-center">
-                    <h3 className="text-2xl font-black text-omani-dark group-hover:text-omani-brown transition-colors">
-                        {title}
-                    </h3>
-                    <p className="text-sm font-bold text-gray-700 group-hover:text-omani-brown">
-                        {subtitle}
-                    </p>
                 </div>
             </div>
         </motion.button>

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
-export default function Match({ question, onAnswer }) {
+export default function Match({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
     const [leftItems, setLeftItems] = useState([]);
     const [rightItems, setRightItems] = useState([]);
@@ -39,6 +39,13 @@ export default function Match({ question, onAnswer }) {
         setSelectedLeft(null);
         setCompleted(false);
     }, [question]);
+
+    // Draft updates (no submit required)
+    useEffect(() => {
+        if (!onUpdate) return;
+        if (disabled) return;
+        onUpdate(matches);
+    }, [matches, onUpdate, disabled]);
 
     const handleLeftClick = (id) => {
         if (matches[id]) return; // Already matched
@@ -102,6 +109,7 @@ export default function Match({ question, onAnswer }) {
                             <motion.button
                                 key={item.id}
                                 onClick={() => isMatched ? undoMatch(item.id) : handleLeftClick(item.id)}
+                                disabled={disabled}
                                 className={`p-4 rounded-xl text-sm font-bold text-left transition-all border-2 relative
                   ${isMatched
                                         ? 'bg-green-50 border-green-500 text-green-700'
@@ -129,7 +137,7 @@ export default function Match({ question, onAnswer }) {
                             <motion.button
                                 key={item.id}
                                 onClick={() => handleRightClick(item.id)}
-                                disabled={isMatched && !matchedLeftId} // Should always have a match if isMatched
+                                disabled={disabled || (isMatched && !matchedLeftId)} // Should always have a match if isMatched
                                 className={`p-4 rounded-xl text-sm font-bold text-left transition-all border-2
                   ${isMatched
                                         ? 'bg-green-50 border-green-500 text-green-700 opacity-80'

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
-export default function MultipleChoice({ question, onAnswer }) {
+export default function MultipleChoice({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -35,7 +35,7 @@ export default function MultipleChoice({ question, onAnswer }) {
                     {question.question}
                 </h2>
             </div>
-            <div className="grid gap-3 md:grid-cols-2 pb-4 overflow-y-auto min-h-0">
+            <div className="grid gap-3 pb-4 overflow-y-auto min-h-0">
                 {question.options.map((option, index) => (
                     <motion.div
                         key={index}
@@ -45,8 +45,13 @@ export default function MultipleChoice({ question, onAnswer }) {
                     >
                         <Button
                             variant="option"
-                            onClick={() => onAnswer(option)}
+                            onClick={() => {
+                                if (disabled) return;
+                                onUpdate?.(option);
+                                onAnswer?.(option);
+                            }}
                             className="w-full group"
+                            disabled={disabled}
                         >
                             <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700 mr-3 group-hover:bg-omani-red/10 group-hover:text-omani-red transition-colors">
                                 {String.fromCharCode(65 + index)}

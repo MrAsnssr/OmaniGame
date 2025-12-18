@@ -36,7 +36,6 @@ export const useGameStore = create((set, get) => ({
     players: [],
     isHost: false,
     gameMode: 'standard',
-    multiplayerSelectedTopics: [], // Topics selected by host for multiplayer game
 
     // Turn-Based State
     turnPhase: null,
@@ -219,7 +218,6 @@ export const useGameStore = create((set, get) => ({
         gameState: 'multiplayer-waiting'
     }),
     updatePlayers: (players) => set({ players }),
-    setMultiplayerSelectedTopics: (topicIds) => set({ multiplayerSelectedTopics: topicIds }),
 
     // Turn-Based Actions
     setTurnData: (data) => set({
@@ -243,6 +241,17 @@ export const useGameStore = create((set, get) => ({
         multiplayerQuestion: question,
         multiplayerQuestionIndex: questionIndex,
         multiplayerTotalQuestions: totalQuestions,
+        multiplayerPlayedQuestions: (() => {
+            const prev = get().multiplayerPlayedQuestions || [];
+            if (!question) return prev;
+            const qid = question.id || `${question.type}:${question.question}`;
+            const exists = prev.some(p => (p.id || `${p.type}:${p.question}`) === qid);
+            if (exists) return prev;
+            const next = [...prev, question];
+            // Keep it bounded (useful if server repeats / reconnects)
+            const max = Number(totalQuestions || get().multiplayerTotalQuestions || 0);
+            return max > 0 ? next.slice(-max) : next;
+        })(),
         gameState: 'multiplayer-playing',
         roundResults: null
     }),
@@ -261,13 +270,13 @@ export const useGameStore = create((set, get) => ({
         players: [],
         isHost: false,
         gameMode: 'standard',
-        multiplayerSelectedTopics: [],
         turnPhase: null,
         categorySelectorId: null,
         typeSelectorId: null,
         multiplayerQuestion: null,
         multiplayerQuestionIndex: 0,
         multiplayerTotalQuestions: 0,
+        multiplayerPlayedQuestions: [],
         roundResults: null,
         isGameOver: false,
         winner: null,

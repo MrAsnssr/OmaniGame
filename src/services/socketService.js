@@ -55,6 +55,11 @@ class SocketService {
         this.socket?.emit('submit-answer', { answer });
     }
 
+    // Draft updates (no submit required)
+    updateAnswer(answer) {
+        this.socket?.emit('answer-update', { answer });
+    }
+
     timeUp() {
         this.socket?.emit('time-up');
     }

@@ -20,6 +20,50 @@ const io = new Server(httpServer, {
 // Store active rooms
 const rooms = new Map();
 
+const ALLOWED_TYPES = new Set(['multiple-choice', 'fill-blank', 'order', 'match']);
+const TURN_SELECTION_SECONDS = 15;
+
+function isNonEmptyString(x) {
+    return typeof x === 'string' && x.trim().length > 0;
+}
+
+function validateQuestion(q) {
+    if (!q || typeof q !== 'object') return false;
+    if (!ALLOWED_TYPES.has(q.type)) return false;
+    if (!isNonEmptyString(q.question)) return false;
+
+    if (q.type === 'multiple-choice') {
+        if (!Array.isArray(q.options) || q.options.length < 2) return false;
+        if (!isNonEmptyString(q.answer)) return false;
+        return true;
+    }
+    if (q.type === 'fill-blank') {
+        if (!isNonEmptyString(q.answer)) return false;
+        return true;
+    }
+    if (q.type === 'order') {
+        if (!Array.isArray(q.items) || q.items.length < 2) return false;
+        if (!Array.isArray(q.correctOrder) || q.correctOrder.length !== q.items.length) return false;
+        return true;
+    }
+    if (q.type === 'match') {
+        if (!Array.isArray(q.pairs) || q.pairs.length < 2) return false;
+        return true;
+    }
+    return false;
+}
+
+function sanitizeQuestionsForRoom(room, questions) {
+    const list = Array.isArray(questions) ? questions : [];
+    let filtered = list.filter(validateQuestion);
+    // Enforce selected types for standard mode (server-side)
+    if (room.gameMode === 'standard' && Array.isArray(room.settings.selectedTypes)) {
+        const allowed = new Set(room.settings.selectedTypes.filter(t => ALLOWED_TYPES.has(t)));
+        filtered = filtered.filter(q => allowed.has(q.type));
+    }
+    return filtered;
+}
+
 // Generate 6-character room code
 function generateRoomCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -52,15 +96,17 @@ function createRoom(hostId, hostName, settings, gameMode = 'standard') {
             questionCount: settings.questionCount || 10,
             timePerQuestion: settings.timePerQuestion || 30,
             selectedTypes: settings.selectedTypes || ['multiple-choice', 'fill-blank', 'order', 'match'],
-            categoryId: settings.categoryId || null,
-            selectedTopics: settings.selectedTopics || [] // Topic IDs selected by host
+            categoryId: settings.categoryId || null
         },
         questions: [], // Active questions for the game
         allQuestions: [], // All questions (for turn-based filtering)
         currentQuestionIndex: -1,
         state: 'waiting', // waiting, playing, selecting-category, selecting-type, showing-leaderboard, finished
         answers: new Map(),
+        draftAnswers: new Map(), // socketId -> { answer, updatedAt }
         questionStartTime: null,
+        answerTimer: null,
+        selectionTimer: null,
 
         // Turn-based state
         turnIndex: 0,
@@ -84,9 +130,160 @@ function calculatePoints(isCorrect, timeTaken, maxTime) {
     return 100 + speedBonus;
 }
 
+// Levenshtein distance for fuzzy matching (allows typos)
+function levenshteinDistance(a, b) {
+    const aa = String(a ?? '');
+    const bb = String(b ?? '');
+    const matrix = [];
+    for (let i = 0; i <= bb.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= aa.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= bb.length; i++) {
+        for (let j = 1; j <= aa.length; j++) {
+            if (bb.charAt(i - 1) === aa.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    return matrix[bb.length][aa.length];
+}
+
+function clearRoomTimer(room, key) {
+    if (!room) return;
+    if (room[key]) {
+        clearTimeout(room[key]);
+        room[key] = null;
+    }
+}
+
+function clearAnswerTimer(room) {
+    clearRoomTimer(room, 'answerTimer');
+}
+
+function clearSelectionTimer(room) {
+    clearRoomTimer(room, 'selectionTimer');
+}
+
+function startTurnSelectionTimer(room, phase) {
+    clearSelectionTimer(room);
+    const ms = TURN_SELECTION_SECONDS * 1000;
+    room.selectionTimer = setTimeout(() => {
+        if (!room) return;
+        if (phase === 'category') {
+            if (room.state !== 'selecting-category') return;
+            const choices = Array.isArray(room.turnCategoryIds) ? room.turnCategoryIds : [];
+            const picked = choices.length > 0 ? choices[Math.floor(Math.random() * choices.length)] : null;
+            if (!picked) return;
+            room.currentCategory = picked;
+            room.state = 'selecting-type';
+            io.to(room.code).emit('category-selected', { categoryId: picked, nextPhase: 'type' });
+            startTurnSelectionTimer(room, 'type');
+        } else if (phase === 'type') {
+            if (room.state !== 'selecting-type') return;
+            const types = Array.from(ALLOWED_TYPES);
+            const picked = types[Math.floor(Math.random() * types.length)];
+            // Reuse existing selection logic by directly setting and generating question
+            room.currentType = picked;
+
+            let available = room.allQuestions.filter(q =>
+                (!room.currentCategory || q.category === room.currentCategory) &&
+                q.type === picked
+            );
+
+            if (available.length === 0) {
+                room.state = 'selecting-category';
+                room.currentCategory = null;
+                room.currentType = null;
+
+                io.to(room.code).emit('no-questions', {
+                    message: 'No questions available for this category + type combo. Please try again!',
+                    phase: 'category'
+                });
+
+                io.to(room.code).emit('turn-start', {
+                    turnIndex: room.turnIndex,
+                    totalTurns: room.settings.questionCount,
+                    categorySelectorId: room.categorySelectorId,
+                    typeSelectorId: room.typeSelectorId,
+                    phase: 'category',
+                    availableCategoryIds: room.turnCategoryIds
+                });
+                startTurnSelectionTimer(room, 'category');
+                return;
+            }
+
+            const randomQuestion = available[Math.floor(Math.random() * available.length)];
+            room.questions.push(randomQuestion);
+            room.currentQuestionIndex = room.questions.length - 1;
+            room.state = 'playing';
+            room.questionStartTime = Date.now();
+            room.answers.clear();
+            room.draftAnswers.clear();
+            startAnswerTimer(room);
+
+            io.to(room.code).emit('question-generated', {
+                question: randomQuestion,
+                questionIndex: room.currentQuestionIndex,
+                totalQuestions: room.settings.questionCount,
+                timeLimit: room.settings.timePerQuestion
+            });
+        }
+    }, ms);
+}
+
+function getConnectedPlayers(room) {
+    return room.players.filter(p => p.connected);
+}
+
+function getAnsweredCount(room) {
+    const connected = getConnectedPlayers(room);
+    let count = 0;
+    for (const p of connected) {
+        if (room.answers.has(p.id) || room.draftAnswers.has(p.id)) count++;
+    }
+    return count;
+}
+
+function startAnswerTimer(room) {
+    clearAnswerTimer(room);
+    const ms = Math.max(1, Number(room.settings.timePerQuestion || 30) * 1000);
+    room.answerTimer = setTimeout(() => {
+        if (room.state !== 'playing') return;
+        processRoundEnd(room, { reason: 'timeout' });
+    }, ms);
+}
+
+function finalizeDraftAnswers(room) {
+    if (!room || room.state !== 'playing') return;
+    const maxTime = Number(room.settings.timePerQuestion || 30);
+    const connected = getConnectedPlayers(room);
+
+    for (const player of connected) {
+        if (room.answers.has(player.id)) continue;
+        const draft = room.draftAnswers.get(player.id);
+        if (!draft) continue;
+
+        const timeTaken = room.questionStartTime
+            ? Math.min(maxTime, Math.max(0, (draft.updatedAt - room.questionStartTime) / 1000))
+            : maxTime;
+
+        room.answers.set(player.id, {
+            answer: draft.answer,
+            timeTaken,
+            submittedAt: draft.updatedAt,
+            source: 'draft'
+        });
+    }
+}
+
 // Assign roles for the current turn
 function assignRoles(room) {
-    const connectedPlayers = room.players.filter(p => p.connected);
+    const connectedPlayers = getConnectedPlayers(room);
     const count = connectedPlayers.length;
 
     // Simple rotation
@@ -179,9 +376,19 @@ io.on('connection', (socket) => {
 
         if (room.gameMode === 'turn-based') {
             // Turn-Based Mode
-            room.allQuestions = questions;
+            const sanitized = sanitizeQuestionsForRoom(room, questions);
+            if (sanitized.length === 0) {
+                socket.emit('start-error', { message: 'No valid questions available for this game.' });
+                return;
+            }
+            room.allQuestions = sanitized;
             room.state = 'selecting-category';
             room.currentQuestionIndex = 0;
+            room.questions = [];
+            room.answers.clear();
+            room.draftAnswers.clear();
+            clearAnswerTimer(room);
+            clearSelectionTimer(room);
 
             // Get unique category IDs from questions
             const uniqueCategories = [...new Set(questions.map(q => q.category))];
@@ -202,12 +409,22 @@ io.on('connection', (socket) => {
                 phase: 'category',
                 availableCategoryIds: turnCategories
             });
+            startTurnSelectionTimer(room, 'category');
         } else {
             // Standard Mode
-            room.questions = questions;
+            const sanitized = sanitizeQuestionsForRoom(room, questions);
+            if (sanitized.length === 0) {
+                socket.emit('start-error', { message: 'No valid questions available for this game.' });
+                return;
+            }
+            room.questions = sanitized;
             room.state = 'playing';
             room.currentQuestionIndex = 0;
             room.questionStartTime = Date.now();
+            room.answers.clear();
+            room.draftAnswers.clear();
+            clearSelectionTimer(room);
+            startAnswerTimer(room);
 
             io.to(room.code).emit('game-started', {
                 question: room.questions[0],
@@ -228,6 +445,8 @@ io.on('connection', (socket) => {
 
         room.currentCategory = categoryId;
         room.state = 'selecting-type';
+        clearSelectionTimer(room);
+        startTurnSelectionTimer(room, 'type');
 
         io.to(room.code).emit('category-selected', {
             categoryId,
@@ -242,6 +461,7 @@ io.on('connection', (socket) => {
         if (room.typeSelectorId !== socket.id) return;
 
         room.currentType = typeId;
+        clearSelectionTimer(room);
 
         // Filter questions - strict matching only
         let available = room.allQuestions.filter(q =>
@@ -269,6 +489,7 @@ io.on('connection', (socket) => {
                 phase: 'category',
                 availableCategoryIds: room.turnCategoryIds
             });
+            startTurnSelectionTimer(room, 'category');
             return;
         }
 
@@ -279,6 +500,8 @@ io.on('connection', (socket) => {
         room.state = 'playing';
         room.questionStartTime = Date.now();
         room.answers.clear();
+        room.draftAnswers.clear();
+        startAnswerTimer(room);
 
         io.to(room.code).emit('question-generated', {
             question: randomQuestion,
@@ -286,6 +509,29 @@ io.on('connection', (socket) => {
             totalQuestions: room.settings.questionCount,
             timeLimit: room.settings.timePerQuestion
         });
+    });
+
+    // Draft answer updates (no submit required)
+    socket.on('answer-update', ({ answer }) => {
+        const room = getRoom(socket.roomCode);
+        if (!room || room.state !== 'playing') return;
+
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player || room.answers.has(socket.id)) return; // ignore updates after final answer exists
+
+        room.draftAnswers.set(socket.id, { answer, updatedAt: Date.now() });
+
+        io.to(room.code).emit('player-answered', {
+            playerId: socket.id,
+            answeredCount: getAnsweredCount(room),
+            totalPlayers: getConnectedPlayers(room).length
+        });
+
+        // If everyone has at least a draft (or a final), end the round early
+        const connected = getConnectedPlayers(room);
+        if (getAnsweredCount(room) >= connected.length) {
+            processRoundEnd(room, { reason: 'all_drafted' });
+        }
     });
 
     // Submit answer
@@ -303,23 +549,24 @@ io.on('connection', (socket) => {
             timeTaken,
             submittedAt: Date.now()
         });
+        room.draftAnswers.delete(socket.id);
 
         io.to(room.code).emit('player-answered', {
             playerId: socket.id,
-            answeredCount: room.answers.size,
-            totalPlayers: room.players.filter(p => p.connected).length
+            answeredCount: getAnsweredCount(room),
+            totalPlayers: getConnectedPlayers(room).length
         });
 
-        const connectedPlayers = room.players.filter(p => p.connected);
+        const connectedPlayers = getConnectedPlayers(room);
         if (room.answers.size >= connectedPlayers.length) {
-            processRoundEnd(room);
+            processRoundEnd(room, { reason: 'all_answered' });
         }
     });
 
     socket.on('time-up', () => {
         const room = getRoom(socket.roomCode);
         if (!room || room.hostId !== socket.id || room.state !== 'playing') return;
-        processRoundEnd(room);
+        processRoundEnd(room, { reason: 'host_time_up' });
     });
 
     // Disconnect handling
@@ -344,6 +591,8 @@ io.on('connection', (socket) => {
                     newHost.isHost = true;
                     io.to(room.code).emit('new-host', { hostId: newHost.id });
                 } else {
+                    clearAnswerTimer(room);
+                    clearSelectionTimer(room);
                     rooms.delete(room.code);
                 }
             }
@@ -354,6 +603,8 @@ io.on('connection', (socket) => {
         const room = getRoom(socket.roomCode);
         if (room) {
             room.players = room.players.filter(p => p.id !== socket.id);
+            room.answers.delete(socket.id);
+            room.draftAnswers.delete(socket.id);
             socket.leave(room.code);
 
             io.to(room.code).emit('player-left', {
@@ -362,6 +613,8 @@ io.on('connection', (socket) => {
             });
 
             if (room.players.length === 0) {
+                clearAnswerTimer(room);
+                clearSelectionTimer(room);
                 rooms.delete(room.code);
             }
         }
@@ -369,7 +622,13 @@ io.on('connection', (socket) => {
     });
 });
 
-function processRoundEnd(room) {
+function processRoundEnd(room, { reason } = {}) {
+    if (!room || room.state !== 'playing') return;
+    clearAnswerTimer(room);
+
+    // If players interacted but didn't submit, count their latest state at timeout
+    finalizeDraftAnswers(room);
+
     const currentQuestion = room.questions[room.currentQuestionIndex];
     const results = [];
 
@@ -384,7 +643,14 @@ function processRoundEnd(room) {
             if (currentQuestion.type === 'multiple-choice') {
                 isCorrect = answerData.answer === currentQuestion.answer;
             } else if (currentQuestion.type === 'fill-blank') {
-                isCorrect = answerData.answer?.toLowerCase().trim() === currentQuestion.answer?.toLowerCase().trim();
+                const user = String(answerData.answer ?? '').toLowerCase().trim();
+                const correct = String(currentQuestion.answer ?? '').toLowerCase().trim();
+                const isYear = /^\d{4}$/.test(correct);
+                if (isYear) {
+                    isCorrect = user === correct;
+                } else {
+                    isCorrect = levenshteinDistance(user, correct) <= 3;
+                }
             } else if (currentQuestion.type === 'order') {
                 isCorrect = JSON.stringify(answerData.answer) === JSON.stringify(currentQuestion.correctOrder);
             } else if (currentQuestion.type === 'match') {
@@ -444,6 +710,8 @@ function processRoundEnd(room) {
                     room.state = 'selecting-category';
                     room.currentCategory = null;
                     room.currentType = null;
+                    room.answers.clear();
+                    room.draftAnswers.clear();
 
                     const roles = assignRoles(room);
 
@@ -460,12 +728,15 @@ function processRoundEnd(room) {
                         phase: 'category',
                         availableCategoryIds: turnCategories
                     });
+                    startTurnSelectionTimer(room, 'category');
                 } else {
                     // Standard mode: next question
                     room.currentQuestionIndex++;
                     room.answers.clear();
+                    room.draftAnswers.clear();
                     room.state = 'playing';
                     room.questionStartTime = Date.now();
+                    startAnswerTimer(room);
 
                     io.to(room.code).emit('next-question', {
                         question: room.questions[room.currentQuestionIndex],
