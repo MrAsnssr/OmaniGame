@@ -128,6 +128,41 @@ export const useGameStore = create((set, get) => ({
         }
     },
 
+    // Avatar customization
+    avatar: null, // User's avatar config
+
+    loadUserAvatar: async (userId) => {
+        if (!userId) return;
+        try {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data() || {};
+                if (data.avatar && typeof data.avatar === 'object') {
+                    set({ avatar: data.avatar });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user avatar:', error);
+        }
+    },
+
+    saveUserAvatar: async (userId, avatarConfig) => {
+        if (!userId || !avatarConfig) return { ok: false };
+        try {
+            const userRef = doc(db, 'users', userId);
+            await setDoc(userRef, {
+                avatar: avatarConfig,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+            set({ avatar: avatarConfig });
+            return { ok: true };
+        } catch (error) {
+            console.error('Error saving user avatar:', error);
+            return { ok: false, error };
+        }
+    },
+
     // Market catalog (Firestore marketItems)
     marketItems: [],
 

@@ -2,10 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
+import Avatar, { DEFAULT_AVATAR } from './Avatar';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams } = useGameStore();
+    const { dirhams, avatar } = useGameStore();
     
     const handleLeaderboardClick = () => {
         navigate('/leaderboard');
@@ -52,20 +53,12 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     onClick={user ? () => navigate('/profile') : onLogin}
                     className="flex items-center gap-3 bg-wood-light/80 backdrop-blur-sm p-1.5 pr-4 rounded-full border border-white/10 shadow-lg hover:border-primary/30 transition-colors"
                 >
-                    <div className="relative">
-                        {user?.photoURL ? (
-                            <img 
-                                src={user.photoURL} 
-                                alt="User" 
-                                className="size-10 rounded-full object-cover ring-2 ring-primary/50"
-                            />
+                    <div className="relative size-10 rounded-full overflow-hidden ring-2 ring-primary/50 bg-wood-dark">
+                        {user ? (
+                            <Avatar config={avatar || DEFAULT_AVATAR} size={40} />
                         ) : (
-                            <div className="size-10 rounded-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white ring-2 ring-primary/50">
-                                {user ? (
-                                    <span className="font-bold text-sm">{(user.displayName || 'U')[0].toUpperCase()}</span>
-                                ) : (
-                                    <span className="material-symbols-outlined text-xl">person</span>
-                                )}
+                            <div className="size-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white">
+                                <span className="material-symbols-outlined text-xl">person</span>
                             </div>
                         )}
                     </div>

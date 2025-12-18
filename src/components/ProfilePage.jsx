@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, User, Mail, Camera, Save, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, User, Save, Check, Pencil } from 'lucide-react';
 import Button from './Button';
+import Avatar, { DEFAULT_AVATAR } from './Avatar';
+import AvatarEditor from './AvatarEditor';
 import { updateUserProfile } from '../services/authService';
+import { useGameStore } from '../store/gameStore';
 
 export default function ProfilePage({ user, onBack, onUpdate }) {
     const [name, setName] = useState(user?.displayName || '');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+
+    const { avatar, saveUserAvatar } = useGameStore();
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -32,6 +38,17 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
         }
     };
 
+    const handleSaveAvatar = async (newAvatarConfig) => {
+        if (!user?.uid) return;
+        const result = await saveUserAvatar(user.uid, newAvatarConfig);
+        if (result.ok) {
+            setShowAvatarEditor(false);
+            setMessage('تم حفظ الصورة الرمزية!');
+            setIsSuccess(true);
+            setTimeout(() => setMessage(''), 2000);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
@@ -47,27 +64,26 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
 
             <div className="flex-1 overflow-y-auto">
                 <div className="max-w-md mx-auto w-full space-y-8 py-4">
-                    {/* Profile Picture Section */}
+                    {/* Avatar Section */}
                     <div className="flex flex-col items-center">
                         <div className="relative group">
-                            <div className="size-32 rounded-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white ring-4 ring-primary/20 shadow-2xl overflow-hidden">
-                                {user?.photoURL ? (
-                                    <img 
-                                        src={user.photoURL} 
-                                        alt="Profile" 
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-5xl font-bold">
-                                        {(name || user?.email || 'U')[0].toUpperCase()}
-                                    </span>
-                                )}
+                            <div className="size-32 rounded-full bg-gradient-to-br from-wood-dark to-wood-light flex items-center justify-center ring-4 ring-primary/20 shadow-2xl overflow-hidden">
+                                <Avatar config={avatar || DEFAULT_AVATAR} size={128} />
                             </div>
-                            <button className="absolute bottom-0 right-0 size-10 rounded-full bg-wood-dark border-2 border-primary text-primary flex items-center justify-center shadow-lg hover:bg-primary hover:text-white transition-all">
-                                <Camera size={20} />
+                            <button 
+                                onClick={() => setShowAvatarEditor(true)}
+                                className="absolute bottom-0 right-0 size-10 rounded-full bg-wood-dark border-2 border-primary text-primary flex items-center justify-center shadow-lg hover:bg-primary hover:text-white transition-all"
+                            >
+                                <Pencil size={18} />
                             </button>
                         </div>
-                        <p className="mt-4 text-sand/50 text-sm font-bold">{user?.email}</p>
+                        <button 
+                            onClick={() => setShowAvatarEditor(true)}
+                            className="mt-3 text-primary text-sm font-bold hover:underline"
+                        >
+                            تعديل الصورة الرمزية
+                        </button>
+                        <p className="mt-2 text-sand/50 text-sm font-bold">{user?.email}</p>
                     </div>
 
                     {/* Form Section */}
@@ -135,6 +151,32 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                     </div>
                 </div>
             </div>
+
+            {/* Avatar Editor Modal */}
+            <AnimatePresence>
+                {showAvatarEditor && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                        >
+                            <h3 className="text-xl font-black text-white mb-4 engraved-text text-center">تخصيص الصورة الرمزية</h3>
+                            <AvatarEditor
+                                initialConfig={avatar || DEFAULT_AVATAR}
+                                onSave={handleSaveAvatar}
+                                onCancel={() => setShowAvatarEditor(false)}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
