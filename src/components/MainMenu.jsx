@@ -2,19 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
-import Avatar, { DEFAULT_AVATAR } from './Avatar';
-import AvatarLayered from './AvatarLayered';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates, avatarSettings } = useGameStore();
+    const { dirhams, avatarV2, avatarFaceTemplates, getBuiltinFaceTemplates } = useGameStore();
+    // Only show static (uneditable) avatars
     const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
-    const combinedTemplates = (avatarSettings?.disableEditableAvatars)
-        ? allTemplates.filter(t => t?.uneditable)
-        : allTemplates;
-    const selectedTemplate = combinedTemplates.find(t => t.id === avatarV2?.templateId) || combinedTemplates[0] || null;
-    const isBuiltinTemplate = selectedTemplate?.isBuiltin;
-    const isStaticTemplate = !!selectedTemplate?.uneditable;
+    const staticTemplates = allTemplates.filter(t => t?.uneditable && t?.active !== false);
+    const selectedTemplate = staticTemplates.find(t => t.id === avatarV2?.templateId) || staticTemplates[0] || null;
     
     const handleLeaderboardClick = () => {
         navigate('/leaderboard');
@@ -63,23 +58,17 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 >
                     <div className="relative size-10 rounded-full overflow-hidden ring-2 ring-primary/50 bg-wood-dark">
                         {user ? (
-                            isStaticTemplate ? (
+                            selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url ? (
                                 <img
-                                    src={selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url}
+                                    src={selectedTemplate.previewAsset.dataUrl || selectedTemplate.previewAsset.url}
                                     alt="avatar"
                                     className="w-full h-full object-contain"
                                     draggable={false}
                                 />
-                            ) : (!isBuiltinTemplate && avatarV2?.templateId) ? (
-                                <AvatarLayered
-                                    size={40}
-                                    template={selectedTemplate}
-                                    partsCatalog={avatarParts}
-                                    selections={avatarV2?.selections || {}}
-                                    fallback={<Avatar config={avatar || DEFAULT_AVATAR} size={40} />}
-                                />
                             ) : (
-                                <Avatar config={avatar || DEFAULT_AVATAR} size={40} />
+                                <div className="size-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined text-xl">person</span>
+                                </div>
                             )
                         ) : (
                             <div className="size-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white">

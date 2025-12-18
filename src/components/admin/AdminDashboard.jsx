@@ -163,8 +163,6 @@ export default function AdminDashboard({ onBack }) {
                         onEditPart={setEditingAvatarPart}
                         onDeletePart={deleteAvatarPart}
                         onSaveTransform={saveAvatarPartTransform}
-                        avatarSettings={avatarSettings}
-                        onToggleDisableEditableAvatars={(checked) => setDisableEditableAvatars(checked)}
                     />
                 )}
             </div>
@@ -806,9 +804,7 @@ function AvatarAdmin({
     onAddPart,
     onEditPart,
     onDeletePart,
-    onSaveTransform,
-    avatarSettings,
-    onToggleDisableEditableAvatars
+    onSaveTransform
 }) {
     const [subTab, setSubTab] = useState('templates'); // templates | parts | editor
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -880,20 +876,8 @@ function AvatarAdmin({
 
             {subTab === 'templates' && (
                 <div className="space-y-3">
-                    <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
-                        <div>
-                            <div className="text-sm font-bold text-white">Disable editable avatars for users</div>
-                            <div className="text-xs text-sand/50">Users will only see/select Uneditable (Static) templates</div>
-                        </div>
-                        <input
-                            type="checkbox"
-                            checked={!!avatarSettings?.disableEditableAvatars}
-                            onChange={(e) => onToggleDisableEditableAvatars?.(e.target.checked)}
-                            className="size-5 accent-primary"
-                        />
-                    </label>
                     <Button onClick={onAddTemplate} className="w-full">
-                        <Plus size={18} /> Add Face Template
+                        <Plus size={18} /> Add Static Avatar
                     </Button>
                     {combinedTemplates.map(t => (
                         <div key={t.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
@@ -1190,7 +1174,8 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     const [name, setName] = useState(template?.name || '');
     const [active, setActive] = useState(template?.active !== false);
     const [previewAsset, setPreviewAsset] = useState(template?.previewAsset || null);
-    const [uneditable, setUneditable] = useState(!!template?.uneditable);
+    // All avatars are static (uneditable) now
+    const [uneditable] = useState(true);
     const [saving, setSaving] = useState(false);
 
     const handleUpload = async (file) => {
@@ -1222,7 +1207,7 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4">
-                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{template ? 'Edit' : 'Add'} Face Template</h3>
+                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{template ? 'Edit' : 'Add'} Static Avatar</h3>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30" />
                 <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
                     <div>
@@ -1232,17 +1217,12 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
                     <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-primary" />
                 </label>
 
-                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
-                    <div>
-                        <div className="text-sm font-bold text-white">Uneditable (Static Avatar)</div>
-                        <div className="text-xs text-sand/50">User will select it as-is (no parts editor)</div>
-                    </div>
-                    <input type="checkbox" checked={uneditable} onChange={(e) => setUneditable(e.target.checked)} className="size-5 accent-primary" />
-                </label>
+                {/* Static avatars are always uneditable */}
+                <input type="hidden" value="true" />
 
                 <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
                     <div className="text-sm font-bold text-white mb-2">
-                        {uneditable ? 'Full Avatar Image (PNG/SVG)' : 'Preview (PNG/SVG)'}
+                        Full Avatar Image (PNG/SVG)
                     </div>
                     <input type="file" accept=".png,.webp,.svg" onChange={(e) => handleUpload(e.target.files?.[0])} className="w-full text-sm text-sand/70" />
                     {(previewAsset?.dataUrl || previewAsset?.url) && (
