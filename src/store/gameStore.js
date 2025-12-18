@@ -21,6 +21,20 @@ export const useGameStore = create((set, get) => ({
     selectedCategory: null,
     gameQuestions: [], // Filtered questions for current game session
 
+    // Currency (Dirhams - دراهم)
+    dirhams: 1250, // Starting balance
+    
+    // Currency Actions
+    addDirhams: (amount) => set((state) => ({ dirhams: state.dirhams + amount })),
+    spendDirhams: (amount) => {
+        const { dirhams } = get();
+        if (dirhams >= amount) {
+            set({ dirhams: dirhams - amount });
+            return true;
+        }
+        return false;
+    },
+
     // Admin Review Game (play all filtered questions from Admin page)
     adminReviewActive: false,
     adminReviewQuestionIds: [],

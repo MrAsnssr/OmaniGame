@@ -1,9 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useGameStore } from '../store/gameStore';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
+    const { dirhams } = useGameStore();
+    
     const handleLeaderboardClick = () => {
         alert("قريباً! جاري العمل على لوحة المتصدرين.");
     };
@@ -13,7 +16,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
     };
 
     const handleCoinShopClick = () => {
-        alert("قريباً! جاري العمل على متجر الدراهم.");
+        navigate('/shop');
     };
 
     return (
@@ -86,7 +89,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 >
                     <span className="material-symbols-outlined text-[#FFD700] text-[20px]">toll</span>
                     <span className="text-sm font-bold tracking-wide engraved-text">
-                        1,250 <span className="text-xs text-sand font-normal">دراهم</span>
+                        {dirhams.toLocaleString()} <span className="text-xs text-sand font-normal">دراهم</span>
                     </span>
                     <span className="material-symbols-outlined text-sand/50 text-[16px]">add_circle</span>
                 </motion.button>

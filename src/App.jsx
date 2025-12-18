@@ -14,6 +14,7 @@ import TurnSelection from './components/multiplayer/TurnSelection';
 import LoginPage from './components/LoginPage';
 import SettingsPage from './components/SettingsPage';
 import ProfilePage from './components/ProfilePage';
+import CoinShop from './components/CoinShop';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -425,6 +426,19 @@ export default function App() {
                 onBack={() => navigate('/')} 
                 onUpdate={(updatedUser) => setUser(updatedUser)} 
               />
+            </motion.div>
+          } />
+
+          {/* Coin Shop */}
+          <Route path="/shop" element={
+            <motion.div
+              key="shop"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <CoinShop onBack={() => navigate('/')} />
             </motion.div>
           } />
 
