@@ -8,7 +8,9 @@ export default function MarketPage({ onBack, user }) {
     const {
         dirhams,
         marketItems,
+        subjects,
         categories,
+        ownedSubjectIds,
         ownedTopicIds,
         purchasesLoaded,
         purchaseMarketItem
@@ -24,8 +26,10 @@ export default function MarketPage({ onBack, user }) {
     }, [marketItems]);
 
     const getTopic = (topicId) => categories.find(c => c.id === topicId);
+    const getSubject = (subjectId) => subjects.find(s => s.id === subjectId);
 
     const isOwned = (item) => {
+        if (item.type === 'subject_unlock' && item.subjectId) return ownedSubjectIds.includes(item.subjectId);
         if (item.type === 'topic_unlock' && item.topicId) return ownedTopicIds.includes(item.topicId);
         return false;
     };
@@ -44,7 +48,7 @@ export default function MarketPage({ onBack, user }) {
             setToast({ type: 'success', message: 'تم الشراء بنجاح ✅' });
         } else if (res.error === 'insufficient_funds') {
             setToast({ type: 'error', message: 'رصيد الدراهم غير كافي.' });
-        } else if (res.error === 'already_owned' || res.error === 'topic_already_owned') {
+        } else if (res.error === 'already_owned' || res.error === 'topic_already_owned' || res.error === 'subject_already_owned') {
             setToast({ type: 'info', message: 'مملوك بالفعل.' });
         } else {
             setToast({ type: 'error', message: 'صار خطأ أثناء الشراء.' });
@@ -87,9 +91,18 @@ export default function MarketPage({ onBack, user }) {
                     activeItems.map((item, idx) => {
                         const price = Number(item.priceDirhams || 0);
                         const owned = isOwned(item);
+                        const subject = item.type === 'subject_unlock' ? getSubject(item.subjectId) : null;
                         const topic = item.type === 'topic_unlock' ? getTopic(item.topicId) : null;
-                        const displayTitle = item.type === 'topic_unlock' ? (topic?.name || 'مجال') : (item.title || 'عنصر');
-                        const displayIcon = item.type === 'topic_unlock' ? (topic?.icon || '📚') : (item.icon || '🛒');
+                        const displayTitle = item.type === 'subject_unlock'
+                            ? (subject?.name || 'مجال')
+                            : item.type === 'topic_unlock'
+                                ? (topic?.name || 'موضوع')
+                                : (item.title || 'عنصر');
+                        const displayIcon = item.type === 'subject_unlock'
+                            ? (subject?.icon || '📁')
+                            : item.type === 'topic_unlock'
+                                ? (topic?.icon || '📚')
+                                : (item.icon || '🛒');
 
                         return (
                             <motion.div
@@ -107,6 +120,11 @@ export default function MarketPage({ onBack, user }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
                                             <p className="font-black text-white truncate">{displayTitle}</p>
+                                            {item.type === 'subject_unlock' && (
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
+                                                    فتح مجال (Subject)
+                                                </span>
+                                            )}
                                             {item.type === 'topic_unlock' && (
                                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold border border-primary/20">
                                                     فتح مجال
@@ -116,9 +134,14 @@ export default function MarketPage({ onBack, user }) {
                                         {item.description && (
                                             <p className="text-sm text-sand/60 mt-1">{item.description}</p>
                                         )}
+                                        {subject && (
+                                            <p className="text-xs text-sand/50 mt-2">
+                                                المجال: <span className="text-white">{subject.icon} {subject.name}</span>
+                                            </p>
+                                        )}
                                         {topic && (
                                             <p className="text-xs text-sand/50 mt-2">
-                                                المجال: <span className="text-white">{topic.icon} {topic.name}</span>
+                                                الموضوع: <span className="text-white">{topic.icon} {topic.name}</span>
                                             </p>
                                         )}
 

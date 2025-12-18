@@ -191,6 +191,7 @@ export default function AdminDashboard({ onBack }) {
                 <MarketItemForm
                     item={editingMarketItem}
                     categories={categories}
+                    subjects={subjects}
                     onClose={() => { setShowMarketItemForm(false); setEditingMarketItem(null); }}
                     onCreate={addMarketItem}
                     onUpdate={editMarketItem}
@@ -571,6 +572,7 @@ function MarketList({ marketItems, categories, onEdit, onDelete, onAdd }) {
 
     const getTypeLabel = (t) => {
         if (t === 'topic_unlock') return 'Topic Unlock';
+        if (t === 'subject_unlock') return 'Subject Unlock';
         if (t === 'hint') return 'Hint';
         if (t === 'cosmetic') return 'Cosmetic';
         return 'Other';
@@ -636,7 +638,7 @@ function MarketList({ marketItems, categories, onEdit, onDelete, onAdd }) {
     );
 }
 
-function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
+function MarketItemForm({ item, categories, subjects, onClose, onCreate, onUpdate }) {
     const [type, setType] = useState(item?.type || 'topic_unlock');
     const [title, setTitle] = useState(item?.title || '');
     const [description, setDescription] = useState(item?.description || '');
@@ -644,22 +646,27 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
     const [priceDirhams, setPriceDirhams] = useState(String(Number(item?.priceDirhams || 0)));
     const [active, setActive] = useState(item?.active !== false);
     const [topicId, setTopicId] = useState(item?.topicId || '');
+    const [subjectId, setSubjectId] = useState(item?.subjectId || '');
 
     const selectedTopic = categories.find(c => c.id === topicId) || null;
     const isTopicUnlock = type === 'topic_unlock';
+    const selectedSubject = subjects?.find(s => s.id === subjectId) || null;
+    const isSubjectUnlock = type === 'subject_unlock';
 
     const handleSubmit = () => {
         if (isTopicUnlock && !topicId) return;
-        if (!isTopicUnlock && !title.trim()) return;
+        if (isSubjectUnlock && !subjectId) return;
+        if (!isTopicUnlock && !isSubjectUnlock && !title.trim()) return;
         const payload = {
             type,
-            title: isTopicUnlock ? (selectedTopic?.name || '') : title.trim(),
+            title: isTopicUnlock ? (selectedTopic?.name || '') : isSubjectUnlock ? (selectedSubject?.name || '') : title.trim(),
             description: description.trim(),
-            icon: isTopicUnlock ? (selectedTopic?.icon || '') : icon.trim(),
+            icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : icon.trim(),
             priceDirhams: Math.max(0, Number(priceDirhams || 0)),
             active: !!active
         };
         if (type === 'topic_unlock') payload.topicId = topicId || null;
+        if (type === 'subject_unlock') payload.subjectId = subjectId || null;
         if (item) onUpdate(item.id, payload);
         else onCreate(payload);
         onClose();
@@ -680,10 +687,30 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                     onChange={(e) => setType(e.target.value)}
                     className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white mb-3"
                 >
+                    <option value="subject_unlock">Subject Unlock</option>
                     <option value="topic_unlock">Topic Unlock</option>
                     <option value="hint">Hint</option>
                     <option value="cosmetic">Cosmetic</option>
                 </select>
+
+                {type === 'subject_unlock' && (
+                    <>
+                        <label className="block text-sm font-bold text-sand/70 mb-1">Subject</label>
+                        <select
+                            value={subjectId}
+                            onChange={(e) => setSubjectId(e.target.value)}
+                            className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white mb-3"
+                        >
+                            <option value="">-- select subject --</option>
+                            {(subjects || []).map(s => (
+                                <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+                            ))}
+                        </select>
+                        <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3 text-xs text-sand/60">
+                            الاسم والإيموجي يتم أخذهم تلقائياً من الـ Subject المختار.
+                        </div>
+                    </>
+                )}
 
                 {type === 'topic_unlock' && (
                     <>
@@ -704,7 +731,7 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                     </>
                 )}
 
-                {!isTopicUnlock && (
+                {(!isTopicUnlock && !isSubjectUnlock) && (
                     <input
                         type="text"
                         value={title}
@@ -721,7 +748,7 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                     className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                    {!isTopicUnlock ? (
+                    {(!isTopicUnlock && !isSubjectUnlock) ? (
                         <input
                             type="text"
                             value={icon}
@@ -731,8 +758,8 @@ function MarketItemForm({ item, categories, onClose, onCreate, onUpdate }) {
                         />
                     ) : (
                         <div className="w-full p-3 bg-wood-dark/30 border-2 border-white/5 rounded-xl text-white flex items-center justify-center gap-2">
-                            <span className="text-xl">{selectedTopic?.icon || '📚'}</span>
-                            <span className="text-sm font-bold truncate">{selectedTopic?.name || 'اختر مجال'}</span>
+                            <span className="text-xl">{isSubjectUnlock ? (selectedSubject?.icon || '📁') : (selectedTopic?.icon || '📚')}</span>
+                            <span className="text-sm font-bold truncate">{isSubjectUnlock ? (selectedSubject?.name || 'اختر Subject') : (selectedTopic?.name || 'اختر مجال')}</span>
                         </div>
                     )}
                     <input

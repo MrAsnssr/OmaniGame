@@ -111,6 +111,7 @@ export const useGameStore = create((set, get) => ({
     },
 
     // Purchases / Ownership (Firestore users/{uid})
+    ownedSubjectIds: [],
     ownedTopicIds: [],
     ownedMarketItemIds: [],
     purchasesLoaded: false,
@@ -123,12 +124,13 @@ export const useGameStore = create((set, get) => ({
             if (userSnap.exists()) {
                 const data = userSnap.data() || {};
                 set({
+                    ownedSubjectIds: Array.isArray(data.ownedSubjectIds) ? data.ownedSubjectIds : [],
                     ownedTopicIds: Array.isArray(data.ownedTopicIds) ? data.ownedTopicIds : [],
                     ownedMarketItemIds: Array.isArray(data.ownedMarketItemIds) ? data.ownedMarketItemIds : [],
                     purchasesLoaded: true
                 });
             } else {
-                set({ ownedTopicIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
+                set({ ownedSubjectIds: [], ownedTopicIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
             }
         } catch (error) {
             console.error('Error loading user purchases:', error);
@@ -321,12 +323,15 @@ export const useGameStore = create((set, get) => ({
         if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'invalid_price' };
 
         const stateBefore = get();
-        const { dirhams, spendDirhams, ownedMarketItemIds, ownedTopicIds } = stateBefore;
+        const { dirhams, spendDirhams, ownedMarketItemIds, ownedTopicIds, ownedSubjectIds } = stateBefore;
 
         // Already owned
         if (ownedMarketItemIds.includes(item.id)) return { ok: false, error: 'already_owned' };
         if (item.type === 'topic_unlock' && item.topicId && ownedTopicIds.includes(item.topicId)) {
             return { ok: false, error: 'topic_already_owned' };
+        }
+        if (item.type === 'subject_unlock' && item.subjectId && ownedSubjectIds.includes(item.subjectId)) {
+            return { ok: false, error: 'subject_already_owned' };
         }
 
         if (dirhams < price) return { ok: false, error: 'insufficient_funds' };
@@ -347,12 +352,18 @@ export const useGameStore = create((set, get) => ({
             if (item.type === 'topic_unlock' && item.topicId) {
                 updates.ownedTopicIds = arrayUnion(item.topicId);
             }
+            if (item.type === 'subject_unlock' && item.subjectId) {
+                updates.ownedSubjectIds = arrayUnion(item.subjectId);
+            }
 
             await setDoc(userRef, updates, { merge: true });
 
             // Update local ownership
             set({
                 ownedMarketItemIds: Array.from(new Set([...ownedMarketItemIds, item.id])),
+                ownedSubjectIds: (item.type === 'subject_unlock' && item.subjectId)
+                    ? Array.from(new Set([...ownedSubjectIds, item.subjectId]))
+                    : ownedSubjectIds,
                 ownedTopicIds: (item.type === 'topic_unlock' && item.topicId)
                     ? Array.from(new Set([...ownedTopicIds, item.topicId]))
                     : ownedTopicIds

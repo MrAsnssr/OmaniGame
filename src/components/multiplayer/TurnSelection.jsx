@@ -11,6 +11,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const {
         categories,
         ownedTopicIds,
+        ownedSubjectIds,
         turnPhase, // 'category' or 'type'
         categorySelectorId,
         typeSelectorId,
@@ -38,7 +39,10 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const canUseTopicOnline = (cat) => {
         if (!cat) return false;
         if (!cat.isPremium) return true;
-        return ownedTopicIds.includes(cat.id);
+        // allow if topic is owned OR its parent subject is owned
+        if (ownedTopicIds.includes(cat.id)) return true;
+        if (cat.subjectId && ownedSubjectIds?.includes(cat.subjectId)) return true;
+        return false;
     };
 
     // Get the selected category object for display during type phase
