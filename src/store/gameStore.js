@@ -19,6 +19,8 @@ import {
 import { initialCategories, initialQuestions } from '../data/questions';
 
 export const useGameStore = create((set, get) => ({
+    STARTING_DIRHAMS: 750,
+
     // Current user (for persistence)
     currentUserId: null,
     currentUserDisplayName: null,
@@ -34,7 +36,7 @@ export const useGameStore = create((set, get) => ({
     gameQuestions: [], // Filtered questions for current game session
 
     // Currency (Dirhams - دراهم)
-    dirhams: 1250, // Starting balance
+    dirhams: 750, // Starting balance (new accounts)
     
     loadUserDirhams: async (userId) => {
         if (!userId) return;
@@ -45,7 +47,17 @@ export const useGameStore = create((set, get) => ({
                 const data = userSnap.data() || {};
                 if (Number.isFinite(Number(data.dirhams))) {
                     set({ dirhams: Number(data.dirhams) });
+                } else {
+                    // Existing user doc but no balance yet
+                    const starting = get().STARTING_DIRHAMS;
+                    set({ dirhams: starting });
+                    await get().persistDirhams(userId, data.displayName || get().currentUserDisplayName, starting);
                 }
+            } else {
+                // New user: initialize balance in Firestore
+                const starting = get().STARTING_DIRHAMS;
+                set({ dirhams: starting });
+                await get().persistDirhams(userId, get().currentUserDisplayName, starting);
             }
         } catch (error) {
             console.error('Error loading user dirhams:', error);
