@@ -233,6 +233,7 @@ export const useGameStore = create((set, get) => ({
     avatarFaceTemplates: [],
     avatarParts: [],
     avatarAdminLoading: false,
+    avatarSettings: { disableEditableAvatars: false }, // global toggle: show only uneditable templates to users
 
     loadUserAvatarV2: async (userId) => {
         if (!userId) return;
@@ -299,6 +300,33 @@ export const useGameStore = create((set, get) => ({
         } catch (error) {
             console.error('Error uploading avatar asset:', error);
             return { ok: false, error: { message: error?.message || String(error) } };
+        }
+    },
+
+    loadAvatarSettings: async () => {
+        // One-time fetch; realtime listener is set in initializeFirestore.
+        try {
+            const snap = await getDoc(doc(db, 'config', 'avatar'));
+            if (snap.exists()) {
+                const data = snap.data() || {};
+                set({ avatarSettings: { disableEditableAvatars: !!data.disableEditableAvatars } });
+            }
+        } catch (e) {
+            console.warn('Failed to load avatar settings:', e);
+        }
+    },
+
+    setDisableEditableAvatars: async (disableEditableAvatars) => {
+        try {
+            await setDoc(doc(db, 'config', 'avatar'), {
+                disableEditableAvatars: !!disableEditableAvatars,
+                updatedAt: new Date().toISOString(),
+            }, { merge: true });
+            set({ avatarSettings: { ...(get().avatarSettings || {}), disableEditableAvatars: !!disableEditableAvatars } });
+            return { ok: true };
+        } catch (error) {
+            console.error('Error updating avatar settings:', error);
+            return { ok: false, error };
         }
     },
 
@@ -697,6 +725,18 @@ export const useGameStore = create((set, get) => ({
                 }
             );
 
+            const unsubscribeAvatarConfig = onSnapshot(
+                doc(db, 'config', 'avatar'),
+                (snap) => {
+                    if (!snap.exists()) {
+                        set({ avatarSettings: { disableEditableAvatars: false } });
+                        return;
+                    }
+                    const data = snap.data() || {};
+                    set({ avatarSettings: { disableEditableAvatars: !!data.disableEditableAvatars } });
+                }
+            );
+
             const unsubscribeReports = onSnapshot(
                 collection(db, 'reports'),
                 (snapshot) => {
@@ -709,7 +749,7 @@ export const useGameStore = create((set, get) => ({
             );
 
             // Store unsubscribe functions
-            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeMarketItems, unsubscribeAvatarFaceTemplates, unsubscribeAvatarParts, unsubscribeReports });
+            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeMarketItems, unsubscribeAvatarFaceTemplates, unsubscribeAvatarParts, unsubscribeAvatarConfig, unsubscribeReports });
         } catch (error) {
             console.error('Error initializing Firestore:', error);
             set({ isLoading: false });

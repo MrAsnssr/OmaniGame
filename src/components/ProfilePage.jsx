@@ -16,11 +16,15 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
     const [showAvatarEditor, setShowAvatarEditor] = useState(false);
     const [showUnifiedAvatarEditor, setShowUnifiedAvatarEditor] = useState(false);
 
-    const { avatar, saveUserAvatar, avatarV2, saveUserAvatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates } = useGameStore();
+    const { avatar, saveUserAvatar, avatarV2, saveUserAvatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates, avatarSettings } = useGameStore();
 
-    const combinedTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
+    const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
+    const combinedTemplates = (avatarSettings?.disableEditableAvatars)
+        ? allTemplates.filter(t => t?.uneditable)
+        : allTemplates;
     const selectedTemplate = combinedTemplates.find(t => t.id === avatarV2?.templateId) || combinedTemplates[0] || null;
     const isBuiltinTemplate = selectedTemplate?.isBuiltin;
+    const isStaticTemplate = !!selectedTemplate?.uneditable;
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -85,7 +89,14 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                     <div className="flex flex-col items-center">
                         <div className="relative group">
                             <div className="size-32 rounded-full bg-gradient-to-br from-wood-dark to-wood-light flex items-center justify-center ring-4 ring-primary/20 shadow-2xl overflow-hidden">
-                                {!isBuiltinTemplate && avatarV2?.templateId ? (
+                                {isStaticTemplate ? (
+                                    <img
+                                        src={selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url}
+                                        alt="avatar"
+                                        className="w-full h-full object-contain"
+                                        draggable={false}
+                                    />
+                                ) : (!isBuiltinTemplate && avatarV2?.templateId) ? (
                                     <AvatarLayered
                                         size={128}
                                         template={selectedTemplate}
@@ -245,6 +256,7 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
 
     const template = templates.find(t => t.id === templateId) || templates[0] || null;
     const isBuiltin = !!template?.isBuiltin;
+    const isStatic = !!template?.uneditable;
 
     const slots = [
         { id: 'hair_hat', label: 'Hair/Hat' },
@@ -266,7 +278,16 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex justify-center mb-4">
-                {isBuiltin ? (
+                {isStatic ? (
+                    <div className="size-[140px] rounded-full bg-wood-dark/50 border border-white/10 overflow-hidden flex items-center justify-center">
+                        <img
+                            src={template?.previewAsset?.dataUrl || template?.previewAsset?.url}
+                            alt="static avatar"
+                            className="w-full h-full object-contain"
+                            draggable={false}
+                        />
+                    </div>
+                ) : isBuiltin ? (
                     <Avatar config={avatar} size={140} />
                 ) : (
                     <AvatarLayered
@@ -301,7 +322,13 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
                     </select>
                 </div>
 
-                {!isBuiltin && (
+                {isStatic && (
+                    <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 text-sand/60 text-sm">
+                        هذا أفاتار ثابت (غير قابل للتعديل). فقط اختره واضغط حفظ.
+                    </div>
+                )}
+
+                {!isBuiltin && !isStatic && (
                     <>
                         {slots.map(slot => (
                             <div key={slot.id} className="bg-wood-dark/40 border border-white/5 rounded-xl p-3">
@@ -341,6 +368,10 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
                 </Button>
                 <Button
                     onClick={() => {
+                        if (isStatic) {
+                            onSaveLayered({ mode: 'static', templateId, selections: {} });
+                            return;
+                        }
                         if (isBuiltin) {
                             // mark avatarV2 as builtin head shape choice only (no user-facing mode)
                             onSaveLayered({ templateId, selections: {} });

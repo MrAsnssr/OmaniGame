@@ -12,6 +12,7 @@ export default function AdminDashboard({ onBack }) {
         categories, questions, subjects, 
         marketItems, addMarketItem, editMarketItem, deleteMarketItem,
         avatarFaceTemplates, avatarParts,
+        avatarSettings, setDisableEditableAvatars,
         addAvatarFaceTemplate, editAvatarFaceTemplate, deleteAvatarFaceTemplate,
         addAvatarPart, editAvatarPart, deleteAvatarPart, saveAvatarPartTransform,
         uploadAvatarAsset,
@@ -162,6 +163,8 @@ export default function AdminDashboard({ onBack }) {
                         onEditPart={setEditingAvatarPart}
                         onDeletePart={deleteAvatarPart}
                         onSaveTransform={saveAvatarPartTransform}
+                        avatarSettings={avatarSettings}
+                        onToggleDisableEditableAvatars={(checked) => setDisableEditableAvatars(checked)}
                     />
                 )}
             </div>
@@ -803,7 +806,9 @@ function AvatarAdmin({
     onAddPart,
     onEditPart,
     onDeletePart,
-    onSaveTransform
+    onSaveTransform,
+    avatarSettings,
+    onToggleDisableEditableAvatars
 }) {
     const [subTab, setSubTab] = useState('templates'); // templates | parts | editor
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -875,6 +880,18 @@ function AvatarAdmin({
 
             {subTab === 'templates' && (
                 <div className="space-y-3">
+                    <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
+                        <div>
+                            <div className="text-sm font-bold text-white">Disable editable avatars for users</div>
+                            <div className="text-xs text-sand/50">Users will only see/select Uneditable (Static) templates</div>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={!!avatarSettings?.disableEditableAvatars}
+                            onChange={(e) => onToggleDisableEditableAvatars?.(e.target.checked)}
+                            className="size-5 accent-primary"
+                        />
+                    </label>
                     <Button onClick={onAddTemplate} className="w-full">
                         <Plus size={18} /> Add Face Template
                     </Button>
@@ -1173,6 +1190,7 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     const [name, setName] = useState(template?.name || '');
     const [active, setActive] = useState(template?.active !== false);
     const [previewAsset, setPreviewAsset] = useState(template?.previewAsset || null);
+    const [uneditable, setUneditable] = useState(!!template?.uneditable);
     const [saving, setSaving] = useState(false);
 
     const handleUpload = async (file) => {
@@ -1190,6 +1208,7 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
         const payload = {
             name: name.trim(),
             active: !!active,
+            uneditable: !!uneditable,
             previewAsset: previewAsset || null,
             updatedAt: new Date().toISOString(),
             createdAt: template?.createdAt || new Date().toISOString()
@@ -1213,8 +1232,18 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
                     <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-primary" />
                 </label>
 
+                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
+                    <div>
+                        <div className="text-sm font-bold text-white">Uneditable (Static Avatar)</div>
+                        <div className="text-xs text-sand/50">User will select it as-is (no parts editor)</div>
+                    </div>
+                    <input type="checkbox" checked={uneditable} onChange={(e) => setUneditable(e.target.checked)} className="size-5 accent-primary" />
+                </label>
+
                 <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
-                    <div className="text-sm font-bold text-white mb-2">Preview (PNG/SVG)</div>
+                    <div className="text-sm font-bold text-white mb-2">
+                        {uneditable ? 'Full Avatar Image (PNG/SVG)' : 'Preview (PNG/SVG)'}
+                    </div>
                     <input type="file" accept=".png,.webp,.svg" onChange={(e) => handleUpload(e.target.files?.[0])} className="w-full text-sm text-sand/70" />
                     {(previewAsset?.dataUrl || previewAsset?.url) && (
                         <div className="mt-3 rounded-xl overflow-hidden border border-white/10">

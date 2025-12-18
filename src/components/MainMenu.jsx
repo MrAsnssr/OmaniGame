@@ -7,10 +7,14 @@ import AvatarLayered from './AvatarLayered';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates } = useGameStore();
-    const combinedTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
+    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts, getBuiltinFaceTemplates, avatarSettings } = useGameStore();
+    const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
+    const combinedTemplates = (avatarSettings?.disableEditableAvatars)
+        ? allTemplates.filter(t => t?.uneditable)
+        : allTemplates;
     const selectedTemplate = combinedTemplates.find(t => t.id === avatarV2?.templateId) || combinedTemplates[0] || null;
     const isBuiltinTemplate = selectedTemplate?.isBuiltin;
+    const isStaticTemplate = !!selectedTemplate?.uneditable;
     
     const handleLeaderboardClick = () => {
         navigate('/leaderboard');
@@ -59,7 +63,14 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 >
                     <div className="relative size-10 rounded-full overflow-hidden ring-2 ring-primary/50 bg-wood-dark">
                         {user ? (
-                            (!isBuiltinTemplate && avatarV2?.templateId) ? (
+                            isStaticTemplate ? (
+                                <img
+                                    src={selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url}
+                                    alt="avatar"
+                                    className="w-full h-full object-contain"
+                                    draggable={false}
+                                />
+                            ) : (!isBuiltinTemplate && avatarV2?.templateId) ? (
                                 <AvatarLayered
                                     size={40}
                                     template={selectedTemplate}
