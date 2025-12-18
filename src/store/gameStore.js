@@ -16,7 +16,7 @@ import {
     getDoc,
     arrayUnion
 } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { initialCategories, initialQuestions } from '../data/questions';
 
 export const useGameStore = create((set, get) => ({
@@ -214,12 +214,63 @@ export const useGameStore = create((set, get) => ({
         if (!file || !path) return { ok: false, error: 'missing_file_or_path' };
         try {
             const r = storageRef(storage, path);
-            await uploadBytes(r, file, { contentType: file.type });
-            const url = await getDownloadURL(r);
+            const task = uploadBytesResumable(r, file, { contentType: file.type });
+
+            // Watchdog: if no progress for 20s -> timeout
+            const idleTimeoutMs = 20000;
+            let lastProgressAt = Date.now();
+            let watchdog = null;
+
+            const startWatchdog = () => {
+                watchdog = setInterval(() => {
+                    if (Date.now() - lastProgressAt > idleTimeoutMs) {
+                        try { task.cancel(); } catch { /* ignore */ }
+                    }
+                }, 1000);
+            };
+
+            const stopWatchdog = () => {
+                if (watchdog) clearInterval(watchdog);
+            };
+
+            startWatchdog();
+
+            const snapshot = await new Promise((resolve, reject) => {
+                task.on(
+                    'state_changed',
+                    (snap) => {
+                        if (snap.totalBytes > 0 && snap.bytesTransferred > 0) {
+                            lastProgressAt = Date.now();
+                        }
+                    },
+                    (err) => {
+                        stopWatchdog();
+                        // If we cancelled due to watchdog, show timeout
+                        if (err?.code === 'storage/canceled') {
+                            reject(Object.assign(new Error('Upload timed out or was canceled'), { code: 'upload_timeout' }));
+                            return;
+                        }
+                        reject(err);
+                    },
+                    () => {
+                        stopWatchdog();
+                        resolve(task.snapshot);
+                    }
+                );
+            });
+
+            const url = await getDownloadURL(snapshot.ref);
             return { ok: true, url, storagePath: path, contentType: file.type, name: file.name, size: file.size };
         } catch (error) {
             console.error('Error uploading avatar asset:', error);
-            return { ok: false, error };
+            // Normalize error message for UI
+            const msg =
+                error?.code === 'storage/unauthorized'
+                    ? 'Storage unauthorized (check Firebase Storage rules)'
+                    : error?.code === 'upload_timeout'
+                        ? 'Upload timed out'
+                        : (error?.message || String(error));
+            return { ok: false, error: { message: msg, code: error?.code } };
         }
     },
 
