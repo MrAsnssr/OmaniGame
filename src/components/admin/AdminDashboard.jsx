@@ -11,10 +11,8 @@ export default function AdminDashboard({ onBack }) {
     const { 
         categories, questions, subjects, 
         marketItems, addMarketItem, editMarketItem, deleteMarketItem,
-        avatarFaceTemplates, avatarParts,
-        avatarSettings, setDisableEditableAvatars,
+        avatarFaceTemplates,
         addAvatarFaceTemplate, editAvatarFaceTemplate, deleteAvatarFaceTemplate,
-        addAvatarPart, editAvatarPart, deleteAvatarPart, saveAvatarPartTransform,
         uploadAvatarAsset,
         deleteCategory, deleteQuestion, deleteSubject, startAdminReviewGame 
     } = useGameStore();
@@ -28,9 +26,7 @@ export default function AdminDashboard({ onBack }) {
     const [showSubjectForm, setShowSubjectForm] = useState(false);
     const [showMarketItemForm, setShowMarketItemForm] = useState(false);
     const [showAvatarTemplateForm, setShowAvatarTemplateForm] = useState(false);
-    const [showAvatarPartForm, setShowAvatarPartForm] = useState(false);
     const [editingAvatarTemplate, setEditingAvatarTemplate] = useState(null);
-    const [editingAvatarPart, setEditingAvatarPart] = useState(null);
     const [showJsonImport, setShowJsonImport] = useState(false);
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterType, setFilterType] = useState('all');
@@ -155,14 +151,10 @@ export default function AdminDashboard({ onBack }) {
                 {activeTab === 'avatar' && (
                     <AvatarAdmin
                         templates={avatarFaceTemplates}
-                        parts={avatarParts}
                         onAddTemplate={() => setShowAvatarTemplateForm(true)}
                         onEditTemplate={setEditingAvatarTemplate}
                         onDeleteTemplate={deleteAvatarFaceTemplate}
-                        onAddPart={() => setShowAvatarPartForm(true)}
-                        onEditPart={setEditingAvatarPart}
-                        onDeletePart={deleteAvatarPart}
-                        onSaveTransform={saveAvatarPartTransform}
+                        onUpdateTemplate={editAvatarFaceTemplate}
                     />
                 )}
             </div>
@@ -205,15 +197,6 @@ export default function AdminDashboard({ onBack }) {
                     onClose={() => { setShowAvatarTemplateForm(false); setEditingAvatarTemplate(null); }}
                     onCreate={addAvatarFaceTemplate}
                     onUpdate={editAvatarFaceTemplate}
-                    uploadAvatarAsset={uploadAvatarAsset}
-                />
-            )}
-            {(showAvatarPartForm || editingAvatarPart) && (
-                <AvatarPartForm
-                    part={editingAvatarPart}
-                    onClose={() => { setShowAvatarPartForm(false); setEditingAvatarPart(null); }}
-                    onCreate={addAvatarPart}
-                    onUpdate={editAvatarPart}
                     uploadAvatarAsset={uploadAvatarAsset}
                 />
             )}
@@ -826,34 +809,16 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
 
 function AvatarAdmin({
     templates,
-    parts,
     onAddTemplate,
     onEditTemplate,
     onDeleteTemplate,
-    onAddPart,
-    onEditPart,
-    onDeletePart,
-    onSaveTransform
+    onUpdateTemplate
 }) {
-    const [subTab, setSubTab] = useState('templates'); // templates | parts | editor
+    const [subTab, setSubTab] = useState('templates'); // templates | editor
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
-    const [selectedPartId, setSelectedPartId] = useState('');
-    const [selectedAssetId, setSelectedAssetId] = useState('');
-    const [transform, setTransform] = useState({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 });
+    const [transform, setTransform] = useState({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 100 });
     const [showGuides, setShowGuides] = useState(true);
     const [snapToGuides, setSnapToGuides] = useState(true);
-
-    const slotLabel = (s) => {
-        switch (s) {
-            case 'hair_hat': return 'Hair/Hat';
-            case 'eyebrows': return 'Eyebrows';
-            case 'eyes': return 'Eyes';
-            case 'nose': return 'Nose';
-            case 'mouth': return 'Mouth';
-            case 'facial_hair': return 'Facial Hair';
-            default: return s || 'Unknown';
-        }
-    };
 
     const combinedTemplates = [
         ...useGameStore.getState().getBuiltinFaceTemplates(),
@@ -861,23 +826,19 @@ function AvatarAdmin({
     ];
 
     const selectedTemplate = combinedTemplates.find(t => t.id === selectedTemplateId) || combinedTemplates[0] || null;
-    const selectedPart = parts.find(p => p.id === selectedPartId) || null;
-    const selectedAsset = selectedPart?.assets?.find(a => a.assetId === selectedAssetId) || selectedPart?.assets?.[0] || null;
-
-    const canvasBgUrl = selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url || null;
+    const avatarImageUrl = selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url || null;
 
     const applyExistingTransform = () => {
-        if (!selectedTemplate || !selectedPart) return;
-        const byTemplate = selectedPart.transformsByTemplate || {};
-        const saved = byTemplate[selectedTemplate.id] || byTemplate['round'] || null;
-        if (saved) setTransform({ x: saved.x ?? 50, y: saved.y ?? 50, scale: saved.scale ?? 1, rotation: saved.rotation ?? 0, sizePct: saved.sizePct ?? 40 });
-        else setTransform({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 40 });
+        if (!selectedTemplate) return;
+        const saved = selectedTemplate.transform || null;
+        if (saved) setTransform({ x: saved.x ?? 50, y: saved.y ?? 50, scale: saved.scale ?? 1, rotation: saved.rotation ?? 0, sizePct: saved.sizePct ?? 100 });
+        else setTransform({ x: 50, y: 50, scale: 1, rotation: 0, sizePct: 100 });
     };
 
     const handleSave = async () => {
-        if (!selectedTemplate || !selectedPart) return;
-        await onSaveTransform({ partId: selectedPart.id, templateId: selectedTemplate.id, transform });
-        alert('Saved transform for this head shape.');
+        if (!selectedTemplate) return;
+        await onUpdateTemplate(selectedTemplate.id, { transform });
+        alert('Saved transform for this avatar.');
     };
 
     return (
@@ -939,114 +900,41 @@ function AvatarAdmin({
                 </div>
             )}
 
-            {subTab === 'parts' && (
-                <div className="space-y-3">
-                    <Button onClick={onAddPart} className="w-full">
-                        <Plus size={18} /> Add Part
-                    </Button>
-                    {parts.map(p => (
-                        <div key={p.id} className="bg-wood-dark/50 border border-white/5 rounded-xl p-4 flex items-center gap-3">
-                            <div className="size-10 rounded-xl bg-wood-dark/60 border border-white/5 overflow-hidden flex items-center justify-center">
-                                {Array.isArray(p.assets) && (p.assets[0]?.dataUrl || p.assets[0]?.url) ? (
-                                    <img src={p.assets[0].dataUrl || p.assets[0].url} alt={p.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-sand/40 text-xs font-bold">No\nasset</span>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-white font-bold truncate">{p.name || 'Untitled'}</div>
-                                <div className="text-xs text-sand/50">{slotLabel(p.slot)} · z:{Number(p.zIndex || 0)}</div>
-                            </div>
-                            <button onClick={() => onEditPart(p)} className="p-2 text-primary hover:bg-white/5 rounded-lg transition-colors"><Edit2 size={18} /></button>
-                            <button onClick={() => onDeletePart(p.id)} className="p-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors"><Trash2 size={18} /></button>
-                        </div>
-                    ))}
-                    {parts.length === 0 && (
-                        <div className="text-center py-8 text-sand/50 font-bold">No parts yet.</div>
-                    )}
-                </div>
-            )}
-
             {subTab === 'editor' && (
                 <div className="space-y-3">
                     <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3">
-                        <div className="grid grid-cols-1 gap-2">
-                            <select
-                                value={selectedTemplateId || (selectedTemplate?.id || '')}
-                                onChange={(e) => { setSelectedTemplateId(e.target.value); setTimeout(applyExistingTransform, 0); }}
-                                className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
-                            >
-                                {combinedTemplates.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
-
-                            <select
-                                value={selectedPartId}
-                                onChange={(e) => { setSelectedPartId(e.target.value); setSelectedAssetId(''); setTimeout(applyExistingTransform, 0); }}
-                                className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
-                            >
-                                <option value="">-- select part --</option>
-                                {parts.map(p => (
-                                    <option key={p.id} value={p.id}>{slotLabel(p.slot)} · {p.name}</option>
-                                ))}
-                            </select>
-
-                            {selectedPart && (
-                                <select
-                                    value={selectedAssetId || (selectedAsset?.assetId || '')}
-                                    onChange={(e) => setSelectedAssetId(e.target.value)}
-                                    className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
-                                >
-                                    {(selectedPart.assets || []).map(a => (
-                                        <option key={a.assetId} value={a.assetId}>{a.kind} · {a.assetId}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
+                        <label className="block text-sm font-bold text-sand/70 mb-2">Select Avatar</label>
+                        <select
+                            value={selectedTemplateId || (selectedTemplate?.id || '')}
+                            onChange={(e) => { setSelectedTemplateId(e.target.value); setTimeout(applyExistingTransform, 0); }}
+                            className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
+                        >
+                            <option value="">-- select avatar --</option>
+                            {combinedTemplates.filter(t => !t.isBuiltin).map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="bg-wood-dark/50 border border-white/5 rounded-2xl p-3">
                         <div className="text-xs text-sand/60 mb-2">
-                            Drag the asset to position it. Adjust sliders for scale/rotation. Saved per head shape (template).
+                            Drag the avatar image to position it. Adjust sliders for scale/rotation/size. Transform is saved per avatar.
                         </div>
 
-                        {selectedPart && (!Array.isArray(selectedPart.assets) || selectedPart.assets.length === 0) && (
+                        {!avatarImageUrl && (
                             <div className="mb-3 bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-300 text-sm font-bold">
-                                هذا الجزء ما عنده Assets. افتح Parts Catalog وارفع PNG/SVG لهذا الجزء.
-                            </div>
-                        )}
-
-                        {(selectedAsset?.dataUrl || selectedAsset?.url) && (
-                            <div className="mb-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="size-12 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
-                                        <img src={selectedAsset.dataUrl || selectedAsset.url} alt="thumb" className="w-full h-full object-contain" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-xs text-sand/60 font-bold truncate">Asset:</div>
-                                        <div className="text-[10px] text-sand/40 break-all leading-snug">
-                                            {selectedAsset.dataUrl ? 'dataUrl (Firestore)' : selectedAsset.url}
-                                        </div>
-                                    </div>
-                                </div>
+                                This avatar has no image. Upload an image first in the Static Avatars tab.
                             </div>
                         )}
 
                         <div
                             className="relative w-full aspect-square rounded-xl overflow-hidden border border-white/10 bg-black/20"
-                            style={{
-                                backgroundImage: canvasBgUrl ? `url(${canvasBgUrl})` : undefined,
-                                backgroundSize: 'contain',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'center'
-                            }}
                         >
                             {showGuides && (
                                 <>
                                     <div className="absolute left-0 right-0 top-1/2 border-t border-white/10 pointer-events-none" />
                                     <div className="absolute top-0 bottom-0 left-1/2 border-l border-white/10 pointer-events-none" />
-                                    {/* Suggested face landmarks (tuned for 0-100% square canvas) */}
+                                    {/* Suggested face landmarks */}
                                     <div className="absolute left-0 right-0 top-[42%] border-t border-white/10 pointer-events-none" />
                                     <div className="absolute left-0 right-0 top-[58%] border-t border-white/10 pointer-events-none" />
                                     <div className="absolute left-0 right-0 top-[74%] border-t border-white/10 pointer-events-none" />
@@ -1055,18 +943,18 @@ function AvatarAdmin({
                                     </div>
                                 </>
                             )}
-                            {!canvasBgUrl && (
-                                <div className="absolute inset-0 flex items-center justify-center text-sand/40 text-sm font-bold">
-                                    No template preview. Upload a preview to position accurately.
-                                </div>
-                            )}
-                            {(selectedAsset?.dataUrl || selectedAsset?.url) && (
+                            {avatarImageUrl && (
                                 <DraggableAsset
-                                    url={selectedAsset.dataUrl || selectedAsset.url}
+                                    url={avatarImageUrl}
                                     transform={transform}
                                     onChange={setTransform}
                                     snapToGuides={snapToGuides}
                                 />
+                            )}
+                            {!avatarImageUrl && (
+                                <div className="absolute inset-0 flex items-center justify-center text-sand/40 text-sm font-bold">
+                                    No avatar image. Upload an image first.
+                                </div>
                             )}
                         </div>
 
@@ -1119,10 +1007,10 @@ function AvatarAdmin({
                             </button>
                             <button
                                 onClick={handleSave}
-                                disabled={!selectedTemplate || !selectedPart || !selectedAsset}
+                                disabled={!selectedTemplate || !avatarImageUrl}
                                 className="flex-1 py-2 rounded-xl bg-primary text-white font-bold hover:brightness-110 disabled:opacity-50"
                             >
-                                Save
+                                Save Transform
                             </button>
                         </div>
                     </div>
@@ -1251,13 +1139,6 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4">
                 <h3 className="text-xl font-bold text-white mb-4 engraved-text">{template ? 'Edit' : 'Add'} Static Avatar</h3>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30" />
-                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
-                    <div>
-                        <div className="text-sm font-bold text-white">Active</div>
-                        <div className="text-xs text-sand/50">Available to players</div>
-                    </div>
-                    <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-primary" />
-                </label>
 
                 {/* Static avatars are always uneditable */}
                 <input type="hidden" value="true" />
@@ -1291,168 +1172,6 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
                 <div className="flex gap-3">
                     <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
                     <Button onClick={handleSave} disabled={saving} className="flex-1 shadow-lg">{saving ? '...' : 'Save'}</Button>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
-
-function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }) {
-    const [name, setName] = useState(part?.name || '');
-    const [slot, setSlot] = useState(part?.slot || 'hair_hat');
-    const [zIndex, setZIndex] = useState(String(Number(part?.zIndex || 0)));
-    const [active, setActive] = useState(part?.active !== false);
-    const [assets, setAssets] = useState(Array.isArray(part?.assets) ? part.assets : []);
-    const [saving, setSaving] = useState(false);
-    const [status, setStatus] = useState('');
-    const [uploading, setUploading] = useState(false);
-    const [partId, setPartId] = useState(part?.id || null);
-    const assetsRef = React.useRef(assets);
-
-    // keep a synchronous copy so Save never misses uploads
-    React.useEffect(() => {
-        assetsRef.current = assets;
-    }, [assets]);
-
-    const handleUpload = async (file) => {
-        if (!file) return;
-        if (!partId) {
-            setStatus('لازم تحفظ الـ Part أولاً، وبعدها ارفع الصور عشان تنحفظ تحت نفس الـ ID.');
-            return;
-        }
-        setUploading(true);
-        setStatus('');
-        try {
-            const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
-            const kind = isSvg ? 'svg' : 'png';
-            const assetId = `${Date.now()}`;
-
-            // Timeout guard (firebase upload can hang if auth/storage rules block silently)
-        const res = await uploadAvatarAsset({ file });
-
-            if (res.ok) {
-            const nextAsset = { assetId, kind, dataUrl: res.dataUrl };
-                const nextAssets = [...assetsRef.current, nextAsset];
-                assetsRef.current = nextAssets;
-                setAssets(nextAssets);
-
-                // Persist immediately
-                const result = await onUpdate(partId, { assets: nextAssets, updatedAt: new Date().toISOString() });
-                if (result?.ok === false) {
-                    setStatus(`تم رفع الصورة، لكن صار خطأ أثناء حفظها. ${result?.error?.message ? `(${result.error.message})` : ''}`);
-                } else {
-                    setStatus('تم رفع الصورة وحفظها تلقائياً ✅');
-                }
-            } else {
-                setStatus(`فشل رفع الصورة. ${res?.error?.message ? `(${res.error.message})` : ''}`);
-            }
-        } catch (err) {
-            setStatus(`فشل رفع الصورة. (${err?.message || 'Unknown error'})`);
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!name.trim()) return;
-        if (uploading) {
-            setStatus('انتظر اكتمال رفع الصورة أولاً...');
-            return;
-        }
-        setSaving(true);
-        setStatus('');
-        const payload = {
-            name: name.trim(),
-            slot,
-            zIndex: Number(zIndex || 0),
-            active: !!active,
-            assets: assetsRef.current,
-            transformsByTemplate: part?.transformsByTemplate || {},
-            updatedAt: new Date().toISOString(),
-            createdAt: part?.createdAt || new Date().toISOString()
-        };
-        if (partId) {
-            const res = await onUpdate(partId, payload);
-            setSaving(false);
-            if (res?.ok === false) {
-                setStatus(`فشل الحفظ. جرّب مرة ثانية. ${res?.error?.message ? `(${res.error.message})` : ''}`);
-                return;
-            }
-            setStatus('تم الحفظ ✅');
-            onClose();
-            return;
-        }
-
-        const created = await onCreate(payload);
-        setSaving(false);
-        if (!created?.ok) {
-            setStatus(`فشل إنشاء الـ Part. جرّب مرة ثانية. ${created?.error?.message ? `(${created.error.message})` : ''}`);
-            return;
-        }
-        setPartId(created.id);
-        setStatus('تم إنشاء الـ Part ✅ الآن ارفع الصور، وبعدها تقدر تروح Position Editor.');
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4">
-                <h3 className="text-xl font-bold text-white mb-4 engraved-text">{part ? 'Edit' : 'Add'} Avatar Part</h3>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Part name" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30" />
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                    <select value={slot} onChange={(e) => setSlot(e.target.value)} className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white">
-                        <option value="hair_hat">hair/hat</option>
-                        <option value="eyebrows">eyebrows</option>
-                        <option value="eyes">eyes</option>
-                        <option value="nose">nose</option>
-                        <option value="mouth">mouth</option>
-                        <option value="facial_hair">facial hair</option>
-                    </select>
-                    <input value={zIndex} onChange={(e) => setZIndex(e.target.value)} type="number" step="1" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white" placeholder="zIndex" />
-                </div>
-                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
-                    <div>
-                        <div className="text-sm font-bold text-white">Active</div>
-                        <div className="text-xs text-sand/50">Available to players</div>
-                    </div>
-                    <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-primary" />
-                </label>
-
-                <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
-                    <div className="text-sm font-bold text-white mb-2">Assets (PNG/SVG)</div>
-                    <input
-                        type="file"
-                        accept=".png,.webp,.svg"
-                        disabled={!partId || uploading}
-                        onChange={(e) => handleUpload(e.target.files?.[0])}
-                        className="w-full text-sm text-sand/70 disabled:opacity-50"
-                    />
-                    {!partId && (
-                        <div className="mt-2 text-xs text-sand/50">
-                            احفظ الـ Part أولاً ثم ارفع الصور (عشان تنحفظ تحت نفس الـ ID).
-                        </div>
-                    )}
-                    {status && (
-                        <div className="mt-2 text-xs font-bold text-sand/70">
-                            {status}
-                        </div>
-                    )}
-                    <div className="mt-3 grid grid-cols-4 gap-2">
-                        {assets.map(a => (
-                            <div key={a.assetId} className="aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20">
-                                <img src={a.dataUrl || a.url} alt={a.assetId} className="w-full h-full object-contain" />
-                            </div>
-                        ))}
-                    </div>
-                    {assets.length === 0 && (
-                        <div className="mt-2 text-xs text-sand/50">No assets uploaded yet.</div>
-                    )}
-                </div>
-
-                <div className="flex gap-3">
-                    <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
-                    <Button onClick={handleSave} disabled={saving || uploading} className="flex-1 shadow-lg">
-                        {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save'}
-                    </Button>
                 </div>
             </motion.div>
         </div>
