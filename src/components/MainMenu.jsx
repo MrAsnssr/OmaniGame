@@ -15,22 +15,25 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
     };
 
     return (
-        <div className="relative min-h-screen flex flex-col w-full bg-[#221510]">
-            {/* Background Layers */}
-            <div className="absolute inset-0 z-0">
-                {/* Subtle dark wood grain texture pattern */}
-                <div className="absolute inset-0 bg-repeat opacity-20 mix-blend-multiply" style={{ backgroundColor: '#33221E' }} />
-                {/* Repeating Omani geometric diamond pattern */}
-                <div 
-                    className="absolute inset-0 opacity-5 rotate-45"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='60' font-size='50' fill='%23EC4913'%3E◇%3C/text%3E%3C/svg%3E")`,
-                        backgroundSize: '60px 60px'
-                    }}
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#181311]/80 via-transparent to-[#181311]/90 pointer-events-none" />
-            </div>
+        // Outer wrapper: fills screen, allows vertical scroll on small heights
+        <div className="relative h-full w-full bg-[#221510] text-white overflow-x-hidden overflow-y-auto">
+            {/* Centered mobile-frame container for desktop */}
+            <div className="relative w-full max-w-md mx-auto min-h-screen min-h-[100dvh] shadow-2xl overflow-hidden bg-[#221510] flex flex-col">
+                {/* Background Layers */}
+                <div className="absolute inset-0 z-0">
+                    {/* Subtle dark wood grain texture pattern */}
+                    <div className="absolute inset-0 bg-repeat opacity-20 mix-blend-multiply" style={{ backgroundColor: '#33221E' }} />
+                    {/* Repeating Omani geometric diamond pattern */}
+                    <div 
+                        className="absolute inset-0 opacity-5 rotate-45"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='60' font-size='50' fill='%23EC4913'%3E◇%3C/text%3E%3C/svg%3E")`,
+                            backgroundSize: '60px 60px'
+                        }}
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#181311]/80 via-transparent to-[#181311]/90 pointer-events-none" />
+                </div>
 
             {/* Header Bar */}
             <div className="relative z-10 flex items-center justify-between px-6 pt-6 pb-2">
@@ -185,6 +188,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 <div className="mt-4 flex justify-center">
                     <div className="w-1/3 h-1 bg-white/10 rounded-full" />
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -70,9 +70,9 @@ html, body {
 }
 
 body {
-  @apply text-white overflow-hidden font-sans;
-  background-color: #221510;
-  min-height: max(884px, 100dvh);
+  /* Keep global defaults light; dark UI is scoped per-screen */
+  @apply text-gray-800 overflow-hidden font-sans;
+  background-color: #F5E6CA; /* omani-sand fallback */
 }
 
 /* Dark wood background pattern */
