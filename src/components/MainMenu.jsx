@@ -67,7 +67,16 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                                 <img
                                     src={selectedTemplate.previewAsset.dataUrl || selectedTemplate.previewAsset.url}
                                     alt="avatar"
-                                    className="w-full h-full object-contain"
+                                    className="absolute"
+                                    style={{
+                                        left: `${selectedTemplate?.transform?.x ?? 50}%`,
+                                        top: `${selectedTemplate?.transform?.y ?? 50}%`,
+                                        width: `${selectedTemplate?.transform?.sizePct ?? 100}%`,
+                                        height: `${selectedTemplate?.transform?.sizePct ?? 100}%`,
+                                        transform: `translate(-50%, -50%) rotate(${selectedTemplate?.transform?.rotation ?? 0}deg) scale(${selectedTemplate?.transform?.scale ?? 1})`,
+                                        transformOrigin: 'center',
+                                        objectFit: 'contain',
+                                    }}
                                     draggable={false}
                                 />
                             ) : (

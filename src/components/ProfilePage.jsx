@@ -75,12 +75,21 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                     {/* Avatar Section */}
                     <div className="flex flex-col items-center">
                         <div className="relative group">
-                            <div className="size-32 rounded-full bg-gradient-to-br from-wood-dark to-wood-light flex items-center justify-center ring-4 ring-primary/20 shadow-2xl overflow-hidden">
+                            <div className="size-32 rounded-full bg-gradient-to-br from-wood-dark to-wood-light flex items-center justify-center ring-4 ring-primary/20 shadow-2xl overflow-hidden relative">
                                 {selectedTemplate?.previewAsset?.dataUrl || selectedTemplate?.previewAsset?.url ? (
                                     <img
                                         src={selectedTemplate.previewAsset.dataUrl || selectedTemplate.previewAsset.url}
                                         alt="avatar"
-                                        className="w-full h-full object-contain"
+                                        className="absolute"
+                                        style={{
+                                            left: `${selectedTemplate?.transform?.x ?? 50}%`,
+                                            top: `${selectedTemplate?.transform?.y ?? 50}%`,
+                                            width: `${selectedTemplate?.transform?.sizePct ?? 100}%`,
+                                            height: `${selectedTemplate?.transform?.sizePct ?? 100}%`,
+                                            transform: `translate(-50%, -50%) rotate(${selectedTemplate?.transform?.rotation ?? 0}deg) scale(${selectedTemplate?.transform?.scale ?? 1})`,
+                                            transformOrigin: 'center',
+                                            objectFit: 'contain',
+                                        }}
                                         draggable={false}
                                     />
                                 ) : (
@@ -203,12 +212,23 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                                                     }`}
                                                 >
                                                     {previewUrl ? (
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt={template.name || 'avatar'}
-                                                            className="w-full h-full object-contain"
-                                                            draggable={false}
-                                                        />
+                                                        <div className="relative w-full h-full overflow-hidden">
+                                                            <img
+                                                                src={previewUrl}
+                                                                alt={template.name || 'avatar'}
+                                                                className="absolute"
+                                                                style={{
+                                                                    left: `${template?.transform?.x ?? 50}%`,
+                                                                    top: `${template?.transform?.y ?? 50}%`,
+                                                                    width: `${template?.transform?.sizePct ?? 100}%`,
+                                                                    height: `${template?.transform?.sizePct ?? 100}%`,
+                                                                    transform: `translate(-50%, -50%) rotate(${template?.transform?.rotation ?? 0}deg) scale(${template?.transform?.scale ?? 1})`,
+                                                                    transformOrigin: 'center',
+                                                                    objectFit: 'contain',
+                                                                }}
+                                                                draggable={false}
+                                                            />
+                                                        </div>
                                                     ) : (
                                                         <div className="w-full h-full bg-wood-dark/50 flex items-center justify-center text-sand/40 text-xs font-bold">
                                                             {template.name || 'No Image'}
