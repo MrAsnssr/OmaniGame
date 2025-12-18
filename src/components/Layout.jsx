@@ -3,9 +3,6 @@ import React from 'react';
 export default function Layout({ children }) {
     return (
         <div className="w-full h-full relative flex flex-col font-sans bg-omani-pattern overflow-hidden">
-            {/* Decorative Top Border */}
-            <div className="h-1 w-full bg-gradient-to-r from-omani-red/30 via-omani-white/20 to-omani-green/30 z-50 flex-none" />
-            
             {/* Corner Ornaments (CSS shapes or simplified) */}
             <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-5">
                 <div className="absolute top-0 left-0 w-full h-full border-t-8 border-l-8 border-omani-gold rounded-tl-3xl" />
