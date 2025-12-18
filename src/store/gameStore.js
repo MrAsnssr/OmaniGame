@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { db, storage } from '../services/firebase';
+import { db } from '../services/firebase';
 import {
     collection,
     getDocs,
@@ -16,8 +16,63 @@ import {
     getDoc,
     arrayUnion
 } from 'firebase/firestore';
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { initialCategories, initialQuestions } from '../data/questions';
+
+async function blobToDataUrl(blob) {
+    return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
+async function fileToText(file) {
+    return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+    });
+}
+
+async function compressRasterToDataUrl(file, { maxSize = 512, type = 'image/webp', quality = 0.82 } = {}) {
+    const url = URL.createObjectURL(file);
+    try {
+        const img = await new Promise((resolve, reject) => {
+            const i = new Image();
+            i.onload = () => resolve(i);
+            i.onerror = reject;
+            i.src = url;
+        });
+
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas not supported');
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const blob = await new Promise((resolve) =>
+            canvas.toBlob((b) => resolve(b), type, quality)
+        );
+        if (!blob) throw new Error('Failed to encode image');
+        const dataUrl = await blobToDataUrl(blob);
+        return { dataUrl, w, h, mime: type, bytes: blob.size };
+    } finally {
+        URL.revokeObjectURL(url);
+    }
+}
+
+function svgTextToDataUrl(svgText) {
+    // Safer for unicode than base64: encodeURIComponent
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+}
 
 export const useGameStore = create((set, get) => ({
     STARTING_DIRHAMS: 750,
@@ -211,66 +266,39 @@ export const useGameStore = create((set, get) => ({
     },
 
     uploadAvatarAsset: async ({ file, path }) => {
-        if (!file || !path) return { ok: false, error: 'missing_file_or_path' };
+        // Option A: store as Base64/dataUrl inside Firestore (no Firebase Storage)
+        if (!file) return { ok: false, error: { message: 'missing_file' } };
         try {
-            const r = storageRef(storage, path);
-            const task = uploadBytesResumable(r, file, { contentType: file.type });
+            const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
+            let dataUrl;
+            let w;
+            let h;
+            let mime;
+            let bytes;
 
-            // Watchdog: if no progress for 20s -> timeout
-            const idleTimeoutMs = 20000;
-            let lastProgressAt = Date.now();
-            let watchdog = null;
+            if (isSvg) {
+                const svgText = await fileToText(file);
+                dataUrl = svgTextToDataUrl(svgText);
+                mime = 'image/svg+xml';
+                bytes = svgText.length;
+            } else {
+                const out = await compressRasterToDataUrl(file, { maxSize: 512, type: 'image/webp', quality: 0.82 });
+                dataUrl = out.dataUrl;
+                w = out.w;
+                h = out.h;
+                mime = out.mime;
+                bytes = out.bytes;
+            }
 
-            const startWatchdog = () => {
-                watchdog = setInterval(() => {
-                    if (Date.now() - lastProgressAt > idleTimeoutMs) {
-                        try { task.cancel(); } catch { /* ignore */ }
-                    }
-                }, 1000);
-            };
+            // Firestore doc limit is ~1MB. Keep each asset small.
+            if (typeof dataUrl === 'string' && dataUrl.length > 350_000) {
+                return { ok: false, error: { message: 'Image too large for Firestore. Use a smaller image.' } };
+            }
 
-            const stopWatchdog = () => {
-                if (watchdog) clearInterval(watchdog);
-            };
-
-            startWatchdog();
-
-            const snapshot = await new Promise((resolve, reject) => {
-                task.on(
-                    'state_changed',
-                    (snap) => {
-                        if (snap.totalBytes > 0 && snap.bytesTransferred > 0) {
-                            lastProgressAt = Date.now();
-                        }
-                    },
-                    (err) => {
-                        stopWatchdog();
-                        // If we cancelled due to watchdog, show timeout
-                        if (err?.code === 'storage/canceled') {
-                            reject(Object.assign(new Error('Upload timed out or was canceled'), { code: 'upload_timeout' }));
-                            return;
-                        }
-                        reject(err);
-                    },
-                    () => {
-                        stopWatchdog();
-                        resolve(task.snapshot);
-                    }
-                );
-            });
-
-            const url = await getDownloadURL(snapshot.ref);
-            return { ok: true, url, storagePath: path, contentType: file.type, name: file.name, size: file.size };
+            return { ok: true, dataUrl, contentType: mime || file.type, name: file.name, size: bytes, w, h };
         } catch (error) {
             console.error('Error uploading avatar asset:', error);
-            // Normalize error message for UI
-            const msg =
-                error?.code === 'storage/unauthorized'
-                    ? 'Storage unauthorized (check Firebase Storage rules)'
-                    : error?.code === 'upload_timeout'
-                        ? 'Upload timed out'
-                        : (error?.message || String(error));
-            return { ok: false, error: { message: msg, code: error?.code } };
+            return { ok: false, error: { message: error?.message || String(error) } };
         }
     },
 

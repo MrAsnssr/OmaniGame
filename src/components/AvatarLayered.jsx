@@ -45,7 +45,7 @@ export default function AvatarLayered({
         };
       })
       .filter(Boolean)
-      .filter(x => x.asset?.url);
+      .filter(x => x.asset?.url || x.asset?.dataUrl);
 
     selected.sort((a, b) => a.zIndex - b.zIndex);
     return selected;
@@ -77,7 +77,7 @@ export default function AvatarLayered({
         return (
           <img
             key={`${l.part.id}-${l.asset.assetId}`}
-            src={l.asset.url}
+            src={l.asset.dataUrl || l.asset.url}
             alt={l.part.name}
             draggable={false}
             className="absolute"

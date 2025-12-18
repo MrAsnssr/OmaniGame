@@ -987,15 +987,17 @@ function AvatarAdmin({
                             </div>
                         )}
 
-                        {selectedAsset?.url && (
+                        {(selectedAsset?.dataUrl || selectedAsset?.url) && (
                             <div className="mb-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
                                 <div className="flex items-center gap-3">
                                     <div className="size-12 rounded-xl overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
-                                        <img src={selectedAsset.url} alt="thumb" className="w-full h-full object-contain" />
+                                        <img src={selectedAsset.dataUrl || selectedAsset.url} alt="thumb" className="w-full h-full object-contain" />
                                     </div>
                                     <div className="min-w-0">
-                                        <div className="text-xs text-sand/60 font-bold truncate">Asset URL:</div>
-                                        <div className="text-[10px] text-sand/40 break-all leading-snug">{selectedAsset.url}</div>
+                                        <div className="text-xs text-sand/60 font-bold truncate">Asset:</div>
+                                        <div className="text-[10px] text-sand/40 break-all leading-snug">
+                                            {selectedAsset.dataUrl ? 'dataUrl (Firestore)' : selectedAsset.url}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1028,9 +1030,9 @@ function AvatarAdmin({
                                     No template preview. Upload a preview to position accurately.
                                 </div>
                             )}
-                            {selectedAsset?.url && (
+                            {(selectedAsset?.dataUrl || selectedAsset?.url) && (
                                 <DraggableAsset
-                                    url={selectedAsset.url}
+                                    url={selectedAsset.dataUrl || selectedAsset.url}
                                     transform={transform}
                                     onChange={setTransform}
                                     snapToGuides={snapToGuides}
@@ -1176,11 +1178,9 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
     const handleUpload = async (file) => {
         if (!file) return;
         const ext = file.name.toLowerCase().endsWith('.svg') ? 'svg' : 'png';
-        const idPart = template?.id || `new-${Date.now()}`;
-        const path = `avatar/faceTemplates/${idPart}/${Date.now()}-${file.name}`;
-        const res = await uploadAvatarAsset({ file, path });
+        const res = await uploadAvatarAsset({ file });
         if (res.ok) {
-            setPreviewAsset({ kind: ext, storagePath: res.storagePath, url: res.url });
+            setPreviewAsset({ kind: ext, dataUrl: res.dataUrl });
         }
     };
 
@@ -1261,21 +1261,12 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
             const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml';
             const kind = isSvg ? 'svg' : 'png';
             const assetId = `${Date.now()}`;
-            const path = `avatar/parts/${partId}/${assetId}-${file.name}`;
 
             // Timeout guard (firebase upload can hang if auth/storage rules block silently)
-            const timeoutMs = 25000;
-            const timeoutPromise = new Promise((resolve) =>
-                setTimeout(() => resolve({ ok: false, error: { message: 'Upload timed out' } }), timeoutMs)
-            );
-
-            const res = await Promise.race([
-                uploadAvatarAsset({ file, path }),
-                timeoutPromise
-            ]);
+        const res = await uploadAvatarAsset({ file });
 
             if (res.ok) {
-                const nextAsset = { assetId, kind, storagePath: res.storagePath, url: res.url };
+            const nextAsset = { assetId, kind, dataUrl: res.dataUrl };
                 const nextAssets = [...assetsRef.current, nextAsset];
                 assetsRef.current = nextAssets;
                 setAssets(nextAssets);
@@ -1383,7 +1374,7 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
                     <div className="mt-3 grid grid-cols-4 gap-2">
                         {assets.map(a => (
                             <div key={a.assetId} className="aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20">
-                                <img src={a.url} alt={a.assetId} className="w-full h-full object-contain" />
+                                <img src={a.dataUrl || a.url} alt={a.assetId} className="w-full h-full object-contain" />
                             </div>
                         ))}
                     </div>
