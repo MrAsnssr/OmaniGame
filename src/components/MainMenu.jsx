@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import Avatar, { DEFAULT_AVATAR } from './Avatar';
+import AvatarLayered from './AvatarLayered';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams, avatar } = useGameStore();
+    const { dirhams, avatar, avatarV2, avatarFaceTemplates, avatarParts } = useGameStore();
+    const avatarMode = avatarV2?.mode || 'builtin';
+    const selectedTemplate = avatarFaceTemplates.find(t => t.id === avatarV2?.templateId) || avatarFaceTemplates[0] || null;
     
     const handleLeaderboardClick = () => {
         navigate('/leaderboard');
@@ -55,7 +58,17 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                 >
                     <div className="relative size-10 rounded-full overflow-hidden ring-2 ring-primary/50 bg-wood-dark">
                         {user ? (
-                            <Avatar config={avatar || DEFAULT_AVATAR} size={40} />
+                            avatarMode === 'layered' ? (
+                                <AvatarLayered
+                                    size={40}
+                                    template={selectedTemplate}
+                                    partsCatalog={avatarParts}
+                                    selections={avatarV2?.selections || {}}
+                                    fallback={<Avatar config={avatar || DEFAULT_AVATAR} size={40} />}
+                                />
+                            ) : (
+                                <Avatar config={avatar || DEFAULT_AVATAR} size={40} />
+                            )
                         ) : (
                             <div className="size-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white">
                                 <span className="material-symbols-outlined text-xl">person</span>

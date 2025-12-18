@@ -110,9 +110,10 @@ export default function App() {
         useGameStore.getState().loadUserPurchases(authUser.uid);
         useGameStore.getState().loadUserDirhams(authUser.uid);
         useGameStore.getState().loadUserAvatar(authUser.uid);
+        useGameStore.getState().loadUserAvatarV2(authUser.uid);
       } else {
         useGameStore.getState().setCurrentUser(null, null);
-        useGameStore.getState().avatar = null;
+        useGameStore.setState({ avatar: null, avatarV2: null });
       }
     });
     return () => unsubscribe();

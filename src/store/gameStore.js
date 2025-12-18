@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { db } from '../services/firebase';
+import { db, storage } from '../services/firebase';
 import {
     collection,
     getDocs,
@@ -16,6 +16,7 @@ import {
     getDoc,
     arrayUnion
 } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initialCategories, initialQuestions } from '../data/questions';
 
 export const useGameStore = create((set, get) => ({
@@ -160,6 +161,122 @@ export const useGameStore = create((set, get) => ({
         } catch (error) {
             console.error('Error saving user avatar:', error);
             return { ok: false, error };
+        }
+    },
+
+    // Avatar V2 (layered assets)
+    avatarV2: null, // { mode: 'layered'|'builtin', templateId, selections, overridesByTemplate }
+    avatarFaceTemplates: [],
+    avatarParts: [],
+    avatarAdminLoading: false,
+
+    loadUserAvatarV2: async (userId) => {
+        if (!userId) return;
+        try {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data() || {};
+                if (data.avatarV2 && typeof data.avatarV2 === 'object') {
+                    set({ avatarV2: data.avatarV2 });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user avatarV2:', error);
+        }
+    },
+
+    saveUserAvatarV2: async (userId, avatarV2) => {
+        if (!userId || !avatarV2) return { ok: false };
+        try {
+            await setDoc(doc(db, 'users', userId), {
+                avatarV2,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+            set({ avatarV2 });
+            return { ok: true };
+        } catch (error) {
+            console.error('Error saving user avatarV2:', error);
+            return { ok: false, error };
+        }
+    },
+
+    uploadAvatarAsset: async ({ file, path }) => {
+        if (!file || !path) return { ok: false, error: 'missing_file_or_path' };
+        try {
+            const r = storageRef(storage, path);
+            await uploadBytes(r, file, { contentType: file.type });
+            const url = await getDownloadURL(r);
+            return { ok: true, url, storagePath: path, contentType: file.type, name: file.name, size: file.size };
+        } catch (error) {
+            console.error('Error uploading avatar asset:', error);
+            return { ok: false, error };
+        }
+    },
+
+    // Admin: Face templates
+    addAvatarFaceTemplate: async (payload) => {
+        try {
+            await addDoc(collection(db, 'avatarFaceTemplates'), payload);
+        } catch (error) {
+            console.error('Error adding face template:', error);
+        }
+    },
+    editAvatarFaceTemplate: async (id, updates) => {
+        try {
+            await updateDoc(doc(db, 'avatarFaceTemplates', id), updates);
+        } catch (error) {
+            console.error('Error updating face template:', error);
+        }
+    },
+    deleteAvatarFaceTemplate: async (id) => {
+        try {
+            await deleteDoc(doc(db, 'avatarFaceTemplates', id));
+        } catch (error) {
+            console.error('Error deleting face template:', error);
+        }
+    },
+
+    // Admin: Parts
+    addAvatarPart: async (payload) => {
+        try {
+            await addDoc(collection(db, 'avatarParts'), payload);
+        } catch (error) {
+            console.error('Error adding avatar part:', error);
+        }
+    },
+    editAvatarPart: async (id, updates) => {
+        try {
+            await updateDoc(doc(db, 'avatarParts', id), updates);
+        } catch (error) {
+            console.error('Error updating avatar part:', error);
+        }
+    },
+    deleteAvatarPart: async (id) => {
+        try {
+            await deleteDoc(doc(db, 'avatarParts', id));
+        } catch (error) {
+            console.error('Error deleting avatar part:', error);
+        }
+    },
+
+    saveAvatarPartTransform: async ({ partId, templateId, transform }) => {
+        if (!partId || !templateId || !transform) return;
+        try {
+            const partRef = doc(db, 'avatarParts', partId);
+            // read current to merge transformsByTemplate safely
+            const snap = await getDoc(partRef);
+            const current = snap.exists() ? snap.data() : {};
+            const transformsByTemplate = { ...(current?.transformsByTemplate || {}) };
+            transformsByTemplate[templateId] = {
+                x: Number(transform.x || 0),
+                y: Number(transform.y || 0),
+                scale: Number(transform.scale || 1),
+                rotation: Number(transform.rotation || 0)
+            };
+            await updateDoc(partRef, { transformsByTemplate, updatedAt: new Date().toISOString() });
+        } catch (error) {
+            console.error('Error saving part transform:', error);
         }
     },
 
@@ -456,6 +573,28 @@ export const useGameStore = create((set, get) => ({
                 }
             );
 
+            const unsubscribeAvatarFaceTemplates = onSnapshot(
+                collection(db, 'avatarFaceTemplates'),
+                (snapshot) => {
+                    const avatarFaceTemplates = snapshot.docs.map(d => ({
+                        ...d.data(),
+                        id: d.id
+                    }));
+                    set({ avatarFaceTemplates });
+                }
+            );
+
+            const unsubscribeAvatarParts = onSnapshot(
+                collection(db, 'avatarParts'),
+                (snapshot) => {
+                    const avatarParts = snapshot.docs.map(d => ({
+                        ...d.data(),
+                        id: d.id
+                    }));
+                    set({ avatarParts });
+                }
+            );
+
             const unsubscribeReports = onSnapshot(
                 collection(db, 'reports'),
                 (snapshot) => {
@@ -468,7 +607,7 @@ export const useGameStore = create((set, get) => ({
             );
 
             // Store unsubscribe functions
-            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeMarketItems, unsubscribeReports });
+            set({ unsubscribeSubjects, unsubscribeCategories, unsubscribeQuestions, unsubscribeMarketItems, unsubscribeAvatarFaceTemplates, unsubscribeAvatarParts, unsubscribeReports });
         } catch (error) {
             console.error('Error initializing Firestore:', error);
             set({ isLoading: false });

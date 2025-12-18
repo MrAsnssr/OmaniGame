@@ -4,6 +4,7 @@ import { ArrowRight, User, Save, Check, Pencil } from 'lucide-react';
 import Button from './Button';
 import Avatar, { DEFAULT_AVATAR } from './Avatar';
 import AvatarEditor from './AvatarEditor';
+import AvatarLayered from './AvatarLayered';
 import { updateUserProfile } from '../services/authService';
 import { useGameStore } from '../store/gameStore';
 
@@ -13,8 +14,12 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
     const [message, setMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
     const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+    const [showLayeredPicker, setShowLayeredPicker] = useState(false);
 
-    const { avatar, saveUserAvatar } = useGameStore();
+    const { avatar, saveUserAvatar, avatarV2, saveUserAvatarV2, avatarFaceTemplates, avatarParts } = useGameStore();
+
+    const avatarMode = avatarV2?.mode || 'builtin';
+    const selectedTemplate = avatarFaceTemplates.find(t => t.id === avatarV2?.templateId) || avatarFaceTemplates[0] || null;
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -49,6 +54,17 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
         }
     };
 
+    const handleSaveAvatarV2 = async (nextAvatarV2) => {
+        if (!user?.uid) return;
+        const result = await saveUserAvatarV2(user.uid, nextAvatarV2);
+        if (result.ok) {
+            setShowLayeredPicker(false);
+            setMessage('تم حفظ الصورة الرمزية!');
+            setIsSuccess(true);
+            setTimeout(() => setMessage(''), 2000);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
@@ -68,21 +84,45 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                     <div className="flex flex-col items-center">
                         <div className="relative group">
                             <div className="size-32 rounded-full bg-gradient-to-br from-wood-dark to-wood-light flex items-center justify-center ring-4 ring-primary/20 shadow-2xl overflow-hidden">
-                                <Avatar config={avatar || DEFAULT_AVATAR} size={128} />
+                                {avatarMode === 'layered' ? (
+                                    <AvatarLayered
+                                        size={128}
+                                        template={selectedTemplate}
+                                        partsCatalog={avatarParts}
+                                        selections={avatarV2?.selections || {}}
+                                        fallback={<Avatar config={avatar || DEFAULT_AVATAR} size={128} />}
+                                    />
+                                ) : (
+                                    <Avatar config={avatar || DEFAULT_AVATAR} size={128} />
+                                )}
                             </div>
                             <button 
-                                onClick={() => setShowAvatarEditor(true)}
+                                onClick={() => (avatarMode === 'layered' ? setShowLayeredPicker(true) : setShowAvatarEditor(true))}
                                 className="absolute bottom-0 right-0 size-10 rounded-full bg-wood-dark border-2 border-primary text-primary flex items-center justify-center shadow-lg hover:bg-primary hover:text-white transition-all"
                             >
                                 <Pencil size={18} />
                             </button>
                         </div>
                         <button 
-                            onClick={() => setShowAvatarEditor(true)}
+                            onClick={() => (avatarMode === 'layered' ? setShowLayeredPicker(true) : setShowAvatarEditor(true))}
                             className="mt-3 text-primary text-sm font-bold hover:underline"
                         >
                             تعديل الصورة الرمزية
                         </button>
+                        <div className="mt-3 flex gap-2">
+                            <button
+                                onClick={() => handleSaveAvatarV2({ mode: 'builtin' })}
+                                className={`px-3 py-2 rounded-xl text-xs font-bold border ${avatarMode === 'builtin' ? 'bg-primary text-white border-primary' : 'bg-wood-dark/50 text-sand border-white/10 hover:bg-wood-dark/70'}`}
+                            >
+                                Built-in
+                            </button>
+                            <button
+                                onClick={() => setShowLayeredPicker(true)}
+                                className={`px-3 py-2 rounded-xl text-xs font-bold border ${avatarMode === 'layered' ? 'bg-primary text-white border-primary' : 'bg-wood-dark/50 text-sand border-white/10 hover:bg-wood-dark/70'}`}
+                            >
+                                Layered
+                            </button>
+                        </div>
                         <p className="mt-2 text-sand/50 text-sm font-bold">{user?.email}</p>
                     </div>
 
@@ -177,6 +217,114 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <AnimatePresence>
+                {showLayeredPicker && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                        >
+                            <h3 className="text-xl font-black text-white mb-4 engraved-text text-center">Layered Avatar</h3>
+                            <LayeredAvatarPicker
+                                templates={avatarFaceTemplates}
+                                parts={avatarParts}
+                                value={avatarV2}
+                                onCancel={() => setShowLayeredPicker(false)}
+                                onSave={handleSaveAvatarV2}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+function LayeredAvatarPicker({ templates, parts, value, onCancel, onSave }) {
+    const [templateId, setTemplateId] = useState(value?.templateId || templates[0]?.id || '');
+    const [selections, setSelections] = useState(value?.selections || {});
+
+    const template = templates.find(t => t.id === templateId) || templates[0] || null;
+
+    const slots = [
+        { id: 'hair_hat', label: 'Hair/Hat' },
+        { id: 'eyebrows', label: 'Eyebrows' },
+        { id: 'eyes', label: 'Eyes' },
+        { id: 'nose', label: 'Nose' },
+        { id: 'mouth', label: 'Mouth' },
+        { id: 'facial_hair', label: 'Facial Hair' },
+    ];
+
+    const partsBySlot = (slot) => parts.filter(p => p.slot === slot && p.active !== false);
+
+    const setSlotPart = (slot, partId) => {
+        const p = parts.find(x => x.id === partId);
+        const assetId = p?.assets?.[0]?.assetId || '';
+        setSelections(prev => ({ ...prev, [slot]: { partId, assetId } }));
+    };
+
+    return (
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex justify-center mb-4">
+                <AvatarLayered
+                    size={140}
+                    template={template}
+                    partsCatalog={parts}
+                    selections={selections}
+                    fallback={<div className="size-[140px] rounded-full bg-wood-dark/50 border border-white/10" />}
+                />
+            </div>
+
+            <div className="space-y-3 overflow-y-auto min-h-0 pb-2">
+                <div>
+                    <label className="block text-xs font-bold text-sand/70 mb-1">Head shape (template)</label>
+                    <select
+                        value={templateId}
+                        onChange={(e) => setTemplateId(e.target.value)}
+                        className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
+                    >
+                        {templates.filter(t => t.active !== false).map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {slots.map(slot => (
+                    <div key={slot.id} className="bg-wood-dark/40 border border-white/5 rounded-xl p-3">
+                        <div className="text-sm font-bold text-white mb-2">{slot.label}</div>
+                        <select
+                            value={selections?.[slot.id]?.partId || ''}
+                            onChange={(e) => setSlotPart(slot.id, e.target.value)}
+                            className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
+                        >
+                            <option value="">-- none --</option>
+                            {partsBySlot(slot.id).map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex gap-3 pt-3 mt-auto">
+                <Button onClick={onCancel} variant="ghost" className="flex-1 border border-white/10">
+                    إلغاء
+                </Button>
+                <Button
+                    onClick={() => onSave({ mode: 'layered', templateId, selections })}
+                    className="flex-1"
+                >
+                    حفظ
+                </Button>
+            </div>
         </div>
     );
 }
