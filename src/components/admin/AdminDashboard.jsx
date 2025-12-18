@@ -1242,6 +1242,12 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
     const [status, setStatus] = useState('');
     const [uploading, setUploading] = useState(false);
     const [partId, setPartId] = useState(part?.id || null);
+    const assetsRef = React.useRef(assets);
+
+    // keep a synchronous copy so Save never misses uploads
+    React.useEffect(() => {
+        assetsRef.current = assets;
+    }, [assets]);
 
     const handleUpload = async (file) => {
         if (!file) return;
@@ -1258,13 +1264,12 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
         const res = await uploadAvatarAsset({ file, path });
         if (res.ok) {
             const nextAsset = { assetId, kind, storagePath: res.storagePath, url: res.url };
-            setAssets((prev) => {
-                const nextAssets = [...prev, nextAsset];
-                return nextAssets;
-            });
+            const nextAssets = [...assetsRef.current, nextAsset];
+            assetsRef.current = nextAssets;
+            setAssets(nextAssets);
 
             // Persist immediately
-            const result = await onUpdate(partId, { assets: [...assets, nextAsset], updatedAt: new Date().toISOString() });
+            const result = await onUpdate(partId, { assets: nextAssets, updatedAt: new Date().toISOString() });
             if (result?.ok === false) {
                 setStatus('تم رفع الصورة، لكن صار خطأ أثناء حفظها. اضغط Save أو جرّب مرة ثانية.');
             } else {
@@ -1278,6 +1283,10 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
 
     const handleSave = async () => {
         if (!name.trim()) return;
+        if (uploading) {
+            setStatus('انتظر اكتمال رفع الصورة أولاً...');
+            return;
+        }
         setSaving(true);
         setStatus('');
         const payload = {
@@ -1285,7 +1294,7 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
             slot,
             zIndex: Number(zIndex || 0),
             active: !!active,
-            assets,
+            assets: assetsRef.current,
             transformsByTemplate: part?.transformsByTemplate || {},
             updatedAt: new Date().toISOString(),
             createdAt: part?.createdAt || new Date().toISOString()
@@ -1294,7 +1303,7 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
             const res = await onUpdate(partId, payload);
             setSaving(false);
             if (res?.ok === false) {
-                setStatus('فشل الحفظ. جرّب مرة ثانية.');
+                setStatus(`فشل الحفظ. جرّب مرة ثانية. ${res?.error?.message ? `(${res.error.message})` : ''}`);
                 return;
             }
             setStatus('تم الحفظ ✅');
@@ -1305,7 +1314,7 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
         const created = await onCreate(payload);
         setSaving(false);
         if (!created?.ok) {
-            setStatus('فشل إنشاء الـ Part. جرّب مرة ثانية.');
+            setStatus(`فشل إنشاء الـ Part. جرّب مرة ثانية. ${created?.error?.message ? `(${created.error.message})` : ''}`);
             return;
         }
         setPartId(created.id);
@@ -1369,7 +1378,9 @@ function AvatarPartForm({ part, onClose, onCreate, onUpdate, uploadAvatarAsset }
 
                 <div className="flex gap-3">
                     <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
-                    <Button onClick={handleSave} disabled={saving} className="flex-1 shadow-lg">{saving ? '...' : 'Save'}</Button>
+                    <Button onClick={handleSave} disabled={saving || uploading} className="flex-1 shadow-lg">
+                        {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save'}
+                    </Button>
                 </div>
             </motion.div>
         </div>
