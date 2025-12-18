@@ -112,7 +112,7 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                     <MenuCard 
                         title="السبلة"
                         subtitle="تحدى الجماعة أونلاين"
-                        icon={<img src={dallahIcon} alt="دلة" className="w-7 h-7 object-contain brightness-0 invert" />}
+                        icon={<img src={dallahIcon} alt="دلة" className="w-12 h-12 object-contain brightness-0 invert" />}
                         gradient="from-omani-green to-green-700"
                         shadowColor="shadow-omani-green/20"
                         onClick={onMultiplayer}
