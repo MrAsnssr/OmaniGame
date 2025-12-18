@@ -13,6 +13,8 @@ function isArabic(text) {
 
 export default function FillBlank({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
+    // Track the question ID to detect actual question changes
+    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
     const [typedAnswer, setTypedAnswer] = useState('');
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -21,6 +23,15 @@ export default function FillBlank({ question, onAnswer, onUpdate, disabled = fal
     // Detect if answer should be in English or Arabic
     const answerIsArabic = isArabic(question.answer);
     const languageHint = answerIsArabic ? 'الإجابة بالعربي' : 'Answer in English';
+
+    // Reset answer when question actually changes
+    useEffect(() => {
+        const currentQuestionId = question?.id || question?.question;
+        if (currentQuestionId !== lastQuestionId) {
+            setLastQuestionId(currentQuestionId);
+            setTypedAnswer('');
+        }
+    }, [question, lastQuestionId]);
 
     const handleReport = async () => {
         if (!reportReason.trim()) return;

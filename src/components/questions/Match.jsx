@@ -6,6 +6,8 @@ import { useGameStore } from '../../store/gameStore';
 
 export default function Match({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
+    // Track the question ID to detect actual question changes
+    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
     const [leftItems, setLeftItems] = useState([]);
     const [rightItems, setRightItems] = useState([]);
     const [selectedLeft, setSelectedLeft] = useState(null);
@@ -26,19 +28,24 @@ export default function Match({ question, onAnswer, onUpdate, disabled = false }
         }
     };
 
+    // Initialize items ONLY when question actually changes (by ID, not reference)
     useEffect(() => {
-        // Initialize items with IDs
-        const lefts = question.pairs.map((p, i) => ({ id: `l-${i}`, text: p.left }));
-        // Shuffle right items
-        const rights = question.pairs.map((p, i) => ({ id: `r-${i}`, text: p.right }))
-            .sort(() => Math.random() - 0.5);
+        const currentQuestionId = question?.id || question?.question;
+        if (currentQuestionId !== lastQuestionId || leftItems.length === 0) {
+            setLastQuestionId(currentQuestionId);
+            // Initialize items with IDs
+            const lefts = question.pairs.map((p, i) => ({ id: `l-${i}`, text: p.left }));
+            // Shuffle right items
+            const rights = question.pairs.map((p, i) => ({ id: `r-${i}`, text: p.right }))
+                .sort(() => Math.random() - 0.5);
 
-        setLeftItems(lefts);
-        setRightItems(rights);
-        setMatches({});
-        setSelectedLeft(null);
-        setCompleted(false);
-    }, [question]);
+            setLeftItems(lefts);
+            setRightItems(rights);
+            setMatches({});
+            setSelectedLeft(null);
+            setCompleted(false);
+        }
+    }, [question, lastQuestionId, leftItems.length]);
 
     // Draft updates (no submit required)
     useEffect(() => {

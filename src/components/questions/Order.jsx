@@ -27,6 +27,8 @@ function shuffleArray(array) {
 
 export default function Order({ question, onAnswer, onUpdate, disabled = false }) {
     const { reportQuestion } = useGameStore();
+    // Track the question ID to detect actual question changes
+    const [lastQuestionId, setLastQuestionId] = useState(question?.id || question?.question);
     const [items, setItems] = useState(() => shuffleArray(question.items));
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -43,12 +45,16 @@ export default function Order({ question, onAnswer, onUpdate, disabled = false }
         }
     };
 
-    // Shuffle items when question changes
+    // Shuffle items ONLY when question actually changes (by ID, not reference)
     useEffect(() => {
-        setItems(shuffleArray(question.items));
-    }, [question]);
+        const currentQuestionId = question?.id || question?.question;
+        if (currentQuestionId !== lastQuestionId) {
+            setLastQuestionId(currentQuestionId);
+            setItems(shuffleArray(question.items));
+        }
+    }, [question, lastQuestionId]);
 
-    // Draft updates (no submit required)
+    // Draft updates for multiplayer (no submit required)
     useEffect(() => {
         if (!onUpdate) return;
         if (disabled) return;

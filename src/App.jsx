@@ -40,6 +40,23 @@ const stateToRoute = {
   'multiplayer-selecting-type': '/multiplayer/turn-selection',
 };
 
+// Question renderer component - defined outside App to prevent re-creation on every render
+function QuestionRenderer({ question, onAnswer, onUpdate, disabled = false }) {
+  if (!question) return null;
+  switch (question.type) {
+    case 'multiple-choice':
+      return <MultipleChoice question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
+    case 'fill-blank':
+      return <FillBlank question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
+    case 'order':
+      return <Order question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
+    case 'match':
+      return <Match question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
+    default:
+      return null;
+  }
+}
+
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -327,23 +344,6 @@ export default function App() {
     };
   }, [location.pathname, currentQuestionIndex, currentQuestion, feedback, timePerQuestion, questions.length, nextQuestion, endGame, navigate]);
 
-  // Question renderer component
-  const QuestionRenderer = ({ question, onAnswer, onUpdate, disabled = false }) => {
-    if (!question) return null;
-    switch (question.type) {
-      case 'multiple-choice':
-        return <MultipleChoice question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
-      case 'fill-blank':
-        return <FillBlank question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
-      case 'order':
-        return <Order question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
-      case 'match':
-        return <Match question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
-      default:
-        return null;
-    }
-  };
-
   // Determine if we should use the dark (wood) layout or light layout
   const isDarkRoute = location.pathname === '/';
 
@@ -485,7 +485,7 @@ export default function App() {
             <>
               {!feedback && currentQuestion && (
                 <motion.div
-                  key="question"
+                  key={`question-${currentQuestionIndex}`}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
