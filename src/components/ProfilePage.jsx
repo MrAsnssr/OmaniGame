@@ -241,6 +241,7 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
     const initialTemplateId = avatarV2?.templateId || templates[0]?.id || 'builtin_round';
     const [templateId, setTemplateId] = useState(initialTemplateId);
     const [layeredSelections, setLayeredSelections] = useState(avatarV2?.selections || {});
+    const [showBuiltinDetailsEditor, setShowBuiltinDetailsEditor] = useState(false);
 
     const template = templates.find(t => t.id === templateId) || templates[0] || null;
     const isBuiltin = !!template?.isBuiltin;
@@ -283,7 +284,15 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
                     <label className="block text-xs font-bold text-sand/70 mb-1">شكل الوجه</label>
                     <select
                         value={templateId}
-                        onChange={(e) => setTemplateId(e.target.value)}
+                        onChange={(e) => {
+                            const nextId = e.target.value;
+                            setShowBuiltinDetailsEditor(false);
+                            setTemplateId(nextId);
+                            // Map built-in template choice to built-in avatar face shape
+                            if (nextId === 'builtin_round') onSaveBuiltin({ ...avatar, face: 'round' });
+                            if (nextId === 'builtin_oval') onSaveBuiltin({ ...avatar, face: 'oval' });
+                            if (nextId === 'builtin_square') onSaveBuiltin({ ...avatar, face: 'square' });
+                        }}
                         className="w-full p-3 border-2 rounded-xl outline-none bg-wood-dark/50 border-white/10 text-white"
                     >
                         {templates.filter(t => t.active !== false).map(t => (
@@ -312,8 +321,17 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
                     </>
                 )}
                 {isBuiltin && (
-                    <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 text-sand/60 text-sm">
-                        استخدم محرر الصورة الرمزية العادي لتغيير التفاصيل (العيون/الشعر/الخ).\n+                        تم إخفاء خيارات الطبقات لتجنب إرباك المستخدم.\n+                        اضغط حفظ ثم افتح محرر التفاصيل إذا احتجت.\n+                    </div>
+                    <>
+                        <button
+                            onClick={() => setShowBuiltinDetailsEditor(true)}
+                            className="w-full py-3 rounded-xl bg-primary text-white font-bold shadow-lg hover:brightness-110"
+                        >
+                            تعديل التفاصيل (العيون/الشعر/الخ)
+                        </button>
+                        <div className="bg-wood-dark/30 border border-white/5 rounded-xl p-3 text-sand/60 text-sm">
+                            اختر شكل الوجه من الأعلى، ثم اضغط زر تعديل التفاصيل لتخصيص الملامح.
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -336,6 +354,31 @@ function UnifiedAvatarEditor({ templates, parts, avatar, avatarV2, onSaveBuiltin
                     حفظ
                 </Button>
             </div>
+
+            <AnimatePresence>
+                {showBuiltinDetailsEditor && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                        >
+                            <h3 className="text-xl font-black text-white mb-4 engraved-text text-center">تعديل التفاصيل</h3>
+                            <AvatarEditor
+                                initialConfig={avatar}
+                                onSave={(cfg) => { onSaveBuiltin(cfg); setShowBuiltinDetailsEditor(false); }}
+                                onCancel={() => setShowBuiltinDetailsEditor(false)}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
