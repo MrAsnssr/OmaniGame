@@ -7,16 +7,16 @@ export default function Layout({ children }) {
             <div className="h-2 w-full bg-gradient-to-r from-omani-red via-omani-white to-omani-green shadow-md z-50 flex-none" />
             
             {/* Corner Ornaments (CSS shapes or simplified) */}
-            <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-10">
+            <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-5">
                 <div className="absolute top-0 left-0 w-full h-full border-t-8 border-l-8 border-omani-gold rounded-tl-3xl" />
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0 opacity-10">
+            <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none z-0 opacity-5">
                 <div className="absolute top-0 right-0 w-full h-full border-t-8 border-r-8 border-omani-gold rounded-tr-3xl" />
             </div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-10">
+            <div className="absolute bottom-0 left-0 w-32 h-32 pointer-events-none z-0 opacity-5">
                 <div className="absolute bottom-0 left-0 w-full h-full border-b-8 border-l-8 border-omani-gold rounded-bl-3xl" />
             </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32 pointer-events-none z-0 opacity-10">
+            <div className="absolute bottom-0 right-0 w-32 h-32 pointer-events-none z-0 opacity-5">
                 <div className="absolute bottom-0 right-0 w-full h-full border-b-8 border-r-8 border-omani-gold rounded-br-3xl" />
             </div>
 
