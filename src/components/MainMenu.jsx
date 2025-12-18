@@ -16,7 +16,9 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
 
     return (
         // Outer wrapper: fills screen, allows vertical scroll on small heights
-        <div className="relative h-full w-full bg-[#221510] text-white overflow-x-hidden overflow-y-auto">
+        // NOTE: The design in NEWFRONTENDEXAMPLE.html is LTR-based. Our app is globally RTL,
+        // so we force LTR here to avoid mirroring (start/end in flex) on mobile/desktop.
+        <div dir="ltr" className="relative h-full w-full bg-[#221510] text-white overflow-x-hidden overflow-y-auto">
             {/* Centered mobile-frame container for desktop */}
             <div className="relative w-full max-w-md mx-auto min-h-screen min-h-[100dvh] shadow-2xl overflow-hidden bg-[#221510] flex flex-col">
                 {/* Background Layers */}
