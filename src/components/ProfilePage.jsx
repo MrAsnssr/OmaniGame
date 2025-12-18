@@ -46,7 +46,7 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
         const result = await saveUserAvatarV2(user.uid, { mode: 'static', templateId, selections: {} });
         if (result.ok) {
             setShowAvatarSelector(false);
-            setMessage('تم حفظ الصورة الرمزية!');
+            setMessage('تم حفظ الشخصية!');
             setIsSuccess(true);
             setTimeout(() => setMessage(''), 2000);
         }
