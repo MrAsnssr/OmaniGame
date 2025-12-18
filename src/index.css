@@ -16,6 +16,15 @@ html, body {
 }
 
 @theme {
+  /* New dark wood theme colors */
+  --color-primary: #ec4913;
+  --color-background-light: #f8f6f6;
+  --color-background-dark: #221510;
+  --color-wood-light: #3d2b25;
+  --color-wood-dark: #2a1b17;
+  --color-sand: #b9a49d;
+  
+  /* Legacy Omani colors (kept for compatibility) */
   --color-omani-red: #D92525;
   --color-omani-green: #008000;
   --color-omani-white: #FFFFFF;
@@ -26,7 +35,9 @@ html, body {
   --color-omani-brown: #8B4513;
   --color-omani-dark: #1A1A1A;
 
-  --font-sans: 'Tajawal', 'Inter', sans-serif;
+  --font-sans: 'Tajawal', 'Noto Sans Arabic', 'Spline Sans', sans-serif;
+  --font-display: 'Spline Sans', 'Noto Sans Arabic', sans-serif;
+  --font-arabic: 'Noto Sans Arabic', 'Tajawal', sans-serif;
 
   --animate-float: float 3s ease-in-out infinite;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -37,12 +48,59 @@ html, body {
   50% { transform: translateY(-10px); }
 }
 
-body {
-  @apply text-gray-800 overflow-hidden font-sans;
-  background-color: #F5E6CA; /* omani-sand fallback */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
 }
 
-/* Elegant Warm Background */
+/* Material Symbols styling */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Engraved text effect for dark backgrounds */
+.engraved-text {
+  text-shadow: 0px 1px 0px rgba(255,255,255,0.1), 0px -1px 0px rgba(0,0,0,0.5);
+}
+
+/* Path animation for game board */
+.path-animated {
+  animation: dash 30s linear infinite;
+}
+
+body {
+  @apply text-white overflow-hidden font-sans;
+  background-color: #221510;
+  min-height: max(884px, 100dvh);
+}
+
+/* Dark wood background pattern */
+.bg-wood-pattern {
+  background-color: #221510;
+  position: relative;
+}
+
+.bg-wood-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='50' font-size='40' fill='%23EC4913' opacity='0.05' transform='rotate(45 50 50)'%3E◇%3C/text%3E%3C/svg%3E");
+  background-size: 60px 60px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.bg-wood-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(24, 19, 17, 0.8) 0%, transparent 30%, transparent 70%, rgba(24, 19, 17, 0.9) 100%);
+  pointer-events: none;
+}
+
+/* Legacy light background (for other screens) */
 .bg-omani-pattern {
   background: linear-gradient(135deg, #FEF9F3 0%, #F5E6CA 50%, #EDD9B5 100%);
   position: relative;
@@ -59,7 +117,7 @@ body {
   pointer-events: none;
 }
 
-/* Glassmorphism Utilities */
+/* Glassmorphism Utilities (for light screens) */
 .glass-panel {
   @apply bg-white/80 backdrop-blur-md border border-white/40 shadow-xl;
 }
@@ -68,17 +126,34 @@ body {
   @apply bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:bg-white/70 transition-all;
 }
 
+/* Dark wood panel utilities */
+.wood-panel {
+  @apply bg-gradient-to-br from-wood-light to-wood-dark border-2 border-wood-light/50;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.wood-card {
+  @apply bg-wood-light/80 backdrop-blur-sm border border-white/10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.2);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-omani-gold);
+  background: var(--color-primary);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-omani-gold-shadow);
+  background: #d43d0f;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
 }

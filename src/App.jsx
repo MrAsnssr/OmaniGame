@@ -343,29 +343,41 @@ export default function App() {
     }
   };
 
+  // Determine if we should use the dark (wood) layout or light layout
+  const isDarkRoute = location.pathname === '/';
+
   return (
-    <Layout>
+    <>
+      {/* Main Menu has its own full-page dark design */}
+      {isDarkRoute ? (
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 1.1 }}
+                className="h-full"
+              >
+                <MainMenu
+                  onStart={handleNavigateToCategories}
+                  onAdmin={handleNavigateToSettings}
+                  onMultiplayer={handleNavigateToMultiplayer}
+                  onLogin={handleLogin}
+                  onLogout={handleLogout}
+                  user={user}
+                />
+              </motion.div>
+            } />
+          </Routes>
+        </AnimatePresence>
+      ) : (
+    <Layout variant="light">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          {/* Home / Main Menu */}
-          <Route path="/" element={
-            <motion.div
-              key="welcome"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              className="h-full"
-            >
-              <MainMenu
-                onStart={handleNavigateToCategories}
-                onAdmin={handleNavigateToSettings}
-                onMultiplayer={handleNavigateToMultiplayer}
-                onLogin={handleLogin}
-                onLogout={handleLogout}
-                user={user}
-              />
-            </motion.div>
-          } />
+          {/* Placeholder for "/" route in light layout (won't be reached) */}
+          <Route path="/" element={null} />
 
           {/* Settings Page */}
           <Route path="/settings" element={
@@ -667,5 +679,7 @@ export default function App() {
         </Routes>
       </AnimatePresence>
     </Layout>
+      )}
+    </>
   );
 }

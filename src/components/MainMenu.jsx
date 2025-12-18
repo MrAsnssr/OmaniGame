@@ -1,179 +1,262 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, Armchair, Trophy, Crown, ChevronLeft } from 'lucide-react';
-import dallahIcon from '../assets/dallah.png';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { 
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
     const handleLeaderboardClick = () => {
         alert("قريباً! جاري العمل على لوحة المتصدرين.");
     };
 
-    return (
-        <div className="flex flex-col h-full items-center justify-center p-6 relative overflow-hidden">
-            {/* Decorative Background Elements */}
-            <div className="absolute top-0 left-0 w-72 h-72 bg-omani-gold/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-omani-red/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 pointer-events-none" />
+    const handleSouqClick = () => {
+        alert("قريباً! جاري العمل على السوق.");
+    };
 
-            {/* Top Bar (User & Settings) */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-20">
+    const handleRedeemClick = () => {
+        alert("قريباً! جاري العمل على الهدايا.");
+    };
+
+    return (
+        <div className="relative min-h-screen flex flex-col w-full bg-[#221510]">
+            {/* Background Layers */}
+            <div className="absolute inset-0 z-0">
+                {/* Subtle dark wood grain texture pattern */}
+                <div className="absolute inset-0 bg-repeat opacity-20 mix-blend-multiply" style={{ backgroundColor: '#33221E' }} />
+                {/* Repeating Omani geometric diamond pattern */}
+                <div 
+                    className="absolute inset-0 opacity-5 rotate-45"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='60' font-size='50' fill='%23EC4913'%3E◇%3C/text%3E%3C/svg%3E")`,
+                        backgroundSize: '60px 60px'
+                    }}
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#181311]/80 via-transparent to-[#181311]/90 pointer-events-none" />
+            </div>
+
+            {/* Header Bar */}
+            <div className="relative z-10 flex items-center justify-between px-6 pt-6 pb-2">
                 {/* User Profile */}
                 <motion.button
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={user ? onAdmin : onLogin}
-                    className="flex items-center gap-3 bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white/40 hover:bg-white/80 transition-all group"
+                    className="flex items-center gap-3 bg-wood-light/80 backdrop-blur-sm p-1.5 pr-4 rounded-full border border-white/10 shadow-lg hover:border-primary/30 transition-colors"
                 >
-                    {user?.photoURL ? (
-                        <img src={user.photoURL} alt="User" className="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
-                    ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-omani-gold to-yellow-600 flex items-center justify-center text-white shadow-inner">
-                            {user ? <span className="font-bold text-lg">{(user.displayName || 'U')[0].toUpperCase()}</span> : <User size={20} />}
-                        </div>
-                    )}
-                    <div className="flex flex-col items-end">
-                        <span className="text-sm font-bold text-omani-brown group-hover:text-omani-red transition-colors">
+                    <div className="relative">
+                        {user?.photoURL ? (
+                            <img 
+                                src={user.photoURL} 
+                                alt="User" 
+                                className="size-10 rounded-full object-cover ring-2 ring-primary/50"
+                            />
+                        ) : (
+                            <div className="size-10 rounded-full bg-gradient-to-br from-primary to-orange-700 flex items-center justify-center text-white ring-2 ring-primary/50">
+                                {user ? (
+                                    <span className="font-bold text-sm">{(user.displayName || 'U')[0].toUpperCase()}</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-xl">person</span>
+                                )}
+                            </div>
+                        )}
+                        {user && (
+                            <div className="absolute -bottom-1 -right-1 bg-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[#221510]">
+                                Lvl 5
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs text-sand font-medium uppercase tracking-wider">
+                            {user ? 'Player' : 'Guest'}
+                        </span>
+                        <span className="text-sm font-bold leading-none engraved-text">
                             {user ? (user.displayName || 'اللاعب') : 'تسجيل دخول'}
                         </span>
-                        {user && <span className="text-[10px] text-gray-700 font-medium">الملف الشخصي</span>}
                     </div>
                 </motion.button>
 
-                {/* Settings */}
-                <motion.button
+                {/* Currency Display */}
+                <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    whileHover={{ rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onAdmin}
-                    className="w-12 h-12 glass-card rounded-full flex items-center justify-center text-omani-brown hover:text-omani-red transition-colors shadow-sm hover:shadow-md"
+                    className="flex items-center gap-2 bg-wood-light/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-lg"
                 >
-                    <Settings size={22} />
-                </motion.button>
+                    <span className="material-symbols-outlined text-primary text-[20px]">monetization_on</span>
+                    <span className="text-sm font-bold tracking-wide engraved-text">
+                        1,250 <span className="text-xs text-sand font-normal">OMR</span>
+                    </span>
+                </motion.div>
             </div>
 
             {/* Main Content */}
-            <motion.div 
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="w-full max-w-md flex flex-col items-center z-10 space-y-8"
-            >
-                {/* Hero Title */}
-                <motion.div variants={itemVariants} className="text-center relative">
-                    <motion.div
-                        animate={{ 
-                            y: [0, -10, 0],
-                            rotate: [0, 5, -5, 0]
-                        }}
-                        transition={{ 
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                        className="inline-flex items-center justify-center w-20 h-20 mb-4 rounded-3xl bg-gradient-to-br from-omani-red to-red-700 shadow-2xl shadow-omani-red/30 border-4 border-white/20"
-                    >
-                        <Crown size={40} className="text-white" />
-                    </motion.div>
-                    <h1 className="text-6xl font-black text-omani-dark mb-1 tracking-tight drop-shadow-sm">
-                        سوالف <span className="text-transparent bg-clip-text bg-gradient-to-r from-omani-gold to-yellow-600">عمان</span>
-                    </h1>
-                    <p className="text-lg text-omani-brown font-bold opacity-95">
-                        اختبر معلوماتك وتحدى ربعك
-                    </p>
-                </motion.div>
-
-                {/* Menu Buttons */}
-                <div className="w-full space-y-4">
-                    <MenuCard 
-                        title="الحجرة"
-                        subtitle="لعب فردي سريع"
-                        icon={<Armchair size={28} className="text-white" />}
-                        gradient="from-omani-red to-red-600"
-                        shadowColor="shadow-omani-red/20"
-                        onClick={onStart}
-                        variants={itemVariants}
-                    />
-                    
-                    <MenuCard 
-                        title="السبلة"
-                        subtitle="تحدى الجماعة أونلاين"
-                        icon={<img src={dallahIcon} alt="دلة" className="w-7 h-7 object-contain brightness-0 invert" />}
-                        gradient="from-omani-green to-green-700"
-                        shadowColor="shadow-omani-green/20"
-                        onClick={onMultiplayer}
-                        variants={itemVariants}
-                    />
-
-                    <MenuCard 
-                        title="كبارية"
-                        subtitle="قائمة المتصدرين"
-                        icon={<Trophy size={28} className="text-white" />}
-                        gradient="from-omani-gold to-yellow-600"
-                        shadowColor="shadow-omani-gold/20"
-                        onClick={handleLeaderboardClick}
-                        variants={itemVariants}
-                    />
+            <main className="relative z-10 flex-1 flex flex-col w-full">
+                {/* Animated Path Background */}
+                <div className="absolute inset-0 z-0 pointer-events-none opacity-60">
+                    <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <path 
+                            className="drop-shadow-lg path-animated" 
+                            d="M 30,20 C 30,45 70,35 70,50 C 70,65 50,70 50,85" 
+                            fill="none" 
+                            stroke="#ec4913" 
+                            strokeDasharray="3 3" 
+                            strokeLinecap="round" 
+                            strokeWidth="0.8"
+                        />
+                        <circle className="drop-shadow-md opacity-50" cx="30" cy="20" fill="#221510" r="4" stroke="#ec4913" strokeWidth="0.5" />
+                        <circle className="drop-shadow-md opacity-50" cx="70" cy="50" fill="#221510" r="4" stroke="#ec4913" strokeWidth="0.5" />
+                        <circle className="drop-shadow-md opacity-50" cx="50" cy="85" fill="#221510" r="4" stroke="#ec4913" strokeWidth="0.5" />
+                    </svg>
                 </div>
-            </motion.div>
 
-            {/* Footer Text */}
-            <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="absolute bottom-6 text-xs text-gray-600 font-medium"
-            >
-                الإصدار 1.0.0
-            </motion.p>
+                {/* Game Mode Buttons */}
+                <div className="relative z-10 flex flex-col justify-evenly flex-1 px-6 py-4 gap-4">
+                    {/* الحجرة - Offline (Top Left) */}
+                    <div className="flex justify-start w-full">
+                        <GameModeButton
+                            title="الحجرة"
+                            subtitle="Offline"
+                            icon="castle"
+                            onClick={onStart}
+                            delay={0}
+                        />
+                    </div>
+
+                    {/* السبلة - Online (Top Right) */}
+                    <div className="flex justify-end w-full">
+                        <GameModeButton
+                            title="السبلة"
+                            subtitle="Online"
+                            icon="groups"
+                            onClick={onMultiplayer}
+                            delay={0.1}
+                            showLiveBadge
+                        />
+                    </div>
+
+                    {/* الكبارية - Leaderboard (Center Bottom) */}
+                    <div className="flex justify-center w-full mt-2">
+                        <LeaderboardButton onClick={handleLeaderboardClick} />
+                    </div>
+                </div>
+            </main>
+
+            {/* Bottom Navigation */}
+            <div className="relative z-10 px-6 pb-6 pt-2">
+                <div className="flex items-center justify-between gap-4">
+                    {/* Souq Button */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleSouqClick}
+                        className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-wood-light/50 border border-white/5 hover:bg-wood-light transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-sand text-2xl">storefront</span>
+                        <span className="text-[10px] font-bold text-sand uppercase tracking-wider">Souq</span>
+                    </motion.button>
+
+                    {/* Gift/Redeem Button */}
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleRedeemClick}
+                        className="flex flex-col items-center justify-center size-12 rounded-full bg-wood-dark border border-primary/30 hover:border-primary transition-colors shadow-lg"
+                    >
+                        <span className="material-symbols-outlined text-primary text-xl">redeem</span>
+                    </motion.button>
+
+                    {/* Settings Button */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={onAdmin}
+                        className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-wood-light/50 border border-white/5 hover:bg-wood-light transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-sand text-2xl">settings</span>
+                        <span className="text-[10px] font-bold text-sand uppercase tracking-wider">Settings</span>
+                    </motion.button>
+                </div>
+
+                {/* Home Indicator */}
+                <div className="mt-4 flex justify-center">
+                    <div className="w-1/3 h-1 bg-white/10 rounded-full" />
+                </div>
+            </div>
         </div>
     );
 }
 
-function MenuCard({ title, subtitle, icon, gradient, shadowColor, onClick, variants, disabled }) {
+function GameModeButton({ title, subtitle, icon, onClick, delay = 0, showLiveBadge = false }) {
     return (
         <motion.button
-            variants={variants}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay }}
+            whileTap={{ scale: 0.95 }}
             onClick={onClick}
-            disabled={disabled}
-            className={`w-full relative overflow-hidden group rounded-2xl p-4 transition-all ${disabled ? 'opacity-70 grayscale cursor-not-allowed' : ''}`}
+            className="group relative w-[55%] aspect-square max-w-[200px] flex flex-col items-center justify-center gap-2 p-4 rounded-[2rem] bg-gradient-to-br from-wood-light to-wood-dark border-2 border-wood-light/50 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-primary/50 hover:shadow-primary/10"
         >
-            <div className={`absolute inset-0 bg-white/60 backdrop-blur-md border border-white/50 shadow-lg ${shadowColor} transition-all duration-300 group-hover:bg-white/80`} />
+            {/* Live Badge */}
+            {showLiveBadge && (
+                <div className="absolute -top-3 -right-2 z-20 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg border border-wood-dark animate-bounce">
+                    LIVE
+                </div>
+            )}
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 rounded-[2rem] bg-primary/0 group-hover:bg-primary/5 transition-colors" />
             
-            <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md transform group-hover:rotate-6 transition-transform duration-300`}>
-                        {icon}
-                    </div>
-                    <div className="flex flex-col items-start text-right">
-                        <h3 className="text-2xl font-black text-omani-dark group-hover:text-omani-brown transition-colors">
-                            {title}
-                        </h3>
-                        <p className="text-sm font-bold text-gray-700 group-hover:text-omani-brown">
-                            {subtitle}
-                        </p>
-                    </div>
-                </div>
-                
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 group-hover:bg-white group-hover:text-omani-gold transition-colors">
-                    <ChevronLeft size={20} />
-                </div>
+            {/* Top accent bar */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-sand/20 rounded-full" />
+            
+            {/* Icon container */}
+            <div className="size-16 rounded-2xl bg-[#1e120e] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] ring-1 ring-white/10 group-hover:ring-primary/60 transition-all mb-1">
+                <span className="material-symbols-outlined text-4xl text-sand group-hover:text-primary transition-colors drop-shadow-lg">
+                    {icon}
+                </span>
+            </div>
+
+            {/* Text */}
+            <div className="text-center w-full">
+                <h3 className="text-xl font-bold text-white font-arabic leading-tight engraved-text">{title}</h3>
+                <div className="w-8 h-0.5 bg-white/10 mx-auto my-1.5" />
+                <p className="text-[10px] text-sand/80 font-bold uppercase tracking-[0.15em]">{subtitle}</p>
+            </div>
+        </motion.button>
+    );
+}
+
+function LeaderboardButton({ onClick }) {
+    return (
+        <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClick}
+            className="w-full max-w-[320px] group relative flex items-center gap-5 p-5 rounded-2xl bg-gradient-to-r from-wood-light via-[#2a1b17] to-wood-light border-2 border-wood-light/50 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-[#FFD700]/40 overflow-hidden"
+        >
+            {/* Shine effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+            
+            {/* Icon */}
+            <div className="size-14 rounded-xl bg-[#1e120e] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] ring-1 ring-white/10 group-hover:ring-[#FFD700]/70 transition-all shrink-0">
+                <span className="material-symbols-outlined text-3xl text-[#FFD700] drop-shadow-md">emoji_events</span>
+            </div>
+
+            {/* Text */}
+            <div className="flex flex-col items-start flex-1 relative z-10">
+                <h3 className="text-xl font-bold text-white font-arabic leading-tight engraved-text">الكبارية</h3>
+                <p className="text-[10px] text-sand/70 font-bold uppercase tracking-widest mt-1">Leaderboards</p>
+            </div>
+
+            {/* Arrow */}
+            <div className="size-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                <span className="material-symbols-outlined text-sm text-sand/50 group-hover:text-white">arrow_forward_ios</span>
             </div>
         </motion.button>
     );
