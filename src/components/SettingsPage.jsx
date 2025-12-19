@@ -145,12 +145,12 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                                 <h4 className="text-lg font-black text-primary mb-3 flex items-center gap-2">
                                     🎮 أنواع اللعب
                                 </h4>
-                                
+
                                 {/* Solo Mode */}
                                 <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Armchair size={18} className="text-primary" />
-                                        <span className="font-bold text-white">الحجرة (فردي)</span>
+                                        <span className="font-bold text-white">القلعة (فردي)</span>
                                     </div>
                                     <p className="text-sand/70 text-sm">
                                         لعب فردي بدون إنترنت. اختار الموضوع وعدد الأسئلة وجاوب بروقانك!

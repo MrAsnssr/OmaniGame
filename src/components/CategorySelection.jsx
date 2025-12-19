@@ -12,30 +12,30 @@ export default function CategorySelection({ onBack }) {
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType
     } = useGameStore();
-    
+
     // Get only categorized topics (those with a subject) for game play
     const categorizedTopics = getCategorizedTopics();
     const topicsBySubject = getTopicsBySubject();
-    
+
     // Track expanded subjects
     const [expandedSubjects, setExpandedSubjects] = useState(() => {
         // Expand all subjects by default
         return subjects.reduce((acc, s) => ({ ...acc, [s.id]: true }), {});
     });
-    
+
     // Track selected topics (individual topic IDs)
     const [selectedTopics, setSelectedTopics] = useState([]);
-    
+
     const toggleExpandSubject = (subjectId) => {
         setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
     };
-    
+
     // Toggle all topics in a subject
     const toggleSelectSubject = (subjectId, e) => {
         e.stopPropagation();
         const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
         const allSelected = subjectTopicIds.every(id => selectedTopics.includes(id));
-        
+
         if (allSelected) {
             // Deselect all topics in this subject
             setSelectedTopics(prev => prev.filter(id => !subjectTopicIds.includes(id)));
@@ -44,23 +44,23 @@ export default function CategorySelection({ onBack }) {
             setSelectedTopics(prev => [...new Set([...prev, ...subjectTopicIds])]);
         }
     };
-    
+
     // Toggle individual topic
     const toggleSelectTopic = (topicId, e) => {
         e.stopPropagation();
-        setSelectedTopics(prev => 
+        setSelectedTopics(prev =>
             prev.includes(topicId)
                 ? prev.filter(id => id !== topicId)
                 : [...prev, topicId]
         );
     };
-    
+
     // Check if all topics in a subject are selected
     const isSubjectFullySelected = (subjectId) => {
         const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
         return subjectTopicIds.length > 0 && subjectTopicIds.every(id => selectedTopics.includes(id));
     };
-    
+
     // Check if some (but not all) topics in a subject are selected
     const isSubjectPartiallySelected = (subjectId) => {
         const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
@@ -72,7 +72,7 @@ export default function CategorySelection({ onBack }) {
         startGame(categoryId);
         navigate('/play');
     };
-    
+
     const handleStartWithSelectedTopics = () => {
         if (selectedTopics.length === 0) return;
         startGameWithTopics(selectedTopics);
@@ -97,7 +97,7 @@ export default function CategorySelection({ onBack }) {
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-primary to-sand drop-shadow-sm engraved-text">الحجرة</h2>
+                <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-primary to-sand drop-shadow-sm engraved-text">القلعة</h2>
             </div>
 
             {/* Main Content Grid */}
@@ -108,7 +108,7 @@ export default function CategorySelection({ onBack }) {
                     {/* Game Settings Panel */}
                     <div className="glass-panel rounded-2xl p-6 space-y-6">
                         <h3 className="text-xl font-bold text-sand mb-4 border-b border-white/10 pb-2">إعدادات اللعبة</h3>
-                        
+
                         {/* Question Count */}
                         <div>
                             <div className="flex items-center gap-2 text-sand mb-2">
@@ -206,7 +206,7 @@ export default function CategorySelection({ onBack }) {
                         <Shuffle size={24} />
                         <span className="text-xl">كوكتيل (كل شي)</span>
                     </motion.button>
-                    
+
                     <p className="text-center text-sand/70 text-sm font-bold mb-4">أو اختر مواد معينة ⬇️</p>
 
                     {/* Subjects with Topics */}
@@ -214,11 +214,11 @@ export default function CategorySelection({ onBack }) {
                         {subjects.map((subject) => {
                             const subjectTopics = topicsBySubject[subject.id]?.topics || [];
                             if (subjectTopics.length === 0) return null;
-                            
+
                             const isExpanded = expandedSubjects[subject.id] !== false;
                             const isFullySelected = isSubjectFullySelected(subject.id);
                             const isPartiallySelected = isSubjectPartiallySelected(subject.id);
-                            
+
                             return (
                                 <motion.div
                                     key={subject.id}
@@ -231,17 +231,16 @@ export default function CategorySelection({ onBack }) {
                                         {/* Selection Checkbox - selects/deselects all topics */}
                                         <button
                                             onClick={(e) => toggleSelectSubject(subject.id, e)}
-                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                                                isFullySelected 
-                                                    ? 'bg-primary text-white' 
-                                                    : isPartiallySelected 
-                                                        ? 'bg-omani-gold text-white' 
-                                                        : 'bg-wood-dark/50 text-sand/60 hover:bg-wood-dark/70'
-                                            }`}
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isFullySelected
+                                                ? 'bg-primary text-white'
+                                                : isPartiallySelected
+                                                    ? 'bg-omani-gold text-white'
+                                                    : 'bg-wood-dark/50 text-sand/60 hover:bg-wood-dark/70'
+                                                }`}
                                         >
                                             {isFullySelected ? <CheckSquare size={20} /> : isPartiallySelected ? <CheckSquare size={20} /> : <Square size={20} />}
                                         </button>
-                                        
+
                                         {/* Clickable area for expand/collapse */}
                                         <button
                                             onClick={() => toggleExpandSubject(subject.id)}
@@ -253,7 +252,7 @@ export default function CategorySelection({ onBack }) {
                                             {isExpanded ? <ChevronUp size={20} className="text-sand/60" /> : <ChevronDown size={20} className="text-sand/60" />}
                                         </button>
                                     </div>
-                                    
+
                                     {/* Topics Grid */}
                                     <AnimatePresence>
                                         {isExpanded && (
@@ -275,21 +274,19 @@ export default function CategorySelection({ onBack }) {
                                                                 transition={{ delay: index * 0.03 }}
                                                                 whileTap={{ scale: 0.95 }}
                                                                 onClick={(e) => toggleSelectTopic(topic.id, e)}
-                                                                className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all p-3 flex flex-col items-center justify-center gap-2 h-24 ${
-                                                                    isTopicSelected 
-                                                                        ? 'bg-primary/10 ring-2 ring-primary/60' 
-                                                                        : 'bg-wood-dark/40 hover:bg-wood-dark/50'
-                                                                }`}
+                                                                className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all p-3 flex flex-col items-center justify-center gap-2 h-24 ${isTopicSelected
+                                                                    ? 'bg-primary/10 ring-2 ring-primary/60'
+                                                                    : 'bg-wood-dark/40 hover:bg-wood-dark/50'
+                                                                    }`}
                                                             >
                                                                 {/* Selection indicator */}
-                                                                <div className={`absolute top-1 right-1 w-5 h-5 rounded-md flex items-center justify-center transition-all ${
-                                                                    isTopicSelected 
-                                                                        ? 'bg-primary text-white' 
-                                                                        : 'bg-wood-dark/50 text-sand/60'
-                                                                }`}>
+                                                                <div className={`absolute top-1 right-1 w-5 h-5 rounded-md flex items-center justify-center transition-all ${isTopicSelected
+                                                                    ? 'bg-primary text-white'
+                                                                    : 'bg-wood-dark/50 text-sand/60'
+                                                                    }`}>
                                                                     {isTopicSelected ? <CheckSquare size={14} /> : <Square size={14} />}
                                                                 </div>
-                                                                
+
                                                                 <span className="text-2xl">{topic.icon}</span>
                                                                 <span className="text-xs font-bold text-sand text-center line-clamp-2">{topic.name}</span>
                                                             </motion.button>
@@ -302,7 +299,7 @@ export default function CategorySelection({ onBack }) {
                                 </motion.div>
                             );
                         })}
-                        
+
                         {/* No categorized topics message */}
                         {categorizedTopics.length === 0 && (
                             <div className="text-center py-8 text-sand/70 font-bold">
