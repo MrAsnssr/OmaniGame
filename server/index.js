@@ -56,8 +56,15 @@ function validateQuestion(q) {
 function sanitizeQuestionsForRoom(room, questions) {
     const list = Array.isArray(questions) ? questions : [];
     let filtered = list.filter(validateQuestion);
-    // Enforce selected types for standard mode (server-side)
-    if (room.gameMode === 'standard' && Array.isArray(room.settings.selectedTypes)) {
+
+    // Filter by selected topics (if any specified)
+    const selectedTopicIds = room.settings.selectedTopicIds || [];
+    if (selectedTopicIds.length > 0) {
+        filtered = filtered.filter(q => selectedTopicIds.includes(q.category));
+    }
+
+    // Enforce selected types for random mode (server-side)
+    if (room.gameMode === 'random' && Array.isArray(room.settings.selectedTypes)) {
         const allowed = new Set(room.settings.selectedTypes.filter(t => ALLOWED_TYPES.has(t)));
         filtered = filtered.filter(q => allowed.has(q.type));
     }
@@ -75,7 +82,7 @@ function generateRoomCode() {
 }
 
 // Create a new room
-function createRoom(hostId, hostName, settings, gameMode = 'standard') {
+function createRoom(hostId, hostName, settings, gameMode = 'random') {
     let code = generateRoomCode();
     while (rooms.has(code)) {
         code = generateRoomCode();
@@ -84,7 +91,7 @@ function createRoom(hostId, hostName, settings, gameMode = 'standard') {
     const room = {
         code,
         hostId,
-        gameMode, // 'standard' or 'turn-based'
+        gameMode, // 'random' or 'turn-based'
         players: [{
             id: hostId,
             name: hostName,
@@ -96,7 +103,8 @@ function createRoom(hostId, hostName, settings, gameMode = 'standard') {
             questionCount: settings.questionCount || 10,
             timePerQuestion: settings.timePerQuestion || 30,
             selectedTypes: settings.selectedTypes || ['multiple-choice', 'fill-blank', 'order', 'match'],
-            categoryId: settings.categoryId || null
+            categoryId: settings.categoryId || null,
+            selectedTopicIds: Array.isArray(settings.selectedTopicIds) ? settings.selectedTopicIds : []
         },
         questions: [], // Active questions for the game
         allQuestions: [], // All questions (for turn-based filtering)
@@ -390,8 +398,8 @@ io.on('connection', (socket) => {
             clearAnswerTimer(room);
             clearSelectionTimer(room);
 
-            // Get unique category IDs from questions
-            const uniqueCategories = [...new Set(questions.map(q => q.category))];
+            // Get unique category IDs from sanitized questions (respects selected topics)
+            const uniqueCategories = [...new Set(sanitized.map(q => q.category))];
             room.uniqueCategoryIds = uniqueCategories;
 
             const roles = assignRoles(room);
@@ -771,7 +779,7 @@ if (fs.existsSync(distIndexPath)) {
         maxAge: '1d',
         etag: true
     }));
-    
+
     // Handle client-side routing - must be LAST route
     app.get('*', (req, res) => {
         console.log('📄 Serving index.html for route:', req.path);
@@ -780,7 +788,7 @@ if (fs.existsSync(distIndexPath)) {
 } else {
     console.error('❌ ERROR: Client dist/ not found at:', distIndexPath);
     console.error('   Make sure to run "npm run build" before starting the server');
-    
+
     // Fallback: serve a basic error page
     app.get('*', (req, res) => {
         res.status(500).send(`

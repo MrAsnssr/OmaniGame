@@ -161,7 +161,7 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                                 <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3 mb-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Users size={18} className="text-primary" />
-                                        <span className="font-bold text-white">السبلة - العادي (أونلاين)</span>
+                                        <span className="font-bold text-white">السبلة - العشوائي (أونلاين)</span>
                                     </div>
                                     <p className="text-sand/70 text-sm">
                                         العب مع ربعك أونلاين! كلكم تجاوبون على نفس السؤال بنفس الوقت. اللي يجاوب أسرع ياخذ نقاط أكثر.

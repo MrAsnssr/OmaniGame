@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Plus, LogIn, ArrowLeft, Hash, Clock, CheckSquare, Square, ChevronDown, ChevronUp, Shuffle } from 'lucide-react';
 import Button from '../Button';
 import { useGameStore } from '../../store/gameStore';
 
@@ -9,15 +9,21 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
         questionCount, setQuestionCount,
         timePerQuestion, setTimePerQuestion,
         selectedTypes, toggleType,
-        categories
+        subjects, getTopicsBySubject
     } = useGameStore();
 
+    const topicsBySubject = getTopicsBySubject();
+
     const [mode, setMode] = useState('select'); // select, create, join
-    const [gameMode, setGameMode] = useState('standard'); // standard, turn-based
+    const [gameMode, setGameMode] = useState('random'); // random, turn-based
     const [playerName, setPlayerName] = useState(user?.displayName || '');
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Topic selection state
+    const [selectedTopics, setSelectedTopics] = useState([]); // empty = all topics
+    const [expandedSubjects, setExpandedSubjects] = useState({});
 
     const allTypes = [
         { id: 'multiple-choice', label: 'اختيار', emoji: '🔘' },
@@ -25,6 +31,51 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
         { id: 'order', label: 'ترتيب', emoji: '📋' },
         { id: 'match', label: 'توصيل', emoji: '🔗' },
     ];
+
+    const toggleExpandSubject = (subjectId) => {
+        setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] }));
+    };
+
+    const toggleSelectSubject = (subjectId, e) => {
+        e.stopPropagation();
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        const allSelected = subjectTopicIds.every(id => selectedTopics.includes(id));
+
+        if (allSelected) {
+            setSelectedTopics(prev => prev.filter(id => !subjectTopicIds.includes(id)));
+        } else {
+            setSelectedTopics(prev => [...new Set([...prev, ...subjectTopicIds])]);
+        }
+    };
+
+    const toggleSelectTopic = (topicId, e) => {
+        e.stopPropagation();
+        setSelectedTopics(prev =>
+            prev.includes(topicId)
+                ? prev.filter(id => id !== topicId)
+                : [...prev, topicId]
+        );
+    };
+
+    const isSubjectFullySelected = (subjectId) => {
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        return subjectTopicIds.length > 0 && subjectTopicIds.every(id => selectedTopics.includes(id));
+    };
+
+    const isSubjectPartiallySelected = (subjectId) => {
+        const subjectTopicIds = (topicsBySubject[subjectId]?.topics || []).map(t => t.id);
+        const selectedCount = subjectTopicIds.filter(id => selectedTopics.includes(id)).length;
+        return selectedCount > 0 && selectedCount < subjectTopicIds.length;
+    };
+
+    const selectAllTopics = () => {
+        const allTopicIds = Object.values(topicsBySubject).flatMap(s => s.topics.map(t => t.id));
+        setSelectedTopics(allTopicIds);
+    };
+
+    const clearTopicSelection = () => {
+        setSelectedTopics([]);
+    };
 
     const handleCreate = () => {
         const finalName = user?.displayName || playerName;
@@ -34,7 +85,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
         }
         setIsLoading(true);
         setError('');
-        onRoomCreated(finalName.trim(), gameMode);
+        // Pass selected topics (empty array = all topics)
+        onRoomCreated(finalName.trim(), gameMode, selectedTopics);
     };
 
     const handleJoin = () => {
@@ -111,8 +163,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                     >
                         {/* Nickname */}
                         {user ? (
-                            <div className="w-full p-4 rounded-xl bg-primary/10 border border-primary/20 text-white font-bold text-center text-lg">
-                                <span className="text-sand/50 text-sm block mb-1">بتلعب باسم</span>
+                            <div className="w-full p-3 rounded-xl bg-primary/10 border border-primary/20 text-white font-bold text-center">
+                                <span className="text-sand/50 text-xs block">بتلعب باسم</span>
                                 {user.displayName || 'اللاعب'}
                             </div>
                         ) : (
@@ -122,24 +174,24 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                                 onChange={(e) => setPlayerName(e.target.value)}
                                 placeholder="اسمك الكريم"
                                 maxLength={15}
-                                className="w-full p-4 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 text-lg outline-none focus:border-primary/50"
+                                className="w-full p-3 rounded-xl bg-wood-dark/50 border border-white/10 text-white font-bold text-center placeholder-sand/60 outline-none focus:border-primary/50"
                             />
                         )}
 
                         {/* Game Settings Panel */}
-                        <div className="glass-panel rounded-2xl p-3 space-y-2 flex-1 overflow-y-auto min-h-0">
-                            <h3 className="text-white font-bold text-center">إعدادات اللعب</h3>
+                        <div className="glass-panel rounded-2xl p-3 space-y-3 flex-1 overflow-y-auto min-h-0">
+                            <h3 className="text-white font-bold text-center text-sm">إعدادات اللعب</h3>
 
                             {/* Game Mode Toggle */}
                             <div className="flex bg-wood-dark/40 p-1 rounded-xl border border-white/10">
                                 <button
-                                    onClick={() => setGameMode('standard')}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'standard'
+                                    onClick={() => setGameMode('random')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${gameMode === 'random'
                                         ? 'bg-wood-light text-white shadow-md'
                                         : 'text-sand/70 hover:text-sand'
                                         }`}
                                 >
-                                    عادي
+                                    عشوائي
                                 </button>
                                 <button
                                     onClick={() => setGameMode('turn-based')}
@@ -152,65 +204,55 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                                 </button>
                             </div>
 
-                            {/* Question Count */}
-                            <div>
-                                <div className="flex items-center gap-2 text-sand mb-2">
-                                    <Hash size={16} className="text-primary" />
-                                    <span className="font-bold text-sm">عدد الأسئلة: {questionCount}</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="5"
-                                    max="30"
-                                    step="5"
-                                    value={questionCount}
-                                    onChange={(e) => setQuestionCount(Number(e.target.value))}
-                                    className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
-                                />
-                                <div className="flex justify-between text-xs text-sand/60 mt-1 font-bold">
-                                    <span>5</span>
-                                    <span>30</span>
-                                </div>
-                            </div>
-
-                            {/* Time Per Question */}
-                            <div>
-                                <div className="flex items-center gap-2 text-sand mb-2">
-                                    <Clock size={16} className="text-primary" />
-                                    <span className="font-bold text-sm">الوقت: {timePerQuestion} ثانية</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="10"
-                                    max="60"
-                                    step="5"
-                                    value={timePerQuestion}
-                                    onChange={(e) => setTimePerQuestion(Number(e.target.value))}
-                                    className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
-                                />
-                                <div className="flex justify-between text-xs text-sand/60 mt-1 font-bold">
-                                    <span>10s</span>
-                                    <span>60s</span>
-                                </div>
-                            </div>
-
-                            {/* Question Types (Only for Standard Mode) */}
-                            {gameMode === 'standard' && (
+                            {/* Question Count & Time in one row */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <span className="font-bold text-sand text-sm block mb-2">أنواع الأسئلة:</span>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="flex items-center gap-1 text-sand mb-1">
+                                        <Hash size={12} className="text-primary" />
+                                        <span className="font-bold text-xs">الأسئلة: {questionCount}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="5"
+                                        max="30"
+                                        step="5"
+                                        value={questionCount}
+                                        onChange={(e) => setQuestionCount(Number(e.target.value))}
+                                        className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-1 text-sand mb-1">
+                                        <Clock size={12} className="text-primary" />
+                                        <span className="font-bold text-xs">الوقت: {timePerQuestion}s</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="60"
+                                        step="5"
+                                        value={timePerQuestion}
+                                        onChange={(e) => setTimePerQuestion(Number(e.target.value))}
+                                        className="w-full h-2 bg-wood-dark/50 rounded-lg appearance-none cursor-pointer accent-primary"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Question Types (Only for Random Mode) */}
+                            {gameMode === 'random' && (
+                                <div>
+                                    <span className="font-bold text-sand text-xs block mb-1">أنواع الأسئلة:</span>
+                                    <div className="grid grid-cols-4 gap-1">
                                         {allTypes.map(type => (
                                             <button
                                                 key={type.id}
                                                 onClick={() => toggleType(type.id)}
-                                                className={`flex items-center gap-2 p-2 rounded-lg font-bold text-xs transition-colors ${selectedTypes.includes(type.id)
+                                                className={`flex flex-col items-center p-1.5 rounded-lg font-bold text-xs transition-colors ${selectedTypes.includes(type.id)
                                                     ? 'bg-primary text-white'
                                                     : 'bg-wood-dark/40 text-sand/70'
                                                     }`}
                                             >
-                                                {selectedTypes.includes(type.id) ? <CheckSquare size={14} /> : <Square size={14} />}
                                                 <span>{type.emoji}</span>
-                                                <span className="truncate">{type.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -218,10 +260,96 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                             )}
 
                             {gameMode === 'turn-based' && (
-                                <div className="bg-primary/10 rounded-lg p-3 text-xs text-sand text-center font-bold border border-primary/30">
+                                <div className="bg-primary/10 rounded-lg p-2 text-xs text-sand text-center font-bold border border-primary/30">
                                     كل واحد يختار المجال ونوع السؤال بدوره!
                                 </div>
                             )}
+
+                            {/* Topic Selection */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="font-bold text-sand text-xs">المواضيع:</span>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={clearTopicSelection}
+                                            className={`px-2 py-1 rounded text-xs font-bold transition-colors ${selectedTopics.length === 0 ? 'bg-primary text-white' : 'bg-wood-dark/40 text-sand/70'}`}
+                                        >
+                                            <Shuffle size={12} className="inline mr-1" />الكل
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {selectedTopics.length > 0 && (
+                                    <p className="text-xs text-omani-gold mb-2 font-bold">
+                                        {selectedTopics.length} موضوع مختار
+                                    </p>
+                                )}
+
+                                {/* Subject/Topic Tree */}
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                    {subjects.map((subject) => {
+                                        const subjectTopics = topicsBySubject[subject.id]?.topics || [];
+                                        if (subjectTopics.length === 0) return null;
+
+                                        const isExpanded = expandedSubjects[subject.id];
+                                        const isFullySelected = isSubjectFullySelected(subject.id);
+                                        const isPartiallySelected = isSubjectPartiallySelected(subject.id);
+
+                                        return (
+                                            <div key={subject.id} className="bg-wood-dark/30 rounded-lg overflow-hidden">
+                                                <div className={`flex items-center gap-2 p-2 ${isFullySelected ? 'bg-primary/20' : isPartiallySelected ? 'bg-omani-gold/10' : ''}`}>
+                                                    <button
+                                                        onClick={(e) => toggleSelectSubject(subject.id, e)}
+                                                        className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isFullySelected ? 'bg-primary text-white'
+                                                                : isPartiallySelected ? 'bg-omani-gold text-white'
+                                                                    : 'bg-wood-dark/50 text-sand/60'
+                                                            }`}
+                                                    >
+                                                        {(isFullySelected || isPartiallySelected) ? <CheckSquare size={12} /> : <Square size={12} />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleExpandSubject(subject.id)}
+                                                        className="flex-1 flex items-center gap-2 text-left"
+                                                    >
+                                                        <span className="text-sm">{subject.icon}</span>
+                                                        <span className="text-xs font-bold text-white flex-1">{subject.name}</span>
+                                                        <span className="text-[10px] text-sand/60">{subjectTopics.length}</span>
+                                                        {isExpanded ? <ChevronUp size={14} className="text-sand/60" /> : <ChevronDown size={14} className="text-sand/60" />}
+                                                    </button>
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {isExpanded && (
+                                                        <motion.div
+                                                            initial={{ height: 0 }}
+                                                            animate={{ height: 'auto' }}
+                                                            exit={{ height: 0 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="grid grid-cols-2 gap-1 p-2 pt-0">
+                                                                {subjectTopics.map((topic) => {
+                                                                    const isSelected = selectedTopics.includes(topic.id);
+                                                                    return (
+                                                                        <button
+                                                                            key={topic.id}
+                                                                            onClick={(e) => toggleSelectTopic(topic.id, e)}
+                                                                            className={`flex items-center gap-1 p-1.5 rounded text-xs font-bold transition-colors ${isSelected ? 'bg-primary/20 text-white' : 'bg-wood-dark/30 text-sand/70'
+                                                                                }`}
+                                                                        >
+                                                                            {isSelected ? <CheckSquare size={10} /> : <Square size={10} />}
+                                                                            <span className="truncate">{topic.icon} {topic.name}</span>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
 
                         {error && (
@@ -233,7 +361,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                             disabled={isLoading}
                             className="w-full"
                         >
-                            {isLoading ? 'جاري الإنشاء...' : 'إنشاء'}
+                            {isLoading ? 'جاري الإنشاء...' : 'إنشاء السبلة'}
                         </Button>
                     </motion.div>
                 )}
