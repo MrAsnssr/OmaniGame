@@ -629,6 +629,8 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
     const [description, setDescription] = useState(item?.description || '');
     const [icon, setIcon] = useState(item?.icon || '🛒');
     const [priceDirhams, setPriceDirhams] = useState(String(Number(item?.priceDirhams || 0)));
+    const [discountPercent, setDiscountPercent] = useState(String(Number(item?.discountPercent || 0)));
+    const [featured, setFeatured] = useState(!!item?.featured);
     const [active, setActive] = useState(item?.active !== false);
     const [topicId, setTopicId] = useState(item?.topicId || '');
     const [subjectId, setSubjectId] = useState(item?.subjectId || '');
@@ -650,6 +652,8 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
             description: description.trim(),
             icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : isAvatarUnlock ? '👤' : icon.trim(),
             priceDirhams: Math.max(0, Number(priceDirhams || 0)),
+            discountPercent: Math.max(0, Math.min(100, Number(discountPercent || 0))),
+            featured: !!featured,
             active: !!active
         };
         if (type === 'topic_unlock') payload.topicId = topicId || null;
@@ -784,6 +788,30 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
                         placeholder="Price"
                         className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
                     />
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={discountPercent}
+                        onChange={(e) => setDiscountPercent(e.target.value)}
+                        placeholder="Discount %"
+                        className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl focus:border-primary outline-none text-white placeholder-sand/30"
+                    />
+                    <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3">
+                        <div>
+                            <div className="text-sm font-bold text-white">Featured</div>
+                            <div className="text-xs text-sand/50">Show prominently</div>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={featured}
+                            onChange={(e) => setFeatured(e.target.checked)}
+                            className="size-5 accent-primary"
+                        />
+                    </label>
                 </div>
                 <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-4">
                     <div>

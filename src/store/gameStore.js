@@ -432,7 +432,13 @@ export const useGameStore = create((set, get) => ({
     purchaseMarketItem: async ({ userId, displayName, item }) => {
         if (!userId || !item?.id) return { ok: false, error: 'missing_user_or_item' };
 
-        const price = Number(item.priceDirhams || 0);
+        // Calculate final price with discount
+        const basePrice = Number(item.priceDirhams || 0);
+        const discount = Number(item.discountPercent || 0);
+        const price = discount > 0 && discount <= 100
+            ? Math.max(0, Math.round(basePrice * (1 - discount / 100)))
+            : basePrice;
+        
         if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'invalid_price' };
 
         const stateBefore = get();
