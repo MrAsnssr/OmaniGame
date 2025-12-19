@@ -27,6 +27,7 @@ import { Trophy, RotateCcw, Home, Users } from 'lucide-react';
 import socketService from './services/socketService';
 import { onAuthChange, signOut } from './services/authService';
 import { isFillBlankCorrect } from './utils/answerValidation';
+import { trackUserSession, trackPageView, trackTimeSpent, trackError } from './services/analyticsService';
 
 // Map gameState to route paths
 const stateToRoute = {
@@ -111,6 +112,8 @@ export default function App() {
         useGameStore.getState().loadUserDirhams(authUser.uid);
         useGameStore.getState().loadUserAvatar(authUser.uid);
         useGameStore.getState().loadUserAvatarV2(authUser.uid);
+        // Track user session for analytics
+        trackUserSession(authUser.uid, authUser.displayName, authUser.email);
       } else {
         useGameStore.getState().setCurrentUser(null, null);
         useGameStore.setState({ avatar: null, avatarV2: null });
@@ -118,6 +121,37 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Track page views
+  useEffect(() => {
+    if (user?.uid && location.pathname) {
+      trackPageView(user.uid, location.pathname);
+    }
+  }, [location.pathname, user?.uid]);
+
+  // Track time spent (every 60 seconds while page is active)
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    let seconds = 0;
+    const interval = setInterval(() => {
+      seconds += 60;
+      trackTimeSpent(user.uid, 60);
+    }, 60000);
+
+    // Also track on page unload
+    const handleUnload = () => {
+      if (seconds > 0) {
+        trackTimeSpent(user.uid, seconds % 60 || 1);
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, [user?.uid]);
 
   // Sync gameState changes to routes ONLY for multiplayer socket events
   // (These are states that change due to server-side events, not user clicks)

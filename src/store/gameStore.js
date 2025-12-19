@@ -17,6 +17,7 @@ import {
     arrayUnion
 } from 'firebase/firestore';
 import { initialCategories, initialQuestions } from '../data/questions';
+import { trackPurchase, trackGamePlay, trackMultiplayerGame } from '../services/analyticsService';
 
 async function blobToDataUrl(blob) {
     return await new Promise((resolve, reject) => {
@@ -534,6 +535,16 @@ export const useGameStore = create((set, get) => ({
                 avatarsMembershipExpiry: item.type === 'membership_avatars' ? updates.avatarsMembershipExpiry : get().avatarsMembershipExpiry
             });
 
+            // Track purchase for analytics
+            trackPurchase(userId, {
+                itemId: item.id,
+                itemType: item.type,
+                itemTitle: item.title,
+                price,
+                originalPrice: basePrice,
+                discount
+            });
+
             return { ok: true };
         } catch (error) {
             console.error('Error purchasing market item:', error);
@@ -607,6 +618,12 @@ export const useGameStore = create((set, get) => ({
         } catch (error) {
             console.error('Error saving streak:', error);
         }
+
+        // Track multiplayer game for analytics
+        trackMultiplayerGame(userId, {
+            streak: newStreak,
+            bonusEarned
+        });
 
         return { streakUpdated: true, newStreak, bonusEarned };
     },
