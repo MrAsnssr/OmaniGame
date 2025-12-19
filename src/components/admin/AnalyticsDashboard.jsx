@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Users, Clock, TrendingUp, ShoppingBag, Smartphone, Globe, Calendar, RefreshCw, Download, Search } from 'lucide-react';
+import { ArrowRight, Users, Clock, TrendingUp, ShoppingBag, Smartphone, Globe, Calendar, RefreshCw, Download, Search, Ban, ShieldCheck } from 'lucide-react';
 import { db } from '../../services/firebase';
 import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { banIP, unbanIP, getBannedIPs } from '../../services/analyticsService';
 import Button from '../Button';
 
 export default function AnalyticsDashboard({ onBack }) {
@@ -10,6 +11,8 @@ export default function AnalyticsDashboard({ onBack }) {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
+    const [bannedIPs, setBannedIPs] = useState([]);
+    const [banningIP, setBanningIP] = useState(null);
     const [stats, setStats] = useState({
         totalUsers: 0,
         activeToday: 0,
@@ -76,8 +79,14 @@ export default function AnalyticsDashboard({ onBack }) {
         setLoading(false);
     };
 
+    const loadBannedIPs = async () => {
+        const banned = await getBannedIPs();
+        setBannedIPs(banned);
+    };
+
     useEffect(() => {
         loadAnalytics();
+        loadBannedIPs();
     }, []);
 
     const formatTime = (seconds) => {
@@ -100,11 +109,12 @@ export default function AnalyticsDashboard({ onBack }) {
     };
 
     const exportToCSV = () => {
-        const headers = ['ID', 'Name', 'Email', 'Sessions', 'Time Spent', 'Last Seen', 'Device', 'Browser', 'OS', 'Purchases', 'Spent'];
+        const headers = ['ID', 'Name', 'Email', 'IP', 'Sessions', 'Time Spent', 'Last Seen', 'Device', 'Browser', 'OS', 'Purchases', 'Spent'];
         const rows = users.map(u => [
             u.id,
             u.displayName || '',
             u.email || '',
+            u.lastIP || '',
             u.sessionCount || 0,
             u.totalTimeSpentSeconds || 0,
             u.lastSeenAt || '',
@@ -130,9 +140,34 @@ export default function AnalyticsDashboard({ onBack }) {
         return (
             (u.displayName?.toLowerCase().includes(term)) ||
             (u.email?.toLowerCase().includes(term)) ||
-            (u.id?.toLowerCase().includes(term))
+            (u.id?.toLowerCase().includes(term)) ||
+            (u.lastIP?.includes(term))
         );
     });
+
+    const isIPBanned = (ip) => {
+        if (!ip) return false;
+        return bannedIPs.some(b => b.ip === ip);
+    };
+
+    const handleBanIP = async (ip, e) => {
+        e.stopPropagation();
+        if (!ip) return;
+        const reason = prompt('سبب الحظر (اختياري):') || 'No reason';
+        setBanningIP(ip);
+        await banIP(ip, reason);
+        await loadBannedIPs();
+        setBanningIP(null);
+    };
+
+    const handleUnbanIP = async (ip, e) => {
+        e.stopPropagation();
+        if (!ip) return;
+        setBanningIP(ip);
+        await unbanIP(ip);
+        await loadBannedIPs();
+        setBanningIP(null);
+    };
 
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
@@ -307,6 +342,42 @@ export default function AnalyticsDashboard({ onBack }) {
                                             <p className="text-white truncate">{user.firstReferrer || 'direct'}</p>
                                         </div>
                                     </div>
+
+                                    {/* IP Address Section */}
+                                    {user.lastIP && (
+                                        <div className="bg-wood-dark/60 border border-white/10 rounded-xl p-3">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">IP Address</p>
+                                                    <p className="text-white font-mono">{user.lastIP}</p>
+                                                    {user.knownIPs?.length > 1 && (
+                                                        <p className="text-sand/40 text-xs mt-1">
+                                                            +{user.knownIPs.length - 1} أخرى
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {isIPBanned(user.lastIP) ? (
+                                                    <button
+                                                        onClick={(e) => handleUnbanIP(user.lastIP, e)}
+                                                        disabled={banningIP === user.lastIP}
+                                                        className="flex items-center gap-2 px-3 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-bold hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <ShieldCheck size={16} />
+                                                        {banningIP === user.lastIP ? '...' : 'إلغاء الحظر'}
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={(e) => handleBanIP(user.lastIP, e)}
+                                                        disabled={banningIP === user.lastIP}
+                                                        className="flex items-center gap-2 px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-bold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <Ban size={16} />
+                                                        {banningIP === user.lastIP ? '...' : 'حظر IP'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Page Views */}
                                     {user.pageViews && Object.keys(user.pageViews).length > 0 && (

@@ -1,6 +1,102 @@
 // Analytics service for tracking user activity and collecting data
 import { db } from './firebase';
-import { doc, setDoc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, increment, arrayUnion, getDoc, collection, getDocs, query, where, addDoc, deleteDoc } from 'firebase/firestore';
+
+// Fetch user's IP address using a free API
+let cachedIP = null;
+export async function getIPAddress() {
+    if (cachedIP) return cachedIP;
+    try {
+        // Try multiple IP services for reliability
+        const services = [
+            'https://api.ipify.org?format=json',
+            'https://api.my-ip.io/v2/ip.json',
+            'https://ipapi.co/json/'
+        ];
+
+        for (const url of services) {
+            try {
+                const res = await fetch(url, { timeout: 5000 });
+                if (res.ok) {
+                    const data = await res.json();
+                    cachedIP = data.ip || data.origin || null;
+                    if (cachedIP) return cachedIP;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching IP:', error);
+        return null;
+    }
+}
+
+// Check if an IP is banned
+export async function checkIPBan(ip) {
+    if (!ip) return { banned: false };
+    try {
+        const bansRef = collection(db, 'bannedIPs');
+        const q = query(bansRef, where('ip', '==', ip));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            const banData = snap.docs[0].data();
+            return { banned: true, reason: banData.reason, bannedAt: banData.bannedAt };
+        }
+        return { banned: false };
+    } catch (error) {
+        console.error('Error checking IP ban:', error);
+        return { banned: false };
+    }
+}
+
+// Ban an IP address
+export async function banIP(ip, reason = 'No reason provided', bannedBy = 'admin') {
+    if (!ip) return { success: false, error: 'No IP provided' };
+    try {
+        const bansRef = collection(db, 'bannedIPs');
+        await addDoc(bansRef, {
+            ip,
+            reason,
+            bannedBy,
+            bannedAt: new Date().toISOString()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error banning IP:', error);
+        return { success: false, error };
+    }
+}
+
+// Unban an IP address
+export async function unbanIP(ip) {
+    if (!ip) return { success: false, error: 'No IP provided' };
+    try {
+        const bansRef = collection(db, 'bannedIPs');
+        const q = query(bansRef, where('ip', '==', ip));
+        const snap = await getDocs(q);
+        for (const docSnap of snap.docs) {
+            await deleteDoc(doc(db, 'bannedIPs', docSnap.id));
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error unbanning IP:', error);
+        return { success: false, error };
+    }
+}
+
+// Get all banned IPs
+export async function getBannedIPs() {
+    try {
+        const bansRef = collection(db, 'bannedIPs');
+        const snap = await getDocs(bansRef);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error('Error getting banned IPs:', error);
+        return [];
+    }
+}
 
 // Collect device and browser information
 export function getDeviceInfo() {
@@ -97,10 +193,18 @@ export async function trackUserSession(userId, displayName, email) {
         const userSnap = await getDoc(userRef);
         const existingData = userSnap.exists() ? userSnap.data() : {};
 
+        // Get IP address
+        const ipAddress = await getIPAddress();
+
         // Session data
         const sessionData = {
             displayName: displayName || existingData.displayName || null,
             email: email || existingData.email || null,
+
+            // IP Address
+            lastIP: ipAddress,
+            ...(existingData.firstIP ? {} : { firstIP: ipAddress }),
+            knownIPs: ipAddress ? arrayUnion(ipAddress) : existingData.knownIPs || [],
 
             // Last seen
             lastSeenAt: now.toISOString(),
@@ -124,7 +228,7 @@ export async function trackUserSession(userId, displayName, email) {
             lastEntryUrl: trafficSource.entryUrl,
 
             // Analytics metadata
-            analyticsVersion: 1,
+            analyticsVersion: 2,
             updatedAt: now.toISOString()
         };
 
@@ -136,7 +240,8 @@ export async function trackUserSession(userId, displayName, email) {
             startedAt: now.toISOString(),
             device: deviceInfo,
             trafficSource,
-            userAgent: deviceInfo.userAgent
+            userAgent: deviceInfo.userAgent,
+            ip: ipAddress
         });
 
         return { success: true };
@@ -311,6 +416,11 @@ export async function trackFeatureUsage(userId, featureName) {
 export default {
     getDeviceInfo,
     getTrafficSource,
+    getIPAddress,
+    checkIPBan,
+    banIP,
+    unbanIP,
+    getBannedIPs,
     trackUserSession,
     trackGamePlay,
     trackMultiplayerGame,
