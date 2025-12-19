@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Lock, Check, ShoppingBag, BookOpen, User } from 'lucide-react';
+import { ArrowRight, Lock, Check, ShoppingBag, BookOpen, User, Crown } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import Button from './Button';
 
@@ -15,10 +15,14 @@ export default function MarketPage({ onBack, user }) {
         ownedTopicIds,
         ownedAvatarIds = [],
         purchasesLoaded,
-        purchaseMarketItem
+        purchaseMarketItem,
+        hasActiveTopicsMembership,
+        hasActiveAvatarsMembership,
+        topicsMembershipExpiry,
+        avatarsMembershipExpiry
     } = useGameStore();
 
-    const [category, setCategory] = useState(null); // null = selection screen, 'topics' or 'characters'
+    const [category, setCategory] = useState(null); // null = selection screen, 'topics', 'characters', or 'memberships'
     const [busyItemId, setBusyItemId] = useState(null);
     const [toast, setToast] = useState(null);
 
@@ -32,6 +36,9 @@ export default function MarketPage({ onBack, user }) {
                 }
                 if (category === 'characters') {
                     return i.type === 'avatar_unlock';
+                }
+                if (category === 'memberships') {
+                    return i.type === 'membership_topics' || i.type === 'membership_avatars';
                 }
                 return false;
             })
@@ -71,6 +78,8 @@ export default function MarketPage({ onBack, user }) {
         if (item.type === 'subject_unlock' && item.subjectId) return ownedSubjectIds.includes(item.subjectId);
         if (item.type === 'topic_unlock' && item.topicId) return ownedTopicIds.includes(item.topicId);
         if (item.type === 'avatar_unlock' && item.avatarTemplateId) return ownedAvatarIds.includes(item.avatarTemplateId);
+        if (item.type === 'membership_topics') return hasActiveTopicsMembership();
+        if (item.type === 'membership_avatars') return hasActiveAvatarsMembership();
         return false;
     };
 
@@ -107,22 +116,38 @@ export default function MarketPage({ onBack, user }) {
         const subject = item.type === 'subject_unlock' ? getSubject(item.subjectId) : null;
         const topic = item.type === 'topic_unlock' ? getTopic(item.topicId) : null;
         const avatar = item.type === 'avatar_unlock' ? getAvatar(item.avatarTemplateId) : null;
-        
+
         const displayTitle = item.type === 'subject_unlock'
             ? (subject?.name || 'مجال')
             : item.type === 'topic_unlock'
                 ? (topic?.name || 'موضوع')
                 : item.type === 'avatar_unlock'
                     ? (avatar?.name || item.title || 'شخصية')
-                    : (item.title || 'عنصر');
-        
+                    : item.type === 'membership_topics'
+                        ? (item.title || 'عضوية المواضيع السنوية')
+                        : item.type === 'membership_avatars'
+                            ? (item.title || 'عضوية الشخصيات السنوية')
+                            : (item.title || 'عنصر');
+
         const displayIcon = item.type === 'subject_unlock'
             ? (subject?.icon || '📁')
             : item.type === 'topic_unlock'
                 ? (topic?.icon || '📚')
                 : item.type === 'avatar_unlock'
                     ? '👤'
-                    : (item.icon || '🛒');
+                    : item.type === 'membership_topics'
+                        ? '👑'
+                        : item.type === 'membership_avatars'
+                            ? '👑'
+                            : (item.icon || '🛒');
+
+        // Get membership expiry for display
+        const getMembershipExpiry = () => {
+            if (item.type === 'membership_topics') return topicsMembershipExpiry;
+            if (item.type === 'membership_avatars') return avatarsMembershipExpiry;
+            return null;
+        };
+        const membershipExpiry = getMembershipExpiry();
 
         if (isFeatured) {
             return (
@@ -279,6 +304,11 @@ export default function MarketPage({ onBack, user }) {
                                     شخصية
                                 </span>
                             )}
+                            {(item.type === 'membership_topics' || item.type === 'membership_avatars') && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFD700]/15 text-[#FFD700] font-bold border border-[#FFD700]/30">
+                                    👑 عضوية سنوية
+                                </span>
+                            )}
                         </div>
                         {item.description && (
                             <p className="text-sm text-sand/60 mt-1">{item.description}</p>
@@ -291,6 +321,11 @@ export default function MarketPage({ onBack, user }) {
                         {topic && (
                             <p className="text-xs text-sand/50 mt-2">
                                 الموضوع: <span className="text-white">{topic.icon} {topic.name}</span>
+                            </p>
+                        )}
+                        {owned && membershipExpiry && (
+                            <p className="text-xs text-[#FFD700] mt-2 font-bold">
+                                ✅ مفعّلة حتى {new Date(membershipExpiry).toLocaleDateString('ar-OM')}
                             </p>
                         )}
 
@@ -379,6 +414,22 @@ export default function MarketPage({ onBack, user }) {
                                 <p className="text-sand/60 text-sm text-center">شخصيات مخصصة للعبة</p>
                             </div>
                         </motion.button>
+
+                        <motion.button
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            onClick={() => setCategory('memberships')}
+                            className="bg-gradient-to-br from-[#FFD700]/20 to-wood-light/20 border-2 border-[#FFD700]/30 rounded-3xl p-8 hover:border-[#FFD700]/60 transition-all shadow-xl hover:shadow-2xl md:col-span-2"
+                        >
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="size-20 rounded-2xl bg-[#FFD700]/20 border-2 border-[#FFD700]/40 flex items-center justify-center">
+                                    <Crown className="text-[#FFD700]" size={48} />
+                                </div>
+                                <h3 className="text-2xl font-black text-[#FFD700] engraved-text">العضويات السنوية</h3>
+                                <p className="text-sand/60 text-sm text-center">افتح كل شي بسعر موحد</p>
+                            </div>
+                        </motion.button>
                     </div>
                 </div>
             </div>
@@ -396,7 +447,7 @@ export default function MarketPage({ onBack, user }) {
                     <ArrowRight size={20} />
                 </button>
                 <h2 className="text-2xl font-black text-white engraved-text flex-1">
-                    {category === 'topics' ? 'المواضيع' : 'الشخصيات'}
+                    {category === 'topics' ? 'المواضيع' : category === 'characters' ? 'الشخصيات' : 'العضويات السنوية'}
                 </h2>
                 <div className="flex items-center gap-2 bg-wood-light/80 px-4 py-2 rounded-full border border-white/10">
                     <span className="material-symbols-outlined text-[#FFD700] text-[18px]">toll</span>
@@ -444,13 +495,12 @@ export default function MarketPage({ onBack, user }) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl border shadow-2xl text-sm font-bold ${
-                            toast.type === 'success'
-                                ? 'bg-green-900/40 border-green-400/20 text-green-200'
-                                : toast.type === 'info'
-                                    ? 'bg-wood-dark/70 border-white/10 text-sand'
-                                    : 'bg-red-900/40 border-red-400/20 text-red-200'
-                        }`}
+                        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl border shadow-2xl text-sm font-bold ${toast.type === 'success'
+                            ? 'bg-green-900/40 border-green-400/20 text-green-200'
+                            : toast.type === 'info'
+                                ? 'bg-wood-dark/70 border-white/10 text-sand'
+                                : 'bg-red-900/40 border-red-400/20 text-red-200'
+                            }`}
                     >
                         {toast.message}
                     </motion.div>

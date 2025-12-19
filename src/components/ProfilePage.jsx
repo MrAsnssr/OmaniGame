@@ -12,14 +12,15 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
     const [isSuccess, setIsSuccess] = useState(false);
     const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
-    const { avatarV2, saveUserAvatarV2, avatarFaceTemplates, getBuiltinFaceTemplates, ownedAvatarIds } = useGameStore();
+    const { avatarV2, saveUserAvatarV2, avatarFaceTemplates, getBuiltinFaceTemplates, ownedAvatarIds, hasActiveAvatarsMembership } = useGameStore();
 
     // Only show uneditable (static) templates
-    // Show free avatars + premium avatars that are owned
+    // Show free avatars + premium avatars that are owned or if user has active membership
     const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
     const staticTemplates = allTemplates.filter(t => {
         if (!t?.uneditable) return false;
         if (!t.premium) return true; // Free avatars
+        if (hasActiveAvatarsMembership()) return true; // Membership holders get all premium
         return ownedAvatarIds?.includes(t.id); // Premium avatars must be owned
     });
     const selectedTemplate = staticTemplates.find(t => t.id === avatarV2?.templateId) || staticTemplates[0] || null;
@@ -27,13 +28,13 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
     const handleUpdate = async (e) => {
         e.preventDefault();
         if (!name.trim()) return;
-        
+
         setIsLoading(true);
         setMessage('');
         setIsSuccess(false);
 
         const result = await updateUserProfile(name.trim());
-        
+
         setIsLoading(false);
         if (result.success) {
             setMessage('تم تحديث الملف الشخصي بنجاح!');
@@ -99,7 +100,7 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                                 )}
                             </div>
                         </div>
-                        <button 
+                        <button
                             onClick={() => setShowAvatarSelector(true)}
                             className="mt-3 text-primary text-sm font-bold hover:underline"
                         >
@@ -129,18 +130,17 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`p-4 rounded-xl flex items-center gap-2 text-sm font-bold ${
-                                    isSuccess ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                }`}
+                                className={`p-4 rounded-xl flex items-center gap-2 text-sm font-bold ${isSuccess ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    }`}
                             >
                                 {isSuccess ? <Check size={18} /> : null}
                                 {message}
                             </motion.div>
                         )}
 
-                        <Button 
-                            type="submit" 
-                            disabled={isLoading || name.trim() === user?.displayName} 
+                        <Button
+                            type="submit"
+                            disabled={isLoading || name.trim() === user?.displayName}
                             className="w-full shadow-lg h-14"
                         >
                             {isLoading ? (
@@ -190,7 +190,7 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                             className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
                         >
                             <h3 className="text-xl font-black text-white mb-4 engraved-text text-center">اختر الصورة الرمزية</h3>
-                            
+
                             <div className="flex-1 overflow-y-auto min-h-0 pb-4">
                                 {staticTemplates.length === 0 ? (
                                     <div className="text-center py-8 text-sand/50 font-bold">
@@ -205,11 +205,10 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                                                 <button
                                                     key={template.id}
                                                     onClick={() => handleSelectAvatar(template.id)}
-                                                    className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                                                        isSelected 
-                                                            ? 'border-primary bg-primary/20 ring-2 ring-primary/50' 
+                                                    className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${isSelected
+                                                            ? 'border-primary bg-primary/20 ring-2 ring-primary/50'
                                                             : 'border-white/10 bg-wood-dark/60 hover:border-primary/50 hover:bg-wood-dark/80'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {previewUrl ? (
                                                         <div className="relative w-full h-full overflow-hidden">
@@ -242,9 +241,9 @@ export default function ProfilePage({ user, onBack, onUpdate }) {
                             </div>
 
                             <div className="flex gap-3 pt-4 mt-auto border-t border-white/10">
-                                <Button 
-                                    onClick={() => setShowAvatarSelector(false)} 
-                                    variant="ghost" 
+                                <Button
+                                    onClick={() => setShowAvatarSelector(false)}
+                                    variant="ghost"
                                     className="flex-1 border border-white/10"
                                 >
                                     إغلاق

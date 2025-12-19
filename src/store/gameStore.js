@@ -100,7 +100,7 @@ export const useGameStore = create((set, get) => ({
 
     // Currency (Dirhams - دراهم)
     dirhams: 750, // Starting balance (new accounts)
-    
+
     loadUserDirhams: async (userId) => {
         if (!userId) return;
         try {
@@ -170,7 +170,21 @@ export const useGameStore = create((set, get) => ({
     ownedTopicIds: [],
     ownedAvatarIds: [],
     ownedMarketItemIds: [],
+    topicsMembershipExpiry: null, // ISO date string when membership expires
+    avatarsMembershipExpiry: null, // ISO date string when membership expires
     purchasesLoaded: false,
+
+    // Check if user has active membership
+    hasActiveTopicsMembership: () => {
+        const expiry = get().topicsMembershipExpiry;
+        if (!expiry) return false;
+        return new Date(expiry) > new Date();
+    },
+    hasActiveAvatarsMembership: () => {
+        const expiry = get().avatarsMembershipExpiry;
+        if (!expiry) return false;
+        return new Date(expiry) > new Date();
+    },
 
     loadUserPurchases: async (userId) => {
         if (!userId) return;
@@ -184,10 +198,12 @@ export const useGameStore = create((set, get) => ({
                     ownedTopicIds: Array.isArray(data.ownedTopicIds) ? data.ownedTopicIds : [],
                     ownedAvatarIds: Array.isArray(data.ownedAvatarIds) ? data.ownedAvatarIds : [],
                     ownedMarketItemIds: Array.isArray(data.ownedMarketItemIds) ? data.ownedMarketItemIds : [],
+                    topicsMembershipExpiry: data.topicsMembershipExpiry || null,
+                    avatarsMembershipExpiry: data.avatarsMembershipExpiry || null,
                     purchasesLoaded: true
                 });
             } else {
-                set({ ownedSubjectIds: [], ownedTopicIds: [], ownedAvatarIds: [], ownedMarketItemIds: [], purchasesLoaded: true });
+                set({ ownedSubjectIds: [], ownedTopicIds: [], ownedAvatarIds: [], ownedMarketItemIds: [], topicsMembershipExpiry: null, avatarsMembershipExpiry: null, purchasesLoaded: true });
             }
         } catch (error) {
             console.error('Error loading user purchases:', error);
@@ -438,7 +454,7 @@ export const useGameStore = create((set, get) => ({
         const price = discount > 0 && discount <= 100
             ? Math.max(0, Math.round(basePrice * (1 - discount / 100)))
             : basePrice;
-        
+
         if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'invalid_price' };
 
         const stateBefore = get();
@@ -481,9 +497,28 @@ export const useGameStore = create((set, get) => ({
                 updates.ownedAvatarIds = arrayUnion(item.avatarTemplateId);
             }
 
+            // Handle membership types
+            if (item.type === 'membership_topics') {
+                // Calculate expiry: 1 year from now (or extend if already active)
+                const currentExpiry = get().topicsMembershipExpiry;
+                const now = new Date();
+                const startDate = (currentExpiry && new Date(currentExpiry) > now) ? new Date(currentExpiry) : now;
+                const newExpiry = new Date(startDate);
+                newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+                updates.topicsMembershipExpiry = newExpiry.toISOString();
+            }
+            if (item.type === 'membership_avatars') {
+                // Calculate expiry: 1 year from now (or extend if already active)
+                const currentExpiry = get().avatarsMembershipExpiry;
+                const now = new Date();
+                const startDate = (currentExpiry && new Date(currentExpiry) > now) ? new Date(currentExpiry) : now;
+                const newExpiry = new Date(startDate);
+                newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+                updates.avatarsMembershipExpiry = newExpiry.toISOString();
+            }
+
             await setDoc(userRef, updates, { merge: true });
 
-            // Update local ownership
             set({
                 ownedMarketItemIds: Array.from(new Set([...ownedMarketItemIds, item.id])),
                 ownedSubjectIds: (item.type === 'subject_unlock' && item.subjectId)
@@ -494,7 +529,9 @@ export const useGameStore = create((set, get) => ({
                     : ownedTopicIds,
                 ownedAvatarIds: (item.type === 'avatar_unlock' && item.avatarTemplateId)
                     ? Array.from(new Set([...ownedAvatarIds, item.avatarTemplateId]))
-                    : ownedAvatarIds
+                    : ownedAvatarIds,
+                topicsMembershipExpiry: item.type === 'membership_topics' ? updates.topicsMembershipExpiry : get().topicsMembershipExpiry,
+                avatarsMembershipExpiry: item.type === 'membership_avatars' ? updates.avatarsMembershipExpiry : get().avatarsMembershipExpiry
             });
 
             return { ok: true };
@@ -516,22 +553,22 @@ export const useGameStore = create((set, get) => ({
     // Check and update streak when completing an online game
     recordOnlineGame: async (userId, displayName) => {
         if (!userId) return { streakUpdated: false };
-        
+
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
         const { lastOnlineGameDate, currentStreak, longestStreak, addDirhams } = get();
-        
+
         // Already played today
         if (lastOnlineGameDate === today) {
             return { streakUpdated: false, alreadyPlayed: true };
         }
-        
+
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().split('T')[0];
-        
+
         let newStreak;
         let bonusEarned = 0;
-        
+
         if (lastOnlineGameDate === yesterdayStr) {
             // Continuing streak
             newStreak = currentStreak + 1;
@@ -539,24 +576,24 @@ export const useGameStore = create((set, get) => ({
             // Starting new streak (broke or first time)
             newStreak = 1;
         }
-        
+
         const newLongest = Math.max(longestStreak, newStreak);
-        
+
         // Streak bonus rewards
         if (newStreak >= 7) bonusEarned = 100;
         else if (newStreak >= 3) bonusEarned = 50;
         else bonusEarned = 10;
-        
+
         // Update local state
         set({
             currentStreak: newStreak,
             longestStreak: newLongest,
             lastOnlineGameDate: today
         });
-        
+
         // Add bonus dirhams
         addDirhams(bonusEarned);
-        
+
         // Save to Firebase
         try {
             const streakRef = doc(db, 'streaks', userId);
@@ -570,32 +607,32 @@ export const useGameStore = create((set, get) => ({
         } catch (error) {
             console.error('Error saving streak:', error);
         }
-        
+
         return { streakUpdated: true, newStreak, bonusEarned };
     },
 
     // Load user's streak from Firebase
     loadUserStreak: async (userId) => {
         if (!userId) return;
-        
+
         try {
             const streakRef = doc(db, 'streaks', userId);
             const streakDoc = await getDoc(streakRef);
-            
+
             if (streakDoc.exists()) {
                 const data = streakDoc.data();
                 const today = new Date().toISOString().split('T')[0];
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
                 const yesterdayStr = yesterday.toISOString().split('T')[0];
-                
+
                 // Check if streak is still valid
                 let validStreak = data.currentStreak || 0;
                 if (data.lastPlayedDate !== today && data.lastPlayedDate !== yesterdayStr) {
                     // Streak broken
                     validStreak = 0;
                 }
-                
+
                 set({
                     currentStreak: validStreak,
                     longestStreak: data.longestStreak || 0,
@@ -614,7 +651,7 @@ export const useGameStore = create((set, get) => ({
             const streaksRef = collection(db, 'streaks');
             const q = query(streaksRef, orderBy('currentStreak', 'desc'), limit(50));
             const snapshot = await getDocs(q);
-            
+
             const leaderboard = snapshot.docs.map((doc, index) => ({
                 rank: index + 1,
                 odisplayName: doc.data().odisplayName || 'لاعب',
@@ -622,7 +659,7 @@ export const useGameStore = create((set, get) => ({
                 longestStreak: doc.data().longestStreak || 0,
                 oduserId: doc.id
             }));
-            
+
             set({ streakLeaderboard: leaderboard, streakLoading: false });
         } catch (error) {
             console.error('Error fetching leaderboard:', error);
@@ -829,7 +866,7 @@ export const useGameStore = create((set, get) => ({
             gameQuestions: filtered // Store in gameQuestions, not questions
         });
     },
-    
+
     // Start game with multiple selected topics
     startGameWithTopics: (topicIds = []) => {
         const filtered = get().getFilteredQuestionsByTopics(topicIds);
@@ -842,7 +879,7 @@ export const useGameStore = create((set, get) => ({
             gameQuestions: filtered
         });
     },
-    
+
     showCategories: () => set({ gameState: 'categories' }),
     endGame: () => set({ gameState: 'result' }),
     incrementScore: (points = 10) => set((state) => ({ score: state.score + points })),
@@ -972,16 +1009,16 @@ export const useGameStore = create((set, get) => ({
         const shuffled = filtered.sort(() => Math.random() - 0.5);
         return shuffled.slice(0, questionCount);
     },
-    
+
     // Get filtered questions from multiple selected topics
     getFilteredQuestionsByTopics: (topicIds = []) => {
         const { questions, selectedTypes, questionCount } = get();
-        
+
         // Filter questions by selected topics and types
-        let filtered = questions.filter(q => 
+        let filtered = questions.filter(q =>
             topicIds.includes(q.category) && selectedTypes.includes(q.type)
         );
-        
+
         // Shuffle and limit to questionCount
         const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         return shuffled.slice(0, questionCount);
@@ -1031,14 +1068,14 @@ export const useGameStore = create((set, get) => ({
     getTopicsBySubject: () => {
         const { categories, subjects } = get();
         const grouped = {};
-        
+
         subjects.forEach(subject => {
             grouped[subject.id] = {
                 subject,
                 topics: categories.filter(cat => cat.subjectId === subject.id)
             };
         });
-        
+
         // Add uncategorized topics
         const uncategorizedTopics = categories.filter(cat => !cat.subjectId);
         if (uncategorizedTopics.length > 0) {
@@ -1047,7 +1084,7 @@ export const useGameStore = create((set, get) => ({
                 topics: uncategorizedTopics
             };
         }
-        
+
         return grouped;
     },
 

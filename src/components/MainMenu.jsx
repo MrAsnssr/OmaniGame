@@ -5,13 +5,13 @@ import { useGameStore } from '../store/gameStore';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
-    const { dirhams, avatarV2, avatarFaceTemplates, getBuiltinFaceTemplates } = useGameStore();
+    const { dirhams, avatarV2, avatarFaceTemplates, getBuiltinFaceTemplates, ownedAvatarIds, hasActiveAvatarsMembership } = useGameStore();
     // Only show static (uneditable) avatars
-    const { ownedAvatarIds } = useGameStore();
     const allTemplates = [...getBuiltinFaceTemplates(), ...avatarFaceTemplates];
     const staticTemplates = allTemplates.filter(t => {
         if (!t?.uneditable) return false;
         if (!t.premium) return true; // Free avatars
+        if (hasActiveAvatarsMembership()) return true; // Membership holders get all premium
         return ownedAvatarIds?.includes(t.id); // Premium avatars must be owned
     });
     const selectedTemplate = staticTemplates.find(t => t.id === avatarV2?.templateId) || staticTemplates[0] || null;

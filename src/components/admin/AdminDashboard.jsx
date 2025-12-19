@@ -635,17 +635,20 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
     const isTopicUnlock = type === 'topic_unlock';
     const selectedSubject = subjects?.find(s => s.id === subjectId) || null;
     const isSubjectUnlock = type === 'subject_unlock';
+    const selectedAvatar = avatarFaceTemplates?.find(a => a.id === avatarTemplateId) || null;
+    const isAvatarUnlock = type === 'avatar_unlock';
+    const isMembershipType = type === 'membership_topics' || type === 'membership_avatars';
 
     const handleSubmit = () => {
         if (isTopicUnlock && !topicId) return;
         if (isSubjectUnlock && !subjectId) return;
         if (isAvatarUnlock && !avatarTemplateId) return;
-        if (!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock && !title.trim()) return;
+        if (!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock && !isMembershipType && !title.trim()) return;
         const payload = {
             type,
-            title: isTopicUnlock ? (selectedTopic?.name || '') : isSubjectUnlock ? (selectedSubject?.name || '') : isAvatarUnlock ? (selectedAvatar?.name || '') : title.trim(),
-            description: description.trim(),
-            icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : isAvatarUnlock ? '👤' : icon.trim(),
+            title: isTopicUnlock ? (selectedTopic?.name || '') : isSubjectUnlock ? (selectedSubject?.name || '') : isAvatarUnlock ? (selectedAvatar?.name || '') : isMembershipType ? (type === 'membership_topics' ? 'عضوية المواضيع السنوية' : 'عضوية الشخصيات السنوية') : title.trim(),
+            description: description.trim() || (isMembershipType ? (type === 'membership_topics' ? 'افتح جميع المواضيع المميزة لمدة سنة كاملة!' : 'افتح جميع الشخصيات المميزة لمدة سنة كاملة!') : ''),
+            icon: isTopicUnlock ? (selectedTopic?.icon || '') : isSubjectUnlock ? (selectedSubject?.icon || '') : isAvatarUnlock ? '👤' : isMembershipType ? '👑' : icon.trim(),
             priceDirhams: Math.max(0, Number(priceDirhams || 0)),
             discountPercent: Math.max(0, Math.min(100, Number(discountPercent || 0))),
             featured: !!featured,
@@ -677,6 +680,8 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
                     <option value="subject_unlock">Subject Unlock</option>
                     <option value="topic_unlock">Topic Unlock</option>
                     <option value="avatar_unlock">Avatar Unlock</option>
+                    <option value="membership_topics">👑 Yearly Membership - Topics</option>
+                    <option value="membership_avatars">👑 Yearly Membership - Avatars</option>
                     <option value="hint">Hint</option>
                     <option value="cosmetic">Cosmetic</option>
                 </select>
@@ -743,7 +748,25 @@ function MarketItemForm({ item, categories, subjects, avatarFaceTemplates, onClo
                     </>
                 )}
 
-                {(!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock) && (
+                {isMembershipType && (
+                    <div className="bg-[#FFD700]/10 border border-[#FFD700]/30 rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-3xl">👑</span>
+                            <div>
+                                <p className="font-bold text-[#FFD700]">
+                                    {type === 'membership_topics' ? 'عضوية المواضيع السنوية' : 'عضوية الشخصيات السنوية'}
+                                </p>
+                                <p className="text-xs text-sand/60">
+                                    {type === 'membership_topics'
+                                        ? 'تفتح جميع المواضيع المميزة لمدة سنة من تاريخ الشراء'
+                                        : 'تفتح جميع الشخصيات المميزة لمدة سنة من تاريخ الشراء'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {(!isTopicUnlock && !isSubjectUnlock && !isAvatarUnlock && !isMembershipType) && (
                     <input
                         type="text"
                         value={title}

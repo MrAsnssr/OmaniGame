@@ -12,6 +12,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
         categories,
         ownedTopicIds,
         ownedSubjectIds,
+        hasActiveTopicsMembership,
         turnPhase, // 'category' or 'type'
         categorySelectorId,
         typeSelectorId,
@@ -39,6 +40,8 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
     const canUseTopicOnline = (cat) => {
         if (!cat) return false;
         if (!cat.isPremium) return true;
+        // Allow if user has active topics membership
+        if (hasActiveTopicsMembership()) return true;
         // allow if topic is owned OR its parent subject is owned
         if (ownedTopicIds.includes(cat.id)) return true;
         if (cat.subjectId && ownedSubjectIds?.includes(cat.subjectId)) return true;
