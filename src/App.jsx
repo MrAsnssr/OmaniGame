@@ -708,6 +708,7 @@ export default function App() {
 
                 <div className="flex-1 overflow-y-auto glass-panel rounded-3xl p-6 relative border-4 border-white/50">
                   <QuestionRenderer
+                    key={`mp-question-${multiplayerQuestionIndex}-${multiplayerQuestion?.id || ''}`}
                     question={multiplayerQuestion}
                     onAnswer={handleMultiplayerAnswerSubmit}
                     onUpdate={handleMultiplayerAnswerUpdate}
