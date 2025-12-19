@@ -26,6 +26,15 @@ export default function MarketPage({ onBack, user }) {
     const [busyItemId, setBusyItemId] = useState(null);
     const [toast, setToast] = useState(null);
 
+    const getFinalPrice = (item) => {
+        const basePrice = Number(item.priceDirhams || 0);
+        const discount = Number(item.discountPercent || 0);
+        if (discount > 0 && discount <= 100) {
+            return Math.max(0, Math.round(basePrice * (1 - discount / 100)));
+        }
+        return basePrice;
+    };
+
     const activeItems = useMemo(() => {
         if (!category) return [];
         return marketItems
@@ -60,15 +69,6 @@ export default function MarketPage({ onBack, user }) {
     const regularItems = useMemo(() => {
         return activeItems.filter(i => !i.featured);
     }, [activeItems]);
-
-    const getFinalPrice = (item) => {
-        const basePrice = Number(item.priceDirhams || 0);
-        const discount = Number(item.discountPercent || 0);
-        if (discount > 0 && discount <= 100) {
-            return Math.max(0, Math.round(basePrice * (1 - discount / 100)));
-        }
-        return basePrice;
-    };
 
     const getTopic = (topicId) => categories.find(c => c.id === topicId);
     const getSubject = (subjectId) => subjects.find(s => s.id === subjectId);
