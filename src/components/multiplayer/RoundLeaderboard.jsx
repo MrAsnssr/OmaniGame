@@ -21,7 +21,7 @@ export default function RoundLeaderboard({
 
     const handleSubmitReport = async () => {
         if (!selectedQuestion || !reportReason.trim()) return;
-        
+
         if (onReportQuestion) {
             const result = await onReportQuestion(selectedQuestion.id, selectedQuestion, reportReason);
             if (result?.success) {
@@ -87,9 +87,18 @@ export default function RoundLeaderboard({
                     className="bg-primary/10 border-2 border-primary/30 rounded-xl p-3 mb-4 text-center"
                 >
                     <p className="text-primary text-sm font-bold">الجواب الصح:</p>
-                    <p className="text-white font-black text-lg">
-                        {Array.isArray(correctAnswer) ? correctAnswer.join(' → ') : correctAnswer}
-                    </p>
+                    {Array.isArray(correctAnswer) ? (
+                        <div className="flex flex-col items-center gap-1 mt-2">
+                            {correctAnswer.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                    <span className="w-5 h-5 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                                    <span className="text-white font-bold text-sm">{typeof item === 'object' ? item.text : item}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-white font-black text-lg">{correctAnswer}</p>
+                    )}
                 </motion.div>
             )}
 

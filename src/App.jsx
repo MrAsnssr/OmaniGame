@@ -698,7 +698,28 @@ export default function App() {
                         {feedback === 'incorrect' && currentQuestion && (
                           <div className="bg-white rounded-2xl p-6 shadow-2xl border-4 border-omani-red transform rotate-1">
                             <p className="text-gray-700 text-sm mb-2 font-bold">الجواب الصح هو:</p>
-                            <p className="text-2xl font-black text-omani-red">{currentQuestion.answer}</p>
+                            {currentQuestion.type === 'order' && currentQuestion.items ? (
+                              <div className="space-y-2">
+                                {currentQuestion.items.map((item, idx) => (
+                                  <div key={item.id || idx} className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-full bg-omani-red text-white text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                                    <span className="text-lg font-bold text-omani-red">{item.text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : currentQuestion.type === 'match' && currentQuestion.pairs ? (
+                              <div className="space-y-2">
+                                {currentQuestion.pairs.map((pair, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 text-sm">
+                                    <span className="font-bold text-omani-red">{pair.left}</span>
+                                    <span className="text-gray-400">←</span>
+                                    <span className="font-bold text-green-600">{pair.right}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-2xl font-black text-omani-red">{currentQuestion.answer}</p>
+                            )}
                           </div>
                         )}
                       </div>
