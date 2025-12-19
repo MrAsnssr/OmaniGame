@@ -101,6 +101,12 @@ export default function AdminDashboard({ onBack }) {
                 >
                     <Flag size={16} /> Reports
                 </button>
+                <button
+                    onClick={() => navigate('/admin/analytics')}
+                    className="py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors bg-[#FFD700]/20 text-[#FFD700] border-[#FFD700]/30 hover:bg-[#FFD700]/30 border-b-4 text-sm"
+                >
+                    📊 Analytics
+                </button>
             </div>
 
             {/* Content */}
