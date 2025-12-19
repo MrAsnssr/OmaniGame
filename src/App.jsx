@@ -203,6 +203,15 @@ export default function App() {
         alert(message);
       });
 
+      socket.on('game-restarted', ({ roomCode, players, settings, gameMode }) => {
+        // Reset multiplayer state and go back to waiting room
+        useGameStore.getState().setRoomData(roomCode, players, useGameStore.getState().isHost, gameMode);
+        setHasAnswered(false);
+        setAnsweredCount(0);
+        // Navigate to waiting room
+        navigate('/multiplayer/waiting');
+      });
+
       return () => {
         socket.off('room-created');
         socket.off('room-joined');
@@ -218,6 +227,7 @@ export default function App() {
         socket.off('next-question');
         socket.off('game-over');
         socket.off('no-questions');
+        socket.off('game-restarted');
       };
     }
   }, [location.pathname]);
@@ -275,6 +285,17 @@ export default function App() {
     socketService.disconnect();
     resetMultiplayer();
     navigate('/');
+  };
+
+  // Play Again: reset room to waiting state (host only, others wait for event)
+  const handlePlayAgain = () => {
+    const state = useGameStore.getState();
+    if (state.isHost) {
+      socketService.restartGame();
+    } else {
+      // Non-hosts just wait for the game-restarted event from the host
+      // Show a message or do nothing
+    }
   };
 
   // Multiplayer: send draft updates (no submit required)
@@ -741,7 +762,7 @@ export default function App() {
                       totalQuestions={multiplayerTotalQuestions}
                       isGameOver={isGameOver}
                       winner={winner}
-                      onPlayAgain={handleLeaveRoom}
+                      onPlayAgain={handlePlayAgain}
                       onLeave={handleLeaveRoom}
                       playedQuestions={multiplayerPlayedQuestions}
                       onReportQuestion={reportQuestion}

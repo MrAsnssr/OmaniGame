@@ -622,6 +622,47 @@ io.on('connection', (socket) => {
         }
         socket.roomCode = null;
     });
+
+    // Restart game - reset room to waiting state (only host can trigger)
+    socket.on('restart-game', () => {
+        const room = getRoom(socket.roomCode);
+        if (!room) return;
+        if (room.hostId !== socket.id) return;
+
+        // Clear timers
+        clearAnswerTimer(room);
+        clearSelectionTimer(room);
+
+        // Reset room state
+        room.state = 'waiting';
+        room.questions = [];
+        room.allQuestions = [];
+        room.currentQuestionIndex = 0;
+        room.answers.clear();
+        room.draftAnswers.clear();
+        room.turnIndex = 0;
+        room.currentCategory = null;
+        room.currentType = null;
+        room.categorySelectorId = null;
+        room.typeSelectorId = null;
+        room.turnCategoryIds = [];
+        room.questionStartTime = null;
+
+        // Reset player scores
+        room.players.forEach(p => {
+            p.score = 0;
+        });
+
+        // Notify all players to go back to waiting room
+        io.to(room.code).emit('game-restarted', {
+            roomCode: room.code,
+            players: room.players,
+            settings: room.settings,
+            gameMode: room.gameMode
+        });
+
+        console.log(`Game restarted in room ${room.code}`);
+    });
 });
 
 function processRoundEnd(room, { reason } = {}) {

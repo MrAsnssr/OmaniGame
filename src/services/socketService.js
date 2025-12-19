@@ -73,6 +73,10 @@ class SocketService {
         this.socket?.emit('select-type', { typeId });
     }
 
+    restartGame() {
+        this.socket?.emit('restart-game');
+    }
+
     // Event listeners
     on(event, callback) {
         this.socket?.on(event, callback);
