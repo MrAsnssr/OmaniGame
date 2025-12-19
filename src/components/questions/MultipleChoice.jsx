@@ -35,31 +35,41 @@ export default function MultipleChoice({ question, onAnswer, onUpdate, disabled 
                     {question.question}
                 </h2>
             </div>
-            <div className="grid gap-3 pb-4 overflow-y-auto min-h-0">
-                {question.options.map((option, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <Button
-                            variant="option"
-                            onClick={() => {
-                                if (disabled) return;
-                                onUpdate?.(option);
-                                onAnswer?.(option);
-                            }}
-                            className="w-full group border-white/5"
-                            disabled={disabled}
+            <div className="grid gap-4 pb-4 overflow-y-auto min-h-0">
+                {question.options.map((option, index) => {
+                    const colors = [
+                        'bg-[#D92525]', // Omani Red
+                        'bg-[#008000]', // Omani Green
+                        'bg-[#D4AF37]', // Omani Gold
+                        'bg-[#ec4913]'  // Primary Orange
+                    ];
+                    const optionColor = colors[index % colors.length];
+
+                    return (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
                         >
-                            <span className="w-8 h-8 rounded-full bg-wood-dark flex items-center justify-center text-sm font-bold text-sand/70 mr-3 group-hover:bg-primary/20 group-hover:text-primary transition-colors border border-white/5">
-                                {String.fromCharCode(65 + index)}
-                            </span>
-                            {option}
-                        </Button>
-                    </motion.div>
-                ))}
+                            <Button
+                                variant="option"
+                                onClick={() => {
+                                    if (disabled) return;
+                                    onUpdate?.(option);
+                                    onAnswer?.(option);
+                                }}
+                                className={`w-full group border-white/20 shadow-lg ${optionColor} py-5 px-6`}
+                                disabled={disabled}
+                            >
+                                <span className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-lg font-black text-white mr-4 transition-colors border border-white/20 shadow-inner">
+                                    {String.fromCharCode(65 + index)}
+                                </span>
+                                <span className="text-xl font-bold tracking-wide drop-shadow-sm">{option}</span>
+                            </Button>
+                        </motion.div>
+                    );
+                })}
             </div>
 
             {showReportModal && (

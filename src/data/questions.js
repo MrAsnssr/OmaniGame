@@ -1,9 +1,9 @@
 // Initial Data for seeding the store
 export const initialCategories = [
-    { name: 'Geography', icon: '🗺️', color: 'bg-blue-500' },
-    { name: 'History', icon: '📜', color: 'bg-amber-600' },
-    { name: 'Culture', icon: '🏛️', color: 'bg-purple-500' },
-    { name: 'Nature', icon: '🌴', color: 'bg-green-500' },
+    { name: 'Geography', icon: '🗺️' },
+    { name: 'History', icon: '📜' },
+    { name: 'Culture', icon: '🏛️' },
+    { name: 'Nature', icon: '🌴' },
 ];
 
 export const initialQuestions = [

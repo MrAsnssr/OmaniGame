@@ -124,7 +124,7 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className={`${selectedCategory.color} p-4 rounded-2xl text-white font-bold flex items-center justify-center gap-3 shadow-xl mb-4 border-2 border-white/20 ring-4 ring-primary/20`}
+                    className={`bg-primary p-4 rounded-2xl text-white font-bold flex items-center justify-center gap-3 shadow-xl mb-4 border-2 border-white/20 ring-4 ring-primary/20`}
                 >
                     <CheckCircle size={28} className="text-white" />
                     <span className="text-3xl">{selectedCategory.icon}</span>
@@ -136,33 +136,43 @@ export default function TurnSelection({ onSelectCategory, onSelectType }) {
                 {/* Category Selection Phase */}
                 {turnPhase === 'category' && (
                     <div className="flex flex-col gap-4 pb-4">
-                        {turnCategories.map((category, index) => (
-                            <motion.button
-                                key={category.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: index * 0.1 }}
-                                whileTap={isMyTurnToPickCategory ? { scale: 0.95 } : {}}
-                                onClick={() => {
-                                    if (!isMyTurnToPickCategory) return;
-                                    if (!canUseTopicOnline(category)) {
-                                        alert('هذا المجال Premium. افتح السوق لشراءه.');
-                                        return;
-                                    }
-                                    onSelectCategory(category.id);
-                                }}
-                                disabled={!isMyTurnToPickCategory}
-                                className={`${category.color} p-6 rounded-2xl text-white font-bold flex flex-col items-center justify-center gap-2 shadow-lg border-b-4 border-black/30 h-32 ${!isMyTurnToPickCategory ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:brightness-110'} ${(!canUseTopicOnline(category)) ? 'opacity-60' : ''}`}
-                            >
-                                <span className="text-4xl">{category.icon}</span>
-                                <span className="text-sm text-center">{category.name}</span>
-                                {category.isPremium && !ownedTopicIds.includes(category.id) && (
-                                    <span className="text-[10px] bg-black/30 px-2 py-1 rounded-full border border-white/20">
-                                        🔒 Premium
-                                    </span>
-                                )}
-                            </motion.button>
-                        ))}
+                        {turnCategories.map((category, index) => {
+                            const colors = [
+                                'bg-[#D92525]', // Omani Red
+                                'bg-[#008000]', // Omani Green
+                                'bg-[#D4AF37]', // Omani Gold
+                                'bg-[#ec4913]'  // Primary Orange
+                            ];
+                            const catColor = colors[index % colors.length];
+
+                            return (
+                                <motion.button
+                                    key={category.id}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    whileTap={isMyTurnToPickCategory ? { scale: 0.95 } : {}}
+                                    onClick={() => {
+                                        if (!isMyTurnToPickCategory) return;
+                                        if (!canUseTopicOnline(category)) {
+                                            alert('هذا المجال Premium. افتح السوق لشراءه.');
+                                            return;
+                                        }
+                                        onSelectCategory(category.id);
+                                    }}
+                                    disabled={!isMyTurnToPickCategory}
+                                    className={`${catColor} p-6 rounded-2xl text-white font-bold flex flex-col items-center justify-center gap-2 shadow-lg border-b-4 border-black/30 h-32 ${!isMyTurnToPickCategory ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:brightness-110'} ${(!canUseTopicOnline(category)) ? 'opacity-60' : ''}`}
+                                >
+                                    <span className="text-4xl">{category.icon}</span>
+                                    <span className="text-sm text-center">{category.name}</span>
+                                    {category.isPremium && !ownedTopicIds.includes(category.id) && (
+                                        <span className="text-[10px] bg-black/30 px-2 py-1 rounded-full border border-white/20">
+                                            🔒 Premium
+                                        </span>
+                                    )}
+                                </motion.button>
+                            );
+                        })}
                     </div>
                 )}
 

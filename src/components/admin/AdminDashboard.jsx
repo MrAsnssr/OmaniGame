@@ -8,13 +8,13 @@ import QuestionFormModal from './QuestionFormModal';
 
 export default function AdminDashboard({ onBack }) {
     const navigate = useNavigate();
-    const { 
-        categories, questions, subjects, 
+    const {
+        categories, questions, subjects,
         marketItems, addMarketItem, editMarketItem, deleteMarketItem,
         avatarFaceTemplates,
         addAvatarFaceTemplate, editAvatarFaceTemplate, deleteAvatarFaceTemplate,
         uploadAvatarAsset,
-        deleteCategory, deleteQuestion, deleteSubject, startAdminReviewGame 
+        deleteCategory, deleteQuestion, deleteSubject, startAdminReviewGame
     } = useGameStore();
     const [activeTab, setActiveTab] = useState('subjects');
     const [editingCategory, setEditingCategory] = useState(null);
@@ -256,7 +256,7 @@ function CategoryList({ categories, subjects, onEdit, onDelete, onAdd }) {
             <Button onClick={onAdd} variant="primary" className="w-full shadow-lg">
                 <Plus size={18} /> Add Topic
             </Button>
-            
+
             {/* Uncategorized Topics */}
             {uncategorized.length > 0 && (
                 <div className="bg-primary/10 border-2 border-primary/20 rounded-xl p-3 mb-4">
@@ -271,7 +271,7 @@ function CategoryList({ categories, subjects, onEdit, onDelete, onAdd }) {
                     ))}
                 </div>
             )}
-            
+
             {/* Categorized Topics by Subject */}
             {categorized.map(group => (
                 <div key={group.subject.id} className="bg-wood-dark/30 border border-white/5 rounded-xl p-3">
@@ -442,14 +442,13 @@ function CategoryForm({ category, subjects, onClose }) {
     const { addCategory, editCategory } = useGameStore();
     const [name, setName] = useState(category?.name || '');
     const [icon, setIcon] = useState(category?.icon || '📚');
-    const [color, setColor] = useState(category?.color || 'bg-primary');
     const [subjectId, setSubjectId] = useState(category?.subjectId || '');
     const [isPremium, setIsPremium] = useState(!!category?.isPremium);
     const [priceDirhams, setPriceDirhams] = useState(
         Number.isFinite(Number(category?.priceDirhams)) ? String(category.priceDirhams) : '0'
     );
 
-    const colors = ['bg-primary', 'bg-orange-700', 'bg-wood-light', 'bg-wood-dark', 'bg-sand', 'bg-red-600', 'bg-green-700'];
+
 
     const handleSubmit = () => {
         if (!name.trim()) return;
@@ -457,7 +456,7 @@ function CategoryForm({ category, subjects, onClose }) {
         const topicData = {
             name,
             icon,
-            color,
+
             subjectId: subjectId || null,
             isPremium: !!isPremium,
             priceDirhams: Number.isFinite(parsedPrice) ? parsedPrice : 0
@@ -478,7 +477,7 @@ function CategoryForm({ category, subjects, onClose }) {
                 className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4"
             >
                 <h3 className="text-xl font-bold text-white mb-4 engraved-text">{category ? 'Edit' : 'Add'} Topic</h3>
-                
+
                 {/* Subject Selection */}
                 <div className="mb-3">
                     <label className="block text-sm font-bold text-sand/70 mb-1">Subject (Required for game)</label>
@@ -493,7 +492,7 @@ function CategoryForm({ category, subjects, onClose }) {
                         ))}
                     </select>
                 </div>
-                
+
                 <input
                     type="text"
                     value={name}
@@ -508,7 +507,7 @@ function CategoryForm({ category, subjects, onClose }) {
                     placeholder="Emoji Icon (e.g., 📚)"
                     className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30"
                 />
-                
+
                 {/* Premium Toggle */}
                 <div className="bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
                     <label className="flex items-center justify-between gap-3">
@@ -537,11 +536,7 @@ function CategoryForm({ category, subjects, onClose }) {
                         />
                     </div>
                 </div>
-                <div className="flex gap-2 flex-wrap mb-4">
-                    {colors.map(c => (
-                        <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full ${c} ${color === c ? 'ring-2 ring-offset-2 ring-primary border-2 border-white/20' : 'border border-white/10'}`} />
-                    ))}
-                </div>
+
                 <div className="flex gap-3">
                     <Button onClick={onClose} variant="ghost" className="flex-1 text-sand border border-white/5">Cancel</Button>
                     <Button onClick={handleSubmit} className="flex-1 shadow-lg">Save</Button>
@@ -1167,7 +1162,7 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4">
                 <h3 className="text-xl font-bold text-white mb-4 engraved-text">{template ? 'Edit' : 'Add'} Static Avatar</h3>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30" />
-                
+
                 <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
                     <div>
                         <div className="text-sm font-bold text-white">Premium</div>
