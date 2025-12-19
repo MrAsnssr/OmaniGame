@@ -252,7 +252,7 @@ function getAnsweredCount(room) {
     const connected = getConnectedPlayers(room);
     let count = 0;
     for (const p of connected) {
-        if (room.answers.has(p.id) || room.draftAnswers.has(p.id)) count++;
+        if (room.answers.has(p.id)) count++;
     }
     return count;
 }
@@ -534,12 +534,6 @@ io.on('connection', (socket) => {
             answeredCount: getAnsweredCount(room),
             totalPlayers: getConnectedPlayers(room).length
         });
-
-        // If everyone has at least a draft (or a final), end the round early
-        const connected = getConnectedPlayers(room);
-        if (getAnsweredCount(room) >= connected.length) {
-            processRoundEnd(room, { reason: 'all_drafted' });
-        }
     });
 
     // Submit answer
