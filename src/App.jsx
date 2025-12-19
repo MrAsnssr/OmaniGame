@@ -28,7 +28,7 @@ import { Trophy, RotateCcw, Home, Users } from 'lucide-react';
 import socketService from './services/socketService';
 import { onAuthChange, signOut } from './services/authService';
 import { isFillBlankCorrect } from './utils/answerValidation';
-import { trackUserSession, trackPageView, trackTimeSpent, trackError } from './services/analyticsService';
+import { trackUserSession, trackPageView, trackTimeSpent, trackError, trackPerformance, detectRageClick } from './services/analyticsService';
 
 // Map gameState to route paths
 const stateToRoute = {
@@ -152,6 +152,37 @@ export default function App() {
       clearInterval(interval);
       window.removeEventListener('beforeunload', handleUnload);
     };
+  }, [user?.uid]);
+
+  // Track performance metrics after page load
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    // Wait for page to fully load
+    const trackAfterLoad = () => {
+      setTimeout(() => {
+        trackPerformance(user.uid);
+      }, 2000);
+    };
+
+    if (document.readyState === 'complete') {
+      trackAfterLoad();
+    } else {
+      window.addEventListener('load', trackAfterLoad);
+      return () => window.removeEventListener('load', trackAfterLoad);
+    }
+  }, [user?.uid]);
+
+  // Track rage clicks
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const handleClick = () => {
+      detectRageClick(user.uid);
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
   }, [user?.uid]);
 
   // Sync gameState changes to routes ONLY for multiplayer socket events

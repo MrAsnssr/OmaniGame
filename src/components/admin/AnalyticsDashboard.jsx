@@ -343,6 +343,112 @@ export default function AnalyticsDashboard({ onBack }) {
                                         </div>
                                     </div>
 
+                                    {/* Geolocation Section */}
+                                    {user.geo && (
+                                        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-3">
+                                            <p className="text-blue-300 text-xs font-bold mb-2">📍 الموقع الجغرافي</p>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Country</p>
+                                                    <p className="text-white">{user.geo.country || 'Unknown'} {user.geo.countryCode && `(${user.geo.countryCode})`}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">City</p>
+                                                    <p className="text-white">{user.geo.city || 'Unknown'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">ISP</p>
+                                                    <p className="text-white truncate">{user.geo.isp || 'Unknown'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">VPN</p>
+                                                    <p className={user.geo.isVPN ? 'text-yellow-400' : 'text-green-400'}>
+                                                        {user.geo.isVPN ? '⚠️ Possible VPN' : '✅ No VPN'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Game Stats Section */}
+                                    {(user.totalQuestionsAnswered > 0 || user.gamesCompleted > 0) && (
+                                        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-3">
+                                            <p className="text-green-300 text-xs font-bold mb-2">🎮 إحصائيات اللعب</p>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Questions</p>
+                                                    <p className="text-white">{user.totalQuestionsAnswered || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Correct</p>
+                                                    <p className="text-green-400">{user.correctAnswers || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Wrong</p>
+                                                    <p className="text-red-400">{user.wrongAnswers || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Accuracy</p>
+                                                    <p className="text-white">
+                                                        {user.totalQuestionsAnswered > 0
+                                                            ? ((user.correctAnswers || 0) / user.totalQuestionsAnswered * 100).toFixed(1) + '%'
+                                                            : 'N/A'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Games</p>
+                                                    <p className="text-white">{user.gamesCompleted || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Total Score</p>
+                                                    <p className="text-[#FFD700]">{user.totalScore || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Best Score</p>
+                                                    <p className="text-[#FFD700]">{user.bestScore || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Wins</p>
+                                                    <p className="text-primary">{user.wins || 0}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Performance Section */}
+                                    {user.performance && (
+                                        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-xl p-3">
+                                            <p className="text-orange-300 text-xs font-bold mb-2">⚡ الأداء</p>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Page Load</p>
+                                                    <p className="text-white">{user.performance.pageLoadTime ? `${user.performance.pageLoadTime}ms` : 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">First Paint</p>
+                                                    <p className="text-white">{user.performance.firstPaint ? `${Math.round(user.performance.firstPaint)}ms` : 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Network</p>
+                                                    <p className="text-white">{user.performance.effectiveType || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sand/50 text-xs">Latency</p>
+                                                    <p className="text-white">{user.performance.rtt ? `${user.performance.rtt}ms` : 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Rage Clicks */}
+                                    {user.featureUsage?.rageClick > 0 && (
+                                        <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-3">
+                                            <p className="text-red-400 text-sm">
+                                                😤 <span className="font-bold">{user.featureUsage.rageClick}</span> rage clicks detected
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {/* IP Address Section */}
                                     {user.lastIP && (
                                         <div className="bg-wood-dark/60 border border-white/10 rounded-xl p-3">

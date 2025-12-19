@@ -2,35 +2,49 @@
 import { db } from './firebase';
 import { doc, setDoc, updateDoc, increment, arrayUnion, getDoc, collection, getDocs, query, where, addDoc, deleteDoc } from 'firebase/firestore';
 
-// Fetch user's IP address using a free API
-let cachedIP = null;
-export async function getIPAddress() {
-    if (cachedIP) return cachedIP;
+// Fetch user's IP address and geolocation using a free API
+let cachedIPData = null;
+export async function getIPAndGeoData() {
+    if (cachedIPData) return cachedIPData;
     try {
-        // Try multiple IP services for reliability
-        const services = [
-            'https://api.ipify.org?format=json',
-            'https://api.my-ip.io/v2/ip.json',
-            'https://ipapi.co/json/'
-        ];
-
-        for (const url of services) {
-            try {
-                const res = await fetch(url, { timeout: 5000 });
-                if (res.ok) {
-                    const data = await res.json();
-                    cachedIP = data.ip || data.origin || null;
-                    if (cachedIP) return cachedIP;
-                }
-            } catch (e) {
-                continue;
-            }
+        // Use ipapi.co which gives both IP and geo data
+        const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+        if (res.ok) {
+            const data = await res.json();
+            cachedIPData = {
+                ip: data.ip,
+                country: data.country_name,
+                countryCode: data.country_code,
+                city: data.city,
+                region: data.region,
+                postalCode: data.postal,
+                latitude: data.latitude,
+                longitude: data.longitude,
+                timezone: data.timezone,
+                isp: data.org,
+                asn: data.asn,
+                isVPN: data.org?.toLowerCase().includes('vpn') || data.org?.toLowerCase().includes('proxy') || false
+            };
+            return cachedIPData;
         }
-        return null;
+        // Fallback to simple IP only
+        const fallback = await fetch('https://api.ipify.org?format=json');
+        if (fallback.ok) {
+            const d = await fallback.json();
+            cachedIPData = { ip: d.ip };
+            return cachedIPData;
+        }
+        return { ip: null };
     } catch (error) {
-        console.error('Error fetching IP:', error);
-        return null;
+        console.error('Error fetching IP/geo data:', error);
+        return { ip: null };
     }
+}
+
+// Legacy function for backwards compatibility
+export async function getIPAddress() {
+    const data = await getIPAndGeoData();
+    return data.ip;
 }
 
 // Check if an IP is banned
@@ -193,8 +207,9 @@ export async function trackUserSession(userId, displayName, email) {
         const userSnap = await getDoc(userRef);
         const existingData = userSnap.exists() ? userSnap.data() : {};
 
-        // Get IP address
-        const ipAddress = await getIPAddress();
+        // Get IP and geo data
+        const geoData = await getIPAndGeoData();
+        const ipAddress = geoData.ip;
 
         // Session data
         const sessionData = {
@@ -205,6 +220,18 @@ export async function trackUserSession(userId, displayName, email) {
             lastIP: ipAddress,
             ...(existingData.firstIP ? {} : { firstIP: ipAddress }),
             knownIPs: ipAddress ? arrayUnion(ipAddress) : existingData.knownIPs || [],
+
+            // Geolocation
+            geo: geoData.country ? {
+                country: geoData.country,
+                countryCode: geoData.countryCode,
+                city: geoData.city,
+                region: geoData.region,
+                lat: geoData.latitude,
+                lng: geoData.longitude,
+                isp: geoData.isp,
+                isVPN: geoData.isVPN
+            } : existingData.geo || null,
 
             // Last seen
             lastSeenAt: now.toISOString(),
@@ -228,7 +255,7 @@ export async function trackUserSession(userId, displayName, email) {
             lastEntryUrl: trafficSource.entryUrl,
 
             // Analytics metadata
-            analyticsVersion: 2,
+            analyticsVersion: 3,
             updatedAt: now.toISOString()
         };
 
@@ -241,7 +268,11 @@ export async function trackUserSession(userId, displayName, email) {
             device: deviceInfo,
             trafficSource,
             userAgent: deviceInfo.userAgent,
-            ip: ipAddress
+            ip: ipAddress,
+            geo: geoData.country ? {
+                country: geoData.country,
+                city: geoData.city
+            } : null
         });
 
         return { success: true };
@@ -412,11 +443,231 @@ export async function trackFeatureUsage(userId, featureName) {
     }
 }
 
+// Track individual question answer
+export async function trackQuestionAnswer(userId, questionData) {
+    if (!userId) return;
+
+    const now = new Date();
+    const { questionId, questionType, category, isCorrect, timeTaken, difficulty } = questionData;
+
+    try {
+        const userRef = doc(db, 'users', userId);
+
+        // Update aggregate stats
+        await updateDoc(userRef, {
+            totalQuestionsAnswered: increment(1),
+            [`questionsByType.${questionType}`]: increment(1),
+            [`questionsByCategory.${category || 'unknown'}`]: increment(1),
+            ...(isCorrect ? {
+                correctAnswers: increment(1),
+                [`correctByType.${questionType}`]: increment(1)
+            } : {
+                wrongAnswers: increment(1),
+                [`wrongByType.${questionType}`]: increment(1)
+            }),
+            totalAnswerTime: increment(timeTaken || 0),
+            lastQuestionAt: now.toISOString()
+        });
+
+        // Store individual answer in subcollection
+        const answerRef = doc(db, 'users', userId, 'answers', `${now.getTime()}`);
+        await setDoc(answerRef, {
+            questionId,
+            questionType,
+            category,
+            isCorrect,
+            timeTaken,
+            difficulty,
+            answeredAt: now.toISOString()
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error tracking question answer:', error);
+        return { success: false, error };
+    }
+}
+
+// Track click/interaction events
+export async function trackClick(userId, element, metadata = {}) {
+    if (!userId) return;
+
+    try {
+        const userRef = doc(db, 'users', userId);
+
+        await updateDoc(userRef, {
+            totalClicks: increment(1),
+            [`clicks.${element}`]: increment(1)
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error tracking click:', error);
+        return { success: false, error };
+    }
+}
+
+// Track game complete with detailed stats
+export async function trackGameComplete(userId, gameStats) {
+    if (!userId) return;
+
+    const now = new Date();
+    const {
+        score, totalQuestions, correctAnswers, totalTime,
+        gameMode, category, questionTypes, won
+    } = gameStats;
+
+    try {
+        const userRef = doc(db, 'users', userId);
+
+        await updateDoc(userRef, {
+            gamesCompleted: increment(1),
+            totalScore: increment(score || 0),
+            totalGameTime: increment(totalTime || 0),
+            bestScore: gameStats.score > (await getDoc(userRef)).data()?.bestScore ? score : undefined,
+            ...(won ? { wins: increment(1) } : {}),
+            lastGameAt: now.toISOString()
+        });
+
+        // Store game session details
+        const gameRef = doc(db, 'users', userId, 'gameHistory', `${now.getTime()}`);
+        await setDoc(gameRef, {
+            score,
+            totalQuestions,
+            correctAnswers,
+            accuracy: totalQuestions > 0 ? (correctAnswers / totalQuestions * 100).toFixed(1) : 0,
+            totalTime,
+            avgTimePerQuestion: totalQuestions > 0 ? (totalTime / totalQuestions).toFixed(1) : 0,
+            gameMode,
+            category,
+            questionTypes,
+            won,
+            playedAt: now.toISOString()
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error tracking game complete:', error);
+        return { success: false, error };
+    }
+}
+
+// Track performance metrics (page load, etc.)
+export async function trackPerformance(userId) {
+    if (!userId || typeof window === 'undefined' || !window.performance) return;
+
+    try {
+        const perf = window.performance;
+        const timing = perf.timing || {};
+        const entries = perf.getEntriesByType ? perf.getEntriesByType('navigation')[0] : null;
+
+        const metrics = {
+            // Navigation timing
+            pageLoadTime: timing.loadEventEnd - timing.navigationStart || entries?.loadEventEnd || null,
+            domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart || entries?.domContentLoadedEventEnd || null,
+            firstPaint: null,
+            firstContentfulPaint: null,
+
+            // Memory (if available)
+            usedJSHeapSize: perf.memory?.usedJSHeapSize || null,
+            totalJSHeapSize: perf.memory?.totalJSHeapSize || null,
+
+            // Connection
+            effectiveType: navigator.connection?.effectiveType || null,
+            downlink: navigator.connection?.downlink || null,
+            rtt: navigator.connection?.rtt || null
+        };
+
+        // Get paint entries
+        const paintEntries = perf.getEntriesByType ? perf.getEntriesByType('paint') : [];
+        for (const entry of paintEntries) {
+            if (entry.name === 'first-paint') metrics.firstPaint = entry.startTime;
+            if (entry.name === 'first-contentful-paint') metrics.firstContentfulPaint = entry.startTime;
+        }
+
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            performance: metrics,
+            performanceRecordedAt: new Date().toISOString()
+        });
+
+        return { success: true, metrics };
+    } catch (error) {
+        console.error('Error tracking performance:', error);
+        return { success: false, error };
+    }
+}
+
+// Track rage clicks (multiple fast clicks indicating frustration)
+let clickTimestamps = [];
+export function detectRageClick(userId) {
+    const now = Date.now();
+    clickTimestamps.push(now);
+
+    // Keep last 10 clicks
+    clickTimestamps = clickTimestamps.slice(-10);
+
+    // Check for 3+ clicks within 1 second
+    const recentClicks = clickTimestamps.filter(t => now - t < 1000);
+    if (recentClicks.length >= 3) {
+        trackFeatureUsage(userId, 'rageClick');
+        clickTimestamps = []; // Reset
+        return true;
+    }
+    return false;
+}
+
+// Track scroll depth
+let maxScrollDepth = 0;
+export function trackScrollDepth(userId) {
+    if (typeof window === 'undefined') return;
+
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+    if (scrollPercent > maxScrollDepth) {
+        maxScrollDepth = scrollPercent;
+    }
+}
+
+// Save scroll depth on page leave
+export async function saveScrollDepth(userId, pageName) {
+    if (!userId || maxScrollDepth === 0) return;
+
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            [`scrollDepth.${pageName}`]: maxScrollDepth
+        });
+        maxScrollDepth = 0; // Reset for next page
+        return { success: true };
+    } catch (error) {
+        return { success: false, error };
+    }
+}
+
+// Track session engagement (returns engagement score)
+export function calculateEngagement(sessionData) {
+    let score = 0;
+
+    if (sessionData.sessionCount > 1) score += 10; // Returning user
+    if (sessionData.sessionCount > 5) score += 10; // Loyal user
+    if (sessionData.totalTimeSpentSeconds > 300) score += 15; // 5+ min
+    if (sessionData.totalTimeSpentSeconds > 900) score += 15; // 15+ min
+    if (sessionData.gamesCompleted > 0) score += 20;
+    if (sessionData.totalPurchases > 0) score += 20;
+    if (sessionData.totalMultiplayerGames > 0) score += 10;
+
+    return Math.min(100, score);
+}
+
 // Export all analytics functions
 export default {
     getDeviceInfo,
     getTrafficSource,
     getIPAddress,
+    getIPAndGeoData,
     checkIPBan,
     banIP,
     unbanIP,
@@ -428,5 +679,13 @@ export default {
     trackPurchase,
     trackTimeSpent,
     trackError,
-    trackFeatureUsage
+    trackFeatureUsage,
+    trackQuestionAnswer,
+    trackClick,
+    trackGameComplete,
+    trackPerformance,
+    detectRageClick,
+    trackScrollDepth,
+    saveScrollDepth,
+    calculateEngagement
 };
