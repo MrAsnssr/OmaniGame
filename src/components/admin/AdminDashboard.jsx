@@ -1139,6 +1139,14 @@ function AvatarTemplateForm({ template, onClose, onCreate, onUpdate, uploadAvata
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-wood-dark border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl my-4">
                 <h3 className="text-xl font-bold text-white mb-4 engraved-text">{template ? 'Edit' : 'Add'} Static Avatar</h3>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" className="w-full p-3 bg-wood-dark/50 border-2 border-white/10 rounded-xl mb-3 focus:border-primary outline-none text-white placeholder-sand/30" />
+                
+                <label className="flex items-center justify-between gap-3 bg-wood-dark/40 border border-white/5 rounded-xl p-3 mb-3">
+                    <div>
+                        <div className="text-sm font-bold text-white">Premium</div>
+                        <div className="text-xs text-sand/50">Requires purchase from market</div>
+                    </div>
+                    <input type="checkbox" checked={premium} onChange={(e) => setPremium(e.target.checked)} className="size-5 accent-primary" />
+                </label>
 
                 {/* Static avatars are always uneditable */}
                 <input type="hidden" value="true" />
