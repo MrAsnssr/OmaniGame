@@ -266,7 +266,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                             )}
 
                             {/* Topic Selection */}
-                            <div>
+                            <div className="flex flex-col flex-1 min-h-0">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-bold text-sand text-xs">المواضيع:</span>
                                     <div className="flex gap-1">
@@ -286,7 +286,7 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                                 )}
 
                                 {/* Subject/Topic Tree */}
-                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                <div className="space-y-1 flex-1 min-h-0 overflow-y-auto">
                                     {subjects.map((subject) => {
                                         const subjectTopics = topicsBySubject[subject.id]?.topics || [];
                                         if (subjectTopics.length === 0) return null;
@@ -301,8 +301,8 @@ export default function MultiplayerLobby({ onBack, onRoomCreated, onRoomJoined, 
                                                     <button
                                                         onClick={(e) => toggleSelectSubject(subject.id, e)}
                                                         className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isFullySelected ? 'bg-primary text-white'
-                                                                : isPartiallySelected ? 'bg-omani-gold text-white'
-                                                                    : 'bg-wood-dark/50 text-sand/60'
+                                                            : isPartiallySelected ? 'bg-omani-gold text-white'
+                                                                : 'bg-wood-dark/50 text-sand/60'
                                                             }`}
                                                     >
                                                         {(isFullySelected || isPartiallySelected) ? <CheckSquare size={12} /> : <Square size={12} />}
