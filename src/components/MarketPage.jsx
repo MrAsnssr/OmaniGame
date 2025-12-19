@@ -13,7 +13,7 @@ export default function MarketPage({ onBack, user }) {
         avatarFaceTemplates,
         ownedSubjectIds,
         ownedTopicIds,
-        ownedAvatarIds,
+        ownedAvatarIds = [],
         purchasesLoaded,
         purchaseMarketItem
     } = useGameStore();
