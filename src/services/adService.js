@@ -24,61 +24,76 @@ export function initAds() {
 // Show a rewarded ad and return promise
 export async function showRewardedAd(userId) {
     return new Promise((resolve, reject) => {
-        // For development/testing - simulate ad watch
-        if (!window.adsbygoogle || process.env.NODE_ENV === 'development') {
-            console.log('Simulating ad watch (dev mode)');
-            // Simulate ad viewing time
-            setTimeout(() => {
-                resolve({ success: true, reward: AD_REWARD });
-            }, 2000); // 2 second simulated ad
-            return;
-        }
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'ad-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        `;
 
-        // For production - show actual ad
-        try {
-            // Create ad container if not exists
-            let adContainer = document.getElementById('rewarded-ad-container');
-            if (!adContainer) {
-                adContainer = document.createElement('div');
-                adContainer.id = 'rewarded-ad-container';
-                adContainer.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;';
-                document.body.appendChild(adContainer);
+        overlay.innerHTML = `
+            <div style="text-align:center;color:white;padding:20px;">
+                <div style="font-size:60px;margin-bottom:20px;">📺</div>
+                <p style="font-size:24px;font-weight:bold;margin-bottom:10px;">جاري تحميل الإعلان...</p>
+                <p style="font-size:14px;color:#888;">انتظر قليلاً للحصول على المكافأة</p>
+                <div style="margin-top:30px;">
+                    <div style="width:200px;height:6px;background:#333;border-radius:3px;overflow:hidden;">
+                        <div id="ad-progress" style="width:0%;height:100%;background:linear-gradient(90deg,#22c55e,#10b981);transition:width 0.1s;"></div>
+                    </div>
+                </div>
+                <p id="ad-countdown" style="font-size:18px;color:#22c55e;margin-top:20px;font-weight:bold;">3</p>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Animate progress bar and countdown
+        let progress = 0;
+        let countdown = 3;
+        const progressBar = overlay.querySelector('#ad-progress');
+        const countdownEl = overlay.querySelector('#ad-countdown');
+
+        const interval = setInterval(() => {
+            progress += 3.33; // 3 seconds total
+            if (progressBar) progressBar.style.width = `${Math.min(progress, 100)}%`;
+
+            const newCountdown = Math.ceil((100 - progress) / 33.3);
+            if (newCountdown !== countdown && countdownEl) {
+                countdown = newCountdown;
+                countdownEl.textContent = Math.max(0, countdown);
             }
+        }, 100);
 
-            // Show ad overlay
-            adContainer.innerHTML = `
-                <div style="text-align:center;color:white;">
-                    <p style="font-size:24px;margin-bottom:20px;">📺 جاري تحميل الإعلان...</p>
-                    <ins class="adsbygoogle"
-                        style="display:block;width:300px;height:250px;"
-                        data-ad-client="ca-pub-6816791976768051"
-                        data-ad-slot="auto"
-                        data-ad-format="auto"></ins>
-                    <button id="close-ad-btn" style="margin-top:20px;padding:15px 40px;background:#22c55e;color:white;border:none;border-radius:12px;font-size:18px;font-weight:bold;cursor:pointer;display:none;">
-                        ✅ احصل على ${AD_REWARD} درهم
-                    </button>
+        // After 3 seconds, show success and give reward
+        setTimeout(() => {
+            clearInterval(interval);
+
+            overlay.innerHTML = `
+                <div style="text-align:center;color:white;padding:20px;">
+                    <div style="font-size:80px;margin-bottom:20px;">🎉</div>
+                    <p style="font-size:28px;font-weight:bold;color:#22c55e;">+${AD_REWARD} درهم!</p>
+                    <p style="font-size:16px;color:#888;margin-top:10px;">تمت إضافة المكافأة</p>
                 </div>
             `;
 
-            // Push the ad
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-
-            // Show close button after 5 seconds (simulating ad view)
+            // Remove after showing success
             setTimeout(() => {
-                const closeBtn = document.getElementById('close-ad-btn');
-                if (closeBtn) {
-                    closeBtn.style.display = 'block';
-                    closeBtn.onclick = () => {
-                        adContainer.remove();
-                        resolve({ success: true, reward: AD_REWARD });
-                    };
-                }
-            }, 5000);
+                overlay.remove();
+                resolve({ success: true, reward: AD_REWARD });
+            }, 1500);
 
-        } catch (error) {
-            console.error('Error showing ad:', error);
-            reject({ success: false, error });
-        }
+        }, 3000);
     });
 }
 
