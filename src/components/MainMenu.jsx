@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
+import WatchAdButton from './WatchAdButton';
 
 export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, user, onLogout }) {
     const navigate = useNavigate();
@@ -167,6 +168,10 @@ export default function MainMenu({ onStart, onAdmin, onMultiplayer, onLogin, use
                         </div>
                     </div>
                 </main>
+                {/* Watch Ad Button */}
+                <div className="relative z-10 px-6 py-2">
+                    <WatchAdButton userId={user?.uid} className="w-full" />
+                </div>
 
                 {/* Bottom Navigation */}
                 <div className="relative z-10 px-6 pb-6 pt-2">
