@@ -112,6 +112,85 @@ export async function getBannedIPs() {
     }
 }
 
+// Admin: Give dirhams to a user
+export async function giveDirhams(userId, amount, reason = 'Admin top-up') {
+    if (!userId || !amount) return { success: false, error: 'Missing userId or amount' };
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            return { success: false, error: 'User not found' };
+        }
+
+        const currentDirhams = userSnap.data().dirhams || 0;
+        const newBalance = currentDirhams + Number(amount);
+
+        await setDoc(userRef, {
+            dirhams: newBalance,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        // Log the top-up
+        const topupRef = doc(db, 'users', userId, 'topups', `${Date.now()}`);
+        await setDoc(topupRef, {
+            amount: Number(amount),
+            reason,
+            previousBalance: currentDirhams,
+            newBalance,
+            addedAt: new Date().toISOString()
+        });
+
+        return { success: true, newBalance };
+    } catch (error) {
+        console.error('Error giving dirhams:', error);
+        return { success: false, error };
+    }
+}
+
+// Generate a 6-digit user ID (special case for asnssrr@gmail.com = 000000)
+export function generate6DigitUserId(email) {
+    if (email && email.toLowerCase() === 'asnssrr@gmail.com') {
+        return '000000';
+    }
+    // Generate random 6 digit number
+    return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+// Set/get user's short ID (6-digit)
+export async function getUserShortId(userId, email) {
+    if (!userId) return null;
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists() && userSnap.data().shortId) {
+            return userSnap.data().shortId;
+        }
+
+        // Generate new short ID
+        const shortId = generate6DigitUserId(email);
+
+        // Check if shortId already exists (except for 000000)
+        if (shortId !== '000000') {
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('shortId', '==', shortId));
+            const existing = await getDocs(q);
+            if (!existing.empty) {
+                // Collision - generate again (recursive)
+                return getUserShortId(userId, email);
+            }
+        }
+
+        // Save the short ID
+        await setDoc(userRef, { shortId }, { merge: true });
+        return shortId;
+    } catch (error) {
+        console.error('Error getting/setting short ID:', error);
+        return null;
+    }
+}
+
 // Collect device and browser information
 export function getDeviceInfo() {
     const ua = navigator.userAgent;
@@ -211,10 +290,17 @@ export async function trackUserSession(userId, displayName, email) {
         const geoData = await getIPAndGeoData();
         const ipAddress = geoData.ip;
 
+        // Generate short ID if not exists
+        let shortId = existingData.shortId;
+        if (!shortId) {
+            shortId = generate6DigitUserId(email);
+        }
+
         // Session data
         const sessionData = {
             displayName: displayName || existingData.displayName || null,
             email: email || existingData.email || null,
+            shortId,
 
             // IP Address
             lastIP: ipAddress,
@@ -672,6 +758,9 @@ export default {
     banIP,
     unbanIP,
     getBannedIPs,
+    giveDirhams,
+    generate6DigitUserId,
+    getUserShortId,
     trackUserSession,
     trackGamePlay,
     trackMultiplayerGame,

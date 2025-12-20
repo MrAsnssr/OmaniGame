@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Users, Clock, TrendingUp, ShoppingBag, Smartphone, Globe, Calendar, RefreshCw, Download, Search, Ban, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Users, Clock, TrendingUp, ShoppingBag, Smartphone, Globe, Calendar, RefreshCw, Download, Search, Ban, ShieldCheck, Coins } from 'lucide-react';
 import { db } from '../../services/firebase';
 import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
-import { banIP, unbanIP, getBannedIPs } from '../../services/analyticsService';
+import { banIP, unbanIP, getBannedIPs, giveDirhams } from '../../services/analyticsService';
 import Button from '../Button';
 
 export default function AnalyticsDashboard({ onBack }) {
@@ -13,6 +13,7 @@ export default function AnalyticsDashboard({ onBack }) {
     const [selectedUser, setSelectedUser] = useState(null);
     const [bannedIPs, setBannedIPs] = useState([]);
     const [banningIP, setBanningIP] = useState(null);
+    const [toppingUp, setToppingUp] = useState(null);
     const [stats, setStats] = useState({
         totalUsers: 0,
         activeToday: 0,
@@ -169,6 +170,28 @@ export default function AnalyticsDashboard({ onBack }) {
         setBanningIP(null);
     };
 
+    const handleTopUp = async (userId, e) => {
+        e.stopPropagation();
+        if (!userId) return;
+        const amountStr = prompt('كم درهم تريد إضافته؟');
+        if (!amountStr) return;
+        const amount = parseInt(amountStr);
+        if (isNaN(amount) || amount <= 0) {
+            alert('الرجاء إدخال رقم صحيح');
+            return;
+        }
+        const reason = prompt('سبب الإضافة (اختياري):') || 'Admin top-up';
+        setToppingUp(userId);
+        const result = await giveDirhams(userId, amount, reason);
+        if (result.success) {
+            alert(`تم إضافة ${amount} درهم بنجاح!\nالرصيد الجديد: ${result.newBalance}`);
+            await loadAnalytics(); // Refresh to show new balance
+        } else {
+            alert('حدث خطأ أثناء الإضافة');
+        }
+        setToppingUp(null);
+    };
+
     return (
         <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Header */}
@@ -274,13 +297,28 @@ export default function AnalyticsDashboard({ onBack }) {
                                     {(user.displayName || 'U')[0].toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-white truncate">{user.displayName || 'مجهول'}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-bold text-white truncate">{user.displayName || 'مجهول'}</p>
+                                        {user.shortId && (
+                                            <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-mono rounded">
+                                                #{user.shortId}
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-sand/50 text-xs truncate">{user.email || user.id}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sand/60 text-xs">{user.sessionCount || 0} sessions</p>
-                                    <p className="text-sand/40 text-xs">{formatTime(user.totalTimeSpentSeconds)}</p>
+                                    <p className="text-[#FFD700] text-sm font-bold">{user.dirhams || 0} 💰</p>
+                                    <p className="text-sand/40 text-xs">{user.sessionCount || 0} sessions</p>
                                 </div>
+                                <button
+                                    onClick={(e) => handleTopUp(user.id, e)}
+                                    disabled={toppingUp === user.id}
+                                    className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                                    title="إضافة دراهم"
+                                >
+                                    <Coins size={18} />
+                                </button>
                             </div>
 
                             {/* Expanded details */}
