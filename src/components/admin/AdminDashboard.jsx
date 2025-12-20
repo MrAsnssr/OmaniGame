@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play, Flag, Folder, Store, Smile } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Book, HelpCircle, FileJson, Play, Flag, Folder, Store, Smile, Settings, Tv } from 'lucide-react';
 import Button from '../Button';
 import QuestionFormModal from './QuestionFormModal';
+import { getAdsEnabled, setAdsEnabled as setAdsEnabledFirestore } from '../../services/adService';
 
 export default function AdminDashboard({ onBack }) {
     const navigate = useNavigate();
@@ -30,6 +31,27 @@ export default function AdminDashboard({ onBack }) {
     const [showJsonImport, setShowJsonImport] = useState(false);
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterType, setFilterType] = useState('all');
+    const [adsEnabled, setAdsEnabled] = useState(false);
+    const [adsLoading, setAdsLoading] = useState(true);
+
+    // Load ads enabled state
+    useEffect(() => {
+        getAdsEnabled().then(enabled => {
+            setAdsEnabled(enabled);
+            setAdsLoading(false);
+        });
+    }, []);
+
+    // Toggle ads
+    const handleToggleAds = async () => {
+        const newState = !adsEnabled;
+        setAdsLoading(true);
+        const result = await setAdsEnabledFirestore(newState);
+        if (result.success) {
+            setAdsEnabled(newState);
+        }
+        setAdsLoading(false);
+    };
 
     const filteredQuestions = questions.filter(q => {
         const matchCat = filterCategory === 'all' || q.category === filterCategory;
@@ -94,6 +116,12 @@ export default function AdminDashboard({ onBack }) {
                     className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'avatar' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
                 >
                     <Smile size={16} /> Avatar
+                </button>
+                <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm border-b-4 ${activeTab === 'settings' ? 'bg-primary text-white border-black/30' : 'bg-wood-dark/50 text-sand border-white/5 hover:bg-wood-dark/80'}`}
+                >
+                    <Settings size={16} /> Settings
                 </button>
                 <button
                     onClick={() => navigate('/admin/reports')}
@@ -162,6 +190,39 @@ export default function AdminDashboard({ onBack }) {
                         onDeleteTemplate={deleteAvatarFaceTemplate}
                         onUpdateTemplate={editAvatarFaceTemplate}
                     />
+                )}
+                {activeTab === 'settings' && (
+                    <div className="space-y-6">
+                        <h3 className="text-xl font-black text-white mb-4">⚙️ إعدادات التطبيق</h3>
+
+                        {/* Ads Toggle */}
+                        <div className="bg-wood-dark/50 border border-white/10 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                                        <Tv size={24} className="text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-white">الإعلانات</p>
+                                        <p className="text-sm text-sand/60">تفعيل زر "شاهد إعلان" للحصول على دراهم</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleToggleAds}
+                                    disabled={adsLoading}
+                                    className={`relative w-16 h-8 rounded-full transition-colors ${adsEnabled ? 'bg-green-500' : 'bg-gray-600'
+                                        } ${adsLoading ? 'opacity-50' : ''}`}
+                                >
+                                    <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-transform ${adsEnabled ? 'translate-x-9' : 'translate-x-1'
+                                        }`} />
+                                </button>
+                            </div>
+                            <div className={`mt-3 px-3 py-2 rounded-lg text-sm ${adsEnabled ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+                                }`}>
+                                {adsEnabled ? '✅ الإعلانات مفعلة - زر المشاهدة ظاهر للمستخدمين' : '❌ الإعلانات معطلة - الزر مخفي'}
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
 

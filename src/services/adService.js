@@ -4,11 +4,44 @@
 import { db } from './firebase';
 import { doc, setDoc, updateDoc, increment, getDoc } from 'firebase/firestore';
 
-// ========== TOGGLE THIS TO ENABLE ADS ==========
-export const ADS_ENABLED = false; // Set to true when AdSense is approved
-// ================================================
-
 const AD_REWARD = 300; // Dirhams per ad watched
+
+// Cache for ads enabled state
+let adsEnabledCache = null;
+
+// Get ads enabled state from Firestore
+export async function getAdsEnabled() {
+    if (adsEnabledCache !== null) return adsEnabledCache;
+
+    try {
+        const settingsRef = doc(db, 'settings', 'ads');
+        const snap = await getDoc(settingsRef);
+        if (snap.exists()) {
+            adsEnabledCache = snap.data().enabled ?? false;
+            return adsEnabledCache;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error getting ads enabled:', error);
+        return false;
+    }
+}
+
+// Set ads enabled state in Firestore (admin only)
+export async function setAdsEnabled(enabled) {
+    try {
+        const settingsRef = doc(db, 'settings', 'ads');
+        await setDoc(settingsRef, {
+            enabled,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        adsEnabledCache = enabled;
+        return { success: true };
+    } catch (error) {
+        console.error('Error setting ads enabled:', error);
+        return { success: false, error };
+    }
+}
 
 // Track if ads are initialized
 let adsInitialized = false;
