@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Loader2, Check, Coins } from 'lucide-react';
-import { showRewardedAd, recordAdWatch, AD_REWARD } from '../services/adService';
+import { showRewardedAd, recordAdWatch, AD_REWARD, ADS_ENABLED } from '../services/adService';
 import { useGameStore } from '../store/gameStore';
 
 export default function WatchAdButton({ userId, className = '' }) {
     const [watching, setWatching] = useState(false);
     const [showReward, setShowReward] = useState(false);
     const { addDirhams } = useGameStore();
+
+    // Don't render if ads are disabled
+    if (!ADS_ENABLED) return null;
 
     const handleWatchAd = async () => {
         if (watching || !userId) return;

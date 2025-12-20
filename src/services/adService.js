@@ -4,6 +4,10 @@
 import { db } from './firebase';
 import { doc, setDoc, updateDoc, increment, getDoc } from 'firebase/firestore';
 
+// ========== TOGGLE THIS TO ENABLE ADS ==========
+export const ADS_ENABLED = false; // Set to true when AdSense is approved
+// ================================================
+
 const AD_REWARD = 300; // Dirhams per ad watched
 
 // Track if ads are initialized
