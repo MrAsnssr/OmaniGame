@@ -51,8 +51,8 @@ export async function showRewardedAd(userId) {
                     <p style="font-size:24px;margin-bottom:20px;">📺 جاري تحميل الإعلان...</p>
                     <ins class="adsbygoogle"
                         style="display:block;width:300px;height:250px;"
-                        data-ad-client="ca-pub-XXXXXXXXXX"
-                        data-ad-slot="XXXXXXXXXX"
+                        data-ad-client="ca-pub-6816791976768051"
+                        data-ad-slot="auto"
                         data-ad-format="auto"></ins>
                     <button id="close-ad-btn" style="margin-top:20px;padding:15px 40px;background:#22c55e;color:white;border:none;border-radius:12px;font-size:18px;font-weight:bold;cursor:pointer;display:none;">
                         ✅ احصل على ${AD_REWARD} درهم
