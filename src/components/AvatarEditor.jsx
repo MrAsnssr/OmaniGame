@@ -130,3 +130,4 @@ export default function AvatarEditor({ initialConfig, onSave, onCancel }) {
         </div>
     );
 }
+

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, LogOut, User, Bell, HelpCircle, X, Armchair, Users, RotateCcw, CheckSquare, PenLine, ListOrdered, GitCompare } from 'lucide-react';
+import { ArrowRight, Shield, LogOut, User, Bell, HelpCircle, X, Armchair, Users, RotateCcw, CheckSquare, PenLine, ListOrdered, GitCompare, Info, MessageCircle } from 'lucide-react';
 import Button from './Button';
 import { signOut } from '../services/authService';
 
@@ -145,6 +145,16 @@ export default function SettingsPage({ onBack, onAdmin, user, onLogout }) {
                                 <h4 className="text-lg font-black text-primary mb-3 flex items-center gap-2">
                                     🎮 أنواع اللعب
                                 </h4>
+
+                                {/* Links to Pages */}
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <Button onClick={() => { setShowHelpModal(false); navigate('/about'); }} variant="secondary" className="text-sm">
+                                        ℹ️ عن اللعبة
+                                    </Button>
+                                    <Button onClick={() => { setShowHelpModal(false); navigate('/contact'); }} variant="secondary" className="text-sm">
+                                        📧 تواصل معنا
+                                    </Button>
+                                </div>
 
                                 {/* Solo Mode */}
                                 <div className="bg-wood-dark/50 border border-white/5 rounded-xl p-3 mb-3">

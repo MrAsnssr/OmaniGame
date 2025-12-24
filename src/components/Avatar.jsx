@@ -396,3 +396,4 @@ export default function Avatar({ config = {}, size = 100, className = '' }) {
         </svg>
     );
 }
+

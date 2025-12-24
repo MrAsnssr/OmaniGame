@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Flag } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
-export default function MultipleChoice({ question, onAnswer, onUpdate, disabled = false }) {
+export default function MultipleChoice(props) {
+    const { question, onAnswer, onUpdate, disabled = false } = props;
     const { reportQuestion } = useGameStore();
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -43,7 +44,22 @@ export default function MultipleChoice({ question, onAnswer, onUpdate, disabled 
                         'bg-[#D4AF37]', // Omani Gold
                         'bg-[#ec4913]'  // Primary Orange
                     ];
-                    const optionColor = colors[index % colors.length];
+                    let optionColor = colors[index % colors.length];
+
+                    // Visual Feedback Logic
+                    const isSelected = props.selectedAnswer === option;
+                    const isCorrect = props.correctAnswer === option;
+                    const showFeedback = !!props.selectedAnswer; // If user has answered, show feedback
+
+                    if (showFeedback) {
+                        if (isCorrect) {
+                            optionColor = 'bg-green-600 ring-4 ring-green-300';
+                        } else if (isSelected) {
+                            optionColor = 'bg-red-600 ring-4 ring-red-300';
+                        } else {
+                            optionColor = 'bg-gray-400/50 opacity-50';
+                        }
+                    }
 
                     return (
                         <motion.div
@@ -55,12 +71,12 @@ export default function MultipleChoice({ question, onAnswer, onUpdate, disabled 
                             <Button
                                 variant="option"
                                 onClick={() => {
-                                    if (disabled) return;
+                                    if (disabled || showFeedback) return;
                                     onUpdate?.(option);
                                     onAnswer?.(option);
                                 }}
-                                className={`w-full group border-white/20 shadow-lg ${optionColor} py-5 px-6`}
-                                disabled={disabled}
+                                className={`w-full group border-white/20 shadow-lg ${optionColor} py-5 px-6 transition-all duration-300`}
+                                disabled={disabled || showFeedback}
                             >
                                 <span className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-lg font-black text-white mr-4 transition-colors border border-white/20 shadow-inner">
                                     {String.fromCharCode(65 + index)}

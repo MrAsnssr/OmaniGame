@@ -18,6 +18,8 @@ import ProfilePage from './components/ProfilePage';
 import CoinShop from './components/CoinShop';
 import Leaderboard from './components/Leaderboard';
 import MarketPage from './components/MarketPage';
+import AboutPage from './components/AboutPage';
+import ContactPage from './components/ContactPage';
 import { useGameStore } from './store/gameStore';
 import MultipleChoice from './components/questions/MultipleChoice';
 import FillBlank from './components/questions/FillBlank';
@@ -26,6 +28,7 @@ import Match from './components/questions/Match';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, RotateCcw, Home, Users } from 'lucide-react';
 import socketService from './services/socketService';
+import soundService from './services/soundService';
 import { onAuthChange, signOut } from './services/authService';
 import { isFillBlankCorrect } from './utils/answerValidation';
 import { trackUserSession, trackPageView, trackTimeSpent, trackError, trackPerformance, detectRageClick } from './services/analyticsService';
@@ -46,11 +49,19 @@ const stateToRoute = {
 };
 
 // Question renderer component - defined outside App to prevent re-creation on every render
-function QuestionRenderer({ question, onAnswer, onUpdate, disabled = false }) {
+// Question renderer component - defined outside App to prevent re-creation on every render
+function QuestionRenderer({ question, onAnswer, onUpdate, disabled = false, selectedAnswer = null, correctAnswer = null }) {
   if (!question) return null;
   switch (question.type) {
     case 'multiple-choice':
-      return <MultipleChoice question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
+      return <MultipleChoice
+        question={question}
+        onAnswer={onAnswer}
+        onUpdate={onUpdate}
+        disabled={disabled}
+        selectedAnswer={selectedAnswer}
+        correctAnswer={correctAnswer}
+      />;
     case 'fill-blank':
       return <FillBlank question={question} onAnswer={onAnswer} onUpdate={onUpdate} disabled={disabled} />;
     case 'order':
@@ -83,6 +94,7 @@ export default function App() {
   } = useGameStore();
 
   const [feedback, setFeedback] = useState(null);
+  const [lastSelectedAnswer, setLastSelectedAnswer] = useState(null); // For visual feedback
   const [multiplayerError, setMultiplayerError] = useState('');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -99,6 +111,7 @@ export default function App() {
   // Initialize Firestore on app load
   useEffect(() => {
     initializeFirestore();
+    soundService.loadSounds();
   }, []);
 
   // Listen for auth state changes
@@ -399,17 +412,27 @@ export default function App() {
     }
 
     if (isCorrect) incrementScore(10);
+
+    // Play sound based on correctness
+    if (isCorrect) {
+      soundService.playCorrect();
+    } else {
+      soundService.playIncorrect();
+    }
+
     setFeedback(isCorrect ? 'correct' : 'incorrect');
+    setLastSelectedAnswer(answer); // Store for visual feedback props
 
     setTimeout(() => {
       setFeedback(null);
+      setLastSelectedAnswer(null); // Reset
       if (currentQuestionIndex < questions.length - 1) {
         nextQuestion();
       } else {
         endGame();
         navigate('/result');
       }
-    }, 1500);
+    }, 2000); // Increased delay to enjoy the feedback
   };
 
   // Enforced single-player countdown timer (uses timePerQuestion)
@@ -582,6 +605,32 @@ export default function App() {
                 </motion.div>
               } />
 
+              {/* About Page */}
+              <Route path="/about" element={
+                <motion.div
+                  key="about"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="h-full"
+                >
+                  <AboutPage onBack={() => navigate('/settings')} />
+                </motion.div>
+              } />
+
+              {/* Contact Page */}
+              <Route path="/contact" element={
+                <motion.div
+                  key="contact"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="h-full"
+                >
+                  <ContactPage onBack={() => navigate('/settings')} user={user} />
+                </motion.div>
+              } />
+
               {/* Category Selection */}
               <Route path="/categories" element={
                 <motion.div
@@ -669,7 +718,12 @@ export default function App() {
                       <div className="flex-1 overflow-y-auto glass-panel rounded-3xl p-6 relative">
                         {/* Decorative top-right corner */}
                         <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-omani-gold/20 to-transparent rounded-tr-3xl pointer-events-none" />
-                        <QuestionRenderer question={currentQuestion} onAnswer={handleAnswer} />
+                        <QuestionRenderer
+                          question={currentQuestion}
+                          onAnswer={handleAnswer}
+                          selectedAnswer={lastSelectedAnswer}
+                          correctAnswer={currentQuestion?.answer}
+                        />
                       </div>
                     </motion.div>
                   )}
